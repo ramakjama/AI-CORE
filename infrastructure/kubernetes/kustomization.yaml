@@ -1,0 +1,91 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: ai-core-platform
+
+namespace: ai-core
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/part-of: ai-core-platform
+
+# Common labels for all resources
+commonLabels:
+  app.kubernetes.io/version: "1.0.0"
+
+# Common annotations
+commonAnnotations:
+  app.kubernetes.io/description: "AI-Core Platform Infrastructure"
+
+resources:
+  # Base configurations
+  - base/namespace.yaml
+  - base/configmap.yaml
+  - base/secrets.yaml
+  - base/ingress.yaml
+
+  # Application deployments
+  - apps/api/deployment.yaml
+  - apps/api/service.yaml
+  - apps/api/hpa.yaml
+  - apps/web/deployment.yaml
+  - apps/web/service.yaml
+  - apps/workers/deployment.yaml
+
+  # Database configurations
+  - databases/postgresql/statefulset.yaml
+  - databases/postgresql/service.yaml
+  - databases/postgresql/pvc.yaml
+  - databases/redis/deployment.yaml
+  - databases/redis/service.yaml
+
+  # Monitoring stack
+  - monitoring/prometheus/deployment.yaml
+  - monitoring/prometheus/configmap.yaml
+  - monitoring/grafana/deployment.yaml
+
+# ConfigMap generator for Grafana dashboards
+configMapGenerator:
+  - name: grafana-dashboards
+    files:
+      - monitoring/grafana/dashboards/ai-core-overview.json
+    options:
+      labels:
+        app.kubernetes.io/name: grafana
+        app.kubernetes.io/component: dashboards
+
+# Image configuration
+images:
+  - name: ai-core-api
+    newName: your-registry.io/ai-core/api
+    newTag: latest
+  - name: ai-core-web
+    newName: your-registry.io/ai-core/web
+    newTag: latest
+
+# Replicas configuration (can be overridden per environment)
+replicas:
+  - name: ai-core-api
+    count: 3
+  - name: ai-core-web
+    count: 2
+  - name: ai-core-worker-general
+    count: 2
+  - name: ai-core-worker-ai
+    count: 3
+  - name: ai-core-worker-notifications
+    count: 2
+
+# Patches for environment-specific configurations
+patches:
+  # Add resource limits annotation
+  - patch: |-
+      - op: add
+        path: /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+        value: ""
+    target:
+      kind: Deployment
+      namespace: ai-core

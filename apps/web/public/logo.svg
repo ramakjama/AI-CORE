@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E30613"/>
+      <stop offset="100%" style="stop-color:#B8050F"/>
+    </linearGradient>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E30613"/>
+      <stop offset="50%" style="stop-color:#C4050E"/>
+      <stop offset="100%" style="stop-color:#8B0309"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shield Icon -->
+  <g transform="translate(5, 5)">
+    <path d="M25 0L50 10V25C50 40 37.5 48 25 52C12.5 48 0 40 0 25V10L25 0Z" fill="url(#shieldGradient)"/>
+    <path d="M25 5L45 13V25C45 37 34 44 25 47C16 44 5 37 5 25V13L25 5Z" fill="white" fill-opacity="0.15"/>
+    <text x="25" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="800" fill="white" text-anchor="middle">S</text>
+    <path d="M18 38L23 43L35 28" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Company Name -->
+  <text x="65" y="28" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="#1d1d1f">SORIANO</text>
+  <text x="65" y="46" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#6e6e73" letter-spacing="0.5">MEDIADORES DE SEGUROS</text>
+</svg>

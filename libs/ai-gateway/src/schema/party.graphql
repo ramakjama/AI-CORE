@@ -1,0 +1,620 @@
+# ==============================================================================
+# AI Gateway - Party/MDM GraphQL Schema
+# Master Data Management for Parties, Addresses, and Contacts
+# ==============================================================================
+
+extend type Query {
+  """Get a party by ID"""
+  party(id: UUID!): Party @cache(maxAge: 300)
+
+  """Search parties by query string"""
+  searchParties(
+    """Search query"""
+    query: String!
+    """Maximum results to return"""
+    limit: Int = 20
+    """Party type filter"""
+    type: PartyType
+  ): [Party!]! @rateLimit(max: 100, window: "1m")
+
+  """Get a household by ID"""
+  household(id: UUID!): Household @cache(maxAge: 300)
+
+  """Get households for a party"""
+  partyHouseholds(partyId: UUID!): [Household!]! @auth
+
+  """List all parties with pagination"""
+  parties(
+    """Pagination options"""
+    pagination: PaginationInput
+    """Filter options"""
+    filter: PartyFilterInput
+  ): PartyConnection! @auth(requires: AGENT)
+
+  """Get party by identifier"""
+  partyByIdentifier(
+    """Identifier type (e.g., DNI, NIF, PASSPORT)"""
+    type: String!
+    """Identifier value"""
+    value: String!
+  ): Party @auth
+
+  """Validate party data without creating"""
+  validateParty(input: PartyInput!): ValidationResult!
+
+  """Get duplicate candidates for a party"""
+  findDuplicates(input: PartyInput!): [DuplicateCandidate!]! @auth(requires: AGENT)
+}
+
+extend type Mutation {
+  """Create a new party"""
+  createParty(input: PartyInput!): PartyResult! @auth(requires: AGENT)
+
+  """Update an existing party"""
+  updateParty(id: UUID!, input: PartyUpdateInput!): PartyResult! @auth(requires: AGENT)
+
+  """Merge duplicate parties"""
+  mergeParties(
+    """ID of the party to keep"""
+    targetId: UUID!
+    """IDs of parties to merge into target"""
+    sourceIds: [UUID!]!
+  ): PartyResult! @auth(requires: MANAGER)
+
+  """Add address to party"""
+  addPartyAddress(partyId: UUID!, input: AddressInput!): Party! @auth
+
+  """Update party address"""
+  updatePartyAddress(partyId: UUID!, addressId: UUID!, input: AddressInput!): Party! @auth
+
+  """Remove address from party"""
+  removePartyAddress(partyId: UUID!, addressId: UUID!): Party! @auth
+
+  """Add contact to party"""
+  addPartyContact(partyId: UUID!, input: ContactInput!): Party! @auth
+
+  """Update party contact"""
+  updatePartyContact(partyId: UUID!, contactId: UUID!, input: ContactInput!): Party! @auth
+
+  """Remove contact from party"""
+  removePartyContact(partyId: UUID!, contactId: UUID!): Party! @auth
+
+  """Verify contact (email or phone)"""
+  verifyContact(partyId: UUID!, contactId: UUID!, code: String!): VerificationResult! @auth
+
+  """Request contact verification"""
+  requestContactVerification(partyId: UUID!, contactId: UUID!): OperationResult! @auth
+
+  """Create a household"""
+  createHousehold(input: HouseholdInput!): HouseholdResult! @auth(requires: AGENT)
+
+  """Add member to household"""
+  addHouseholdMember(
+    householdId: UUID!
+    partyId: UUID!
+    relationship: String!
+  ): Household! @auth(requires: AGENT)
+
+  """Remove member from household"""
+  removeHouseholdMember(householdId: UUID!, partyId: UUID!): Household! @auth(requires: AGENT)
+}
+
+# ==============================================================================
+# Party Types
+# ==============================================================================
+
+"""Party entity - can be individual or organization"""
+type Party @key(fields: "id") {
+  """Unique identifier"""
+  id: UUID!
+
+  """Party type"""
+  type: PartyType!
+
+  """Full display name"""
+  fullName: String!
+
+  """First name (individuals)"""
+  firstName: String
+
+  """Last name (individuals)"""
+  lastName: String
+
+  """Organization name"""
+  organizationName: String
+
+  """Legal identifiers"""
+  identifiers: [PartyIdentifier!]!
+
+  """Addresses"""
+  addresses: [Address!]!
+
+  """Primary address"""
+  primaryAddress: Address
+
+  """Contact information"""
+  contacts: [Contact!]!
+
+  """Primary email"""
+  primaryEmail: Contact
+
+  """Primary phone"""
+  primaryPhone: Contact
+
+  """Customer segment"""
+  segment: CustomerSegment
+
+  """Associated policies"""
+  policies: [Policy!]! @auth
+
+  """Associated claims"""
+  claims: [Claim!]! @auth
+
+  """Households this party belongs to"""
+  households: [Household!]! @auth
+
+  """Party preferences"""
+  preferences: PartyPreferences
+
+  """Consent records"""
+  consents: [Consent!]! @auth
+
+  """Tags for categorization"""
+  tags: [String!]!
+
+  """Custom metadata"""
+  metadata: JSON
+
+  """Audit information"""
+  audit: AuditInfo!
+
+  """Party status"""
+  status: PartyStatus!
+}
+
+"""Party type enumeration"""
+enum PartyType {
+  """Individual person"""
+  INDIVIDUAL
+  """Business or organization"""
+  ORGANIZATION
+  """Group of individuals"""
+  HOUSEHOLD
+}
+
+"""Party status"""
+enum PartyStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_VERIFICATION
+  BLOCKED
+  DECEASED
+  DISSOLVED
+}
+
+"""Legal identifier"""
+type PartyIdentifier {
+  """Identifier type (DNI, NIF, CIF, PASSPORT, etc.)"""
+  type: String!
+  """Identifier value"""
+  value: String!
+  """Issuing authority"""
+  issuedBy: String
+  """Valid from date"""
+  validFrom: DateTime
+  """Expiration date"""
+  validTo: DateTime
+  """Primary identifier flag"""
+  isPrimary: Boolean!
+  """Verification status"""
+  isVerified: Boolean!
+}
+
+"""Physical or postal address"""
+type Address {
+  """Unique identifier"""
+  id: UUID!
+  """Address type (HOME, WORK, BILLING, etc.)"""
+  type: AddressType!
+  """Street address line 1"""
+  street: String!
+  """Street address line 2"""
+  street2: String
+  """City"""
+  city: String!
+  """State/Province"""
+  state: String!
+  """Postal code"""
+  postalCode: String!
+  """Country code (ISO 3166-1)"""
+  country: String!
+  """Primary address flag"""
+  isPrimary: Boolean!
+  """Coordinates"""
+  coordinates: Coordinates
+  """Valid from date"""
+  validFrom: DateTime
+  """Valid to date"""
+  validTo: DateTime
+  """Verification status"""
+  isVerified: Boolean!
+}
+
+"""Address type"""
+enum AddressType {
+  HOME
+  WORK
+  BILLING
+  SHIPPING
+  LEGAL
+  RISK
+  OTHER
+}
+
+"""Geographic coordinates"""
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
+"""Contact information"""
+type Contact {
+  """Unique identifier"""
+  id: UUID!
+  """Contact type (EMAIL, PHONE, MOBILE, etc.)"""
+  type: ContactType!
+  """Contact value"""
+  value: String!
+  """Primary contact flag"""
+  isPrimary: Boolean!
+  """Verification status"""
+  isVerified: Boolean!
+  """Verification timestamp"""
+  verifiedAt: DateTime
+  """Opt-in for marketing"""
+  marketingOptIn: Boolean!
+}
+
+"""Contact type"""
+enum ContactType {
+  EMAIL
+  PHONE
+  MOBILE
+  FAX
+  WHATSAPP
+  TELEGRAM
+  OTHER
+}
+
+"""Customer segmentation"""
+type CustomerSegment {
+  """Segment code"""
+  code: String!
+  """Segment name"""
+  name: String!
+  """Customer tier"""
+  tier: CustomerTier!
+  """Segment score"""
+  score: Float!
+  """Lifetime value"""
+  lifetimeValue: Money
+  """Churn risk"""
+  churnRisk: Float
+  """Next best action recommendations"""
+  recommendations: [String!]
+}
+
+"""Customer tier"""
+enum CustomerTier {
+  PLATINUM
+  GOLD
+  SILVER
+  BRONZE
+  PROSPECT
+}
+
+"""Party preferences"""
+type PartyPreferences {
+  """Preferred language"""
+  language: String!
+  """Preferred communication channel"""
+  preferredChannel: ContactType!
+  """Timezone"""
+  timezone: String!
+  """Do not contact flag"""
+  doNotContact: Boolean!
+  """Paper-free preference"""
+  paperless: Boolean!
+}
+
+"""Consent record"""
+type Consent {
+  """Consent type"""
+  type: ConsentType!
+  """Consent status"""
+  granted: Boolean!
+  """Granted timestamp"""
+  grantedAt: DateTime
+  """Revoked timestamp"""
+  revokedAt: DateTime
+  """Consent version"""
+  version: String!
+  """IP address when granted"""
+  ipAddress: String
+}
+
+"""Consent type"""
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  MARKETING_EMAIL
+  MARKETING_SMS
+  MARKETING_PHONE
+  DATA_PROCESSING
+  THIRD_PARTY_SHARING
+  PROFILING
+}
+
+# ==============================================================================
+# Household Types
+# ==============================================================================
+
+"""Household - group of related parties"""
+type Household @key(fields: "id") {
+  """Unique identifier"""
+  id: UUID!
+  """Household name"""
+  name: String!
+  """Household members"""
+  members: [HouseholdMember!]!
+  """Primary contact person"""
+  primaryContact: Party!
+  """Household address"""
+  address: Address
+  """Combined policies"""
+  policies: [Policy!]! @auth
+  """Household segment"""
+  segment: CustomerSegment
+  """Creation timestamp"""
+  createdAt: DateTime!
+  """Last update timestamp"""
+  updatedAt: DateTime!
+}
+
+"""Household member with relationship"""
+type HouseholdMember {
+  """Member party"""
+  party: Party!
+  """Relationship to primary"""
+  relationship: String!
+  """Is primary contact"""
+  isPrimary: Boolean!
+  """Joined date"""
+  joinedAt: DateTime!
+}
+
+# ==============================================================================
+# Duplicate Detection
+# ==============================================================================
+
+"""Duplicate candidate"""
+type DuplicateCandidate {
+  """Candidate party"""
+  party: Party!
+  """Match score (0-100)"""
+  score: Float!
+  """Matching fields"""
+  matchingFields: [String!]!
+  """Match reasons"""
+  reasons: [String!]!
+}
+
+# ==============================================================================
+# Input Types
+# ==============================================================================
+
+"""Party creation input"""
+input PartyInput {
+  """Party type"""
+  type: PartyType!
+  """First name (individuals)"""
+  firstName: String
+  """Last name (individuals)"""
+  lastName: String
+  """Organization name"""
+  organizationName: String
+  """Birth date (individuals)"""
+  birthDate: DateTime
+  """Legal identifiers"""
+  identifiers: [PartyIdentifierInput!]!
+  """Addresses"""
+  addresses: [AddressInput!]
+  """Contacts"""
+  contacts: [ContactInput!]
+  """Tags"""
+  tags: [String!]
+  """Custom metadata"""
+  metadata: JSON
+}
+
+"""Party update input"""
+input PartyUpdateInput {
+  """First name"""
+  firstName: String
+  """Last name"""
+  lastName: String
+  """Organization name"""
+  organizationName: String
+  """Tags"""
+  tags: [String!]
+  """Metadata"""
+  metadata: JSON
+  """Status"""
+  status: PartyStatus
+}
+
+"""Identifier input"""
+input PartyIdentifierInput {
+  """Type"""
+  type: String!
+  """Value"""
+  value: String!
+  """Issuer"""
+  issuedBy: String
+  """Primary flag"""
+  isPrimary: Boolean = false
+}
+
+"""Address input"""
+input AddressInput {
+  """Type"""
+  type: AddressType!
+  """Street line 1"""
+  street: String!
+  """Street line 2"""
+  street2: String
+  """City"""
+  city: String!
+  """State"""
+  state: String!
+  """Postal code"""
+  postalCode: String!
+  """Country"""
+  country: String!
+  """Primary flag"""
+  isPrimary: Boolean = false
+}
+
+"""Contact input"""
+input ContactInput {
+  """Type"""
+  type: ContactType!
+  """Value"""
+  value: String!
+  """Primary flag"""
+  isPrimary: Boolean = false
+  """Marketing opt-in"""
+  marketingOptIn: Boolean = false
+}
+
+"""Household input"""
+input HouseholdInput {
+  """Name"""
+  name: String!
+  """Primary contact party ID"""
+  primaryContactId: UUID!
+  """Initial member IDs with relationships"""
+  members: [HouseholdMemberInput!]
+  """Address"""
+  address: AddressInput
+}
+
+"""Household member input"""
+input HouseholdMemberInput {
+  """Party ID"""
+  partyId: UUID!
+  """Relationship"""
+  relationship: String!
+}
+
+"""Party filter input"""
+input PartyFilterInput {
+  """Search query"""
+  query: String
+  """Party types"""
+  types: [PartyType!]
+  """Statuses"""
+  statuses: [PartyStatus!]
+  """Segment codes"""
+  segments: [String!]
+  """Tags"""
+  tags: [String!]
+  """Has active policy"""
+  hasActivePolicy: Boolean
+  """Created date range"""
+  createdAt: DateRangeInput
+}
+
+# ==============================================================================
+# Result Types
+# ==============================================================================
+
+"""Party operation result"""
+type PartyResult {
+  """Success flag"""
+  success: Boolean!
+  """Result party"""
+  party: Party
+  """Errors"""
+  errors: [Error!]
+  """Warnings"""
+  warnings: [String!]
+}
+
+"""Household operation result"""
+type HouseholdResult {
+  """Success flag"""
+  success: Boolean!
+  """Result household"""
+  household: Household
+  """Errors"""
+  errors: [Error!]
+}
+
+"""Validation result"""
+type ValidationResult {
+  """Is valid"""
+  isValid: Boolean!
+  """Validation errors"""
+  errors: [ValidationError!]!
+  """Warnings"""
+  warnings: [String!]!
+}
+
+"""Validation error"""
+type ValidationError {
+  """Field path"""
+  field: String!
+  """Error code"""
+  code: String!
+  """Error message"""
+  message: String!
+}
+
+"""Verification result"""
+type VerificationResult {
+  """Success flag"""
+  success: Boolean!
+  """Verified contact"""
+  contact: Contact
+  """Error message"""
+  error: String
+}
+
+"""Party connection for pagination"""
+type PartyConnection {
+  """Page of parties"""
+  items: [Party!]!
+  """Page info"""
+  pageInfo: PageInfo!
+  """Facets for filtering"""
+  facets: PartyFacets
+}
+
+"""Facets for party search"""
+type PartyFacets {
+  """Type counts"""
+  types: [FacetValue!]!
+  """Status counts"""
+  statuses: [FacetValue!]!
+  """Segment counts"""
+  segments: [FacetValue!]!
+}
+
+"""Facet value"""
+type FacetValue {
+  """Value"""
+  value: String!
+  """Count"""
+  count: Int!
+}

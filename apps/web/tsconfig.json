@@ -1,0 +1,48 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@ai-core/types": [
+        "../../libs/shared/types/src/index.ts"
+      ],
+      "@ai-core/utils": [
+        "../../libs/shared/utils/src/index.ts"
+      ],
+      "@ai-core/constants": [
+        "../../libs/shared/constants/src/index.ts"
+      ],
+      "@ai-core/ui": [
+        "../../libs/ui/src/index.ts"
+      ],
+      "@ai-core/ai": [
+        "../../libs/ai-core/src/index.ts"
+      ]
+    },
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "./.next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out"
+  ]
+}

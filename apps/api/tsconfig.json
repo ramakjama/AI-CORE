@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@ai-core/types": ["../../libs/shared/types/src/index.ts"],
+      "@ai-core/utils": ["../../libs/shared/utils/src/index.ts"],
+      "@ai-core/constants": ["../../libs/shared/constants/src/index.ts"],
+      "@ai-core/database": ["../../libs/database/src/index.ts"],
+      "@ai-core/ai": ["../../libs/ai-core/src/index.ts"],
+      "@ai-core/integrations": ["../../libs/integrations/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

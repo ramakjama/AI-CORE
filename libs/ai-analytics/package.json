@@ -1,0 +1,19 @@
+{
+  "name": "@ai-core/ai-analytics",
+  "version": "1.0.0",
+  "description": "AI-Analytics - ML/DL, Feature Store, Segmentation, Monte Carlo Simulations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@ai-core/database": "workspace:*",
+    "@ai-core/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

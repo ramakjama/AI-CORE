@@ -1,0 +1,230 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-core-config
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/component: config
+data:
+  # Application Settings
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # API Configuration
+  API_PORT: "3000"
+  API_HOST: "0.0.0.0"
+  API_PREFIX: "/api/v1"
+
+  # Web Configuration
+  WEB_PORT: "3000"
+
+  # CORS Configuration
+  CORS_ORIGINS: "https://app.aicore.io,https://admin.aicore.io"
+  CORS_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+
+  # Rate Limiting
+  RATE_LIMIT_TTL: "60"
+  RATE_LIMIT_MAX: "100"
+
+  # Feature Flags
+  ENABLE_SWAGGER: "false"
+  ENABLE_METRICS: "true"
+  ENABLE_TRACING: "true"
+
+  # Pagination Defaults
+  DEFAULT_PAGE_SIZE: "20"
+  MAX_PAGE_SIZE: "100"
+
+  # File Upload Limits
+  MAX_FILE_SIZE: "10485760"
+  ALLOWED_FILE_TYPES: "image/jpeg,image/png,image/gif,application/pdf"
+
+  # Cache TTL (seconds)
+  CACHE_TTL_DEFAULT: "3600"
+  CACHE_TTL_USER: "1800"
+  CACHE_TTL_CONFIG: "86400"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-core-database-config
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/component: database-config
+data:
+  # PostgreSQL Configuration
+  POSTGRES_CORE_DB: "ai_core"
+  POSTGRES_AUTH_DB: "ai_auth"
+  POSTGRES_ANALYTICS_DB: "ai_analytics"
+  POSTGRES_LOGS_DB: "ai_logs"
+  POSTGRES_TENANTS_DB: "ai_tenants"
+
+  # Database Pool Settings
+  DB_POOL_MIN: "5"
+  DB_POOL_MAX: "20"
+  DB_IDLE_TIMEOUT: "30000"
+  DB_CONNECTION_TIMEOUT: "5000"
+
+  # Redis Configuration
+  REDIS_DB: "0"
+  REDIS_KEY_PREFIX: "aicore:"
+
+  # Elasticsearch Configuration
+  ES_INDEX_PREFIX: "aicore"
+  ES_SHARDS: "1"
+  ES_REPLICAS: "1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-core-messaging-config
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/component: messaging-config
+data:
+  # NATS Configuration
+  NATS_MAX_RECONNECT_ATTEMPTS: "10"
+  NATS_RECONNECT_TIME_WAIT: "2000"
+  NATS_TIMEOUT: "5000"
+
+  # Kafka Configuration
+  KAFKA_CLIENT_ID: "ai-core"
+  KAFKA_GROUP_ID: "ai-core-consumer"
+  KAFKA_SESSION_TIMEOUT: "30000"
+  KAFKA_HEARTBEAT_INTERVAL: "3000"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-core-ai-config
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/component: ai-config
+data:
+  # AI Model Configuration
+  DEFAULT_AI_PROVIDER: "openai"
+  DEFAULT_AI_MODEL: "gpt-4"
+  AI_REQUEST_TIMEOUT: "120000"
+  AI_MAX_RETRIES: "3"
+  AI_RETRY_DELAY: "1000"
+
+  # Token Limits
+  MAX_INPUT_TOKENS: "8000"
+  MAX_OUTPUT_TOKENS: "4000"
+
+  # Embedding Configuration
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  EMBEDDING_DIMENSIONS: "1536"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'ai-core-production'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              # - alertmanager:9093
+
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - ai-core
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+      - job_name: 'ai-core-api'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - ai-core
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+            action: keep
+            regex: ai-core-api
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+
+      - job_name: 'postgresql'
+        static_configs:
+          - targets: ['postgresql:9187']
+
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis:9121']
+
+      - job_name: 'elasticsearch'
+        static_configs:
+          - targets: ['elasticsearch:9114']

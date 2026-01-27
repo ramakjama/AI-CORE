@@ -1,0 +1,103 @@
+# PVC for PostgreSQL backups
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-backup
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 100Gi
+---
+# CronJob for automated backups
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-backup
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: postgresql
+          securityContext:
+            fsGroup: 1001
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+                  BACKUP_DIR="/backups"
+
+                  # Backup each database
+                  for DB in ai_core ai_auth ai_analytics ai_logs ai_tenants; do
+                    echo "Backing up database: $DB"
+                    pg_dump -h postgresql -U $POSTGRES_USER -d $DB -Fc > "$BACKUP_DIR/${DB}_${TIMESTAMP}.dump"
+                    echo "Backup completed: ${DB}_${TIMESTAMP}.dump"
+                  done
+
+                  # Remove backups older than 7 days
+                  find $BACKUP_DIR -name "*.dump" -type f -mtime +7 -delete
+
+                  echo "Backup process completed successfully"
+              env:
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ai-core-secrets
+                      key: POSTGRES_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ai-core-secrets
+                      key: POSTGRES_PASSWORD
+              volumeMounts:
+                - name: backup
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: postgresql-backup
+          restartPolicy: OnFailure
+---
+# Storage Class for high-performance PostgreSQL (if available)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: postgresql-ssd
+  labels:
+    app.kubernetes.io/name: postgresql
+provisioner: kubernetes.io/aws-ebs  # Change based on cloud provider
+parameters:
+  type: gp3
+  iops: "3000"
+  throughput: "125"
+  fsType: ext4
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer

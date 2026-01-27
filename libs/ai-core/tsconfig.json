@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@ai-core/types": ["../shared/types/src/index.ts"],
+      "@ai-core/utils": ["../shared/utils/src/index.ts"],
+      "@ai-core/constants": ["../shared/constants/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

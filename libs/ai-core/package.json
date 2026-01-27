@@ -1,0 +1,45 @@
+{
+  "name": "@ai-core/ai",
+  "version": "0.0.1",
+  "private": true,
+  "description": "AI-CORE AI Engine - OpenAI, Anthropic, and Custom Models",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./openai": {
+      "types": "./src/openai.ts",
+      "default": "./src/openai.ts"
+    },
+    "./anthropic": {
+      "types": "./src/anthropic.ts",
+      "default": "./src/anthropic.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@ai-core/types": "workspace:*",
+    "@ai-core/utils": "workspace:*",
+    "@ai-core/constants": "workspace:*",
+    "@anthropic-ai/sdk": "^0.14.1",
+    "openai": "^4.26.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  }
+}

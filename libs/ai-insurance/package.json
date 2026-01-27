@@ -1,0 +1,47 @@
+{
+  "name": "@ai-core/ai-insurance",
+  "version": "1.0.0",
+  "description": "AI Insurance Core Module - Gestión integral de seguros con lógica de negocio española",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "insurance",
+    "seguros",
+    "policy",
+    "claims",
+    "commissions",
+    "spain",
+    "ips",
+    "consorcio"
+  ],
+  "author": "AI-Core Team",
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^9.0.0",
+    "decimal.js": "^10.4.3",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

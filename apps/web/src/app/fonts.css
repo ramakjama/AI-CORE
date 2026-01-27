@@ -1,0 +1,99 @@
+/* AIT-NERVE Font Family - AIN-TECH Typography System */
+
+/* Display Font - For headlines and large text */
+@font-face {
+  font-family: 'AIT Nerve Display';
+  src: url('/fonts/AIT-NerveDisplay-Direca-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve Display';
+  src: url('/fonts/AIT-NerveDisplay-Direca-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve Display';
+  src: url('/fonts/AIT-NerveDisplay-Direca-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve Display';
+  src: url('/fonts/AIT-NerveDisplay-Direca-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UI Font - For body text and interface elements */
+@font-face {
+  font-family: 'AIT Nerve UI';
+  src: url('/fonts/AIT-NerveUI-Direca-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve UI';
+  src: url('/fonts/AIT-NerveUI-Direca-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve UI';
+  src: url('/fonts/AIT-NerveUI-Direca-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve UI';
+  src: url('/fonts/AIT-NerveUI-Direca-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Mono Font - For code and technical content */
+@font-face {
+  font-family: 'AIT Nerve Mono';
+  src: url('/fonts/AIT-NerveMono-Direca-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve Mono';
+  src: url('/fonts/AIT-NerveMono-Direca-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AIT Nerve Mono';
+  src: url('/fonts/AIT-NerveMono-Direca-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Variables for easy use */
+:root {
+  --font-display: 'AIT Nerve Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui: 'AIT Nerve UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'AIT Nerve Mono', 'SF Mono', Monaco, monospace;
+}

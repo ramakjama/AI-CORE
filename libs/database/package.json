@@ -1,0 +1,16 @@
+{
+  "name": "@ai-core/database",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "db:generate": "node scripts/generate-all.js",
+    "db:migrate": "node scripts/migrate-all.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

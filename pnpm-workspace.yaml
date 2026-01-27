@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "libs/*"
+  - "libs/shared/*"
+  - "libs/ai-*"
+  - "services/*"
+  - "tools/*"

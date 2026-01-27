@@ -1,0 +1,1211 @@
+# ==============================================================================
+# AI Gateway - Insurance GraphQL Schema
+# Policies, Claims, Quotes, and Insurance Operations
+# ==============================================================================
+
+extend type Query {
+  """Get policy by ID"""
+  policy(id: UUID!): Policy @cache(maxAge: 60)
+
+  """Get policy by policy number"""
+  policyByNumber(number: String!): Policy @cache(maxAge: 60)
+
+  """Get current user's policies"""
+  myPolicies(
+    """Status filter"""
+    status: [PolicyStatus!]
+    """Pagination"""
+    pagination: PaginationInput
+  ): PolicyConnection! @auth
+
+  """Search policies"""
+  searchPolicies(
+    """Search query"""
+    query: String!
+    """Filters"""
+    filter: PolicyFilterInput
+    """Pagination"""
+    pagination: PaginationInput
+  ): PolicyConnection! @auth(requires: AGENT)
+
+  """Get claim by ID"""
+  claim(id: UUID!): Claim @auth
+
+  """Get claim by claim number"""
+  claimByNumber(number: String!): Claim @auth
+
+  """Get current user's claims"""
+  myClaims(
+    """Status filter"""
+    status: [ClaimStatus!]
+    """Pagination"""
+    pagination: PaginationInput
+  ): ClaimConnection! @auth
+
+  """Search claims"""
+  searchClaims(
+    """Search query"""
+    query: String!
+    """Filters"""
+    filter: ClaimFilterInput
+    """Pagination"""
+    pagination: PaginationInput
+  ): ClaimConnection! @auth(requires: AGENT)
+
+  """Get quote by ID"""
+  quote(id: UUID!): Quote
+
+  """Get available products"""
+  products(
+    """Product type filter"""
+    type: ProductType
+    """Active only"""
+    activeOnly: Boolean = true
+  ): [Product!]! @cache(maxAge: 3600)
+
+  """Get product by code"""
+  product(code: String!): Product @cache(maxAge: 3600)
+
+  """Get receipt by ID"""
+  receipt(id: UUID!): Receipt @auth
+
+  """Get pending receipts"""
+  pendingReceipts(
+    """Policy ID filter"""
+    policyId: UUID
+    """Due date range"""
+    dueDate: DateRangeInput
+  ): [Receipt!]! @auth
+
+  """Calculate premium for a quote"""
+  calculatePremium(input: QuoteInput!): PremiumCalculation! @rateLimit(max: 50, window: "1m")
+
+  """Get coverage recommendations"""
+  recommendCoverages(
+    """Product code"""
+    productCode: String!
+    """Risk profile"""
+    riskProfile: RiskProfileInput!
+  ): [CoverageRecommendation!]! @cache(maxAge: 1800)
+}
+
+extend type Mutation {
+  """Create a new quote"""
+  createQuote(input: QuoteInput!): QuoteResult! @rateLimit(max: 20, window: "1m")
+
+  """Update an existing quote"""
+  updateQuote(id: UUID!, input: QuoteUpdateInput!): QuoteResult! @auth
+
+  """Convert quote to policy"""
+  convertQuoteToPoliciy(
+    """Quote ID"""
+    quoteId: UUID!
+    """Payment method"""
+    paymentMethod: PaymentMethodInput!
+  ): PolicyResult! @auth
+
+  """Submit a new claim"""
+  submitClaim(input: ClaimInput!): ClaimResult! @auth
+
+  """Update claim information"""
+  updateClaim(id: UUID!, input: ClaimUpdateInput!): ClaimResult! @auth(requires: AGENT)
+
+  """Upload claim document"""
+  uploadClaimDocument(
+    """Claim ID"""
+    claimId: UUID!
+    """Document file"""
+    file: Upload!
+    """Document type"""
+    documentType: DocumentType!
+  ): DocumentResult! @auth
+
+  """Add claim note"""
+  addClaimNote(
+    """Claim ID"""
+    claimId: UUID!
+    """Note content"""
+    content: String!
+    """Internal note flag"""
+    isInternal: Boolean = false
+  ): Claim! @auth
+
+  """Approve claim"""
+  approveClaim(
+    """Claim ID"""
+    id: UUID!
+    """Approved amount"""
+    approvedAmount: MoneyInput!
+    """Approval notes"""
+    notes: String
+  ): ClaimResult! @auth(requires: MANAGER)
+
+  """Reject claim"""
+  rejectClaim(
+    """Claim ID"""
+    id: UUID!
+    """Rejection reason"""
+    reason: String!
+    """Rejection code"""
+    code: String!
+  ): ClaimResult! @auth(requires: MANAGER)
+
+  """Process claim payment"""
+  processClaimPayment(
+    """Claim ID"""
+    claimId: UUID!
+    """Payment details"""
+    payment: PaymentInput!
+  ): PaymentResult! @auth(requires: MANAGER)
+
+  """Renew policy"""
+  renewPolicy(
+    """Policy ID"""
+    policyId: UUID!
+    """Renewal options"""
+    options: RenewalOptionsInput
+  ): PolicyResult! @auth
+
+  """Cancel policy"""
+  cancelPolicy(
+    """Policy ID"""
+    policyId: UUID!
+    """Cancellation reason"""
+    reason: String!
+    """Effective date"""
+    effectiveDate: DateTime!
+  ): PolicyResult! @auth
+
+  """Modify policy coverages"""
+  modifyPolicyCoverages(
+    """Policy ID"""
+    policyId: UUID!
+    """Coverage modifications"""
+    modifications: CoverageModificationInput!
+  ): PolicyResult! @auth
+
+  """Pay receipt"""
+  payReceipt(
+    """Receipt ID"""
+    receiptId: UUID!
+    """Payment method"""
+    paymentMethod: PaymentMethodInput!
+  ): PaymentResult! @auth
+
+  """Generate policy document"""
+  generatePolicyDocument(
+    """Policy ID"""
+    policyId: UUID!
+    """Document type"""
+    type: PolicyDocumentType!
+  ): DocumentResult! @auth
+}
+
+# ==============================================================================
+# Policy Types
+# ==============================================================================
+
+"""Insurance policy"""
+type Policy @key(fields: "id") {
+  """Unique identifier"""
+  id: UUID!
+
+  """Policy number"""
+  policyNumber: String!
+
+  """Policy status"""
+  status: PolicyStatus!
+
+  """Product code"""
+  productCode: String!
+
+  """Product name"""
+  productName: String!
+
+  """Product details"""
+  product: Product!
+
+  """Policy holder"""
+  holder: Party!
+
+  """Holder ID for federation"""
+  holderId: UUID!
+
+  """Insured parties"""
+  insuredParties: [InsuredParty!]!
+
+  """Coverages"""
+  coverages: [Coverage!]!
+
+  """Total premium"""
+  premium: Money!
+
+  """Premium breakdown"""
+  premiumBreakdown: PremiumBreakdown!
+
+  """Effective date"""
+  effectiveDate: DateTime!
+
+  """Expiration date"""
+  expirationDate: DateTime!
+
+  """Renewal date"""
+  renewalDate: DateTime
+
+  """Is auto-renewable"""
+  autoRenew: Boolean!
+
+  """Associated claims"""
+  claims: [Claim!]!
+
+  """Pending receipts"""
+  receipts: [Receipt!]!
+
+  """Policy documents"""
+  documents: [Document!]!
+
+  """Risk information"""
+  riskInfo: RiskInfo
+
+  """Policy endorsements"""
+  endorsements: [Endorsement!]!
+
+  """Audit information"""
+  audit: AuditInfo!
+}
+
+"""Policy status"""
+enum PolicyStatus {
+  """Draft policy not yet issued"""
+  DRAFT
+  """Quote generated"""
+  QUOTED
+  """Pending approval or payment"""
+  PENDING
+  """Active policy"""
+  ACTIVE
+  """Temporarily suspended"""
+  SUSPENDED
+  """Cancelled before expiration"""
+  CANCELLED
+  """Expired policy"""
+  EXPIRED
+  """Renewed to new policy"""
+  RENEWED
+}
+
+"""Insured party with role"""
+type InsuredParty {
+  """Party"""
+  party: Party!
+  """Role on policy"""
+  role: InsuredRole!
+  """Coverage percentage"""
+  percentage: Float!
+}
+
+"""Insured role"""
+enum InsuredRole {
+  PRIMARY
+  ADDITIONAL
+  BENEFICIARY
+  DRIVER
+  DEPENDENT
+}
+
+"""Coverage on a policy"""
+type Coverage {
+  """Unique identifier"""
+  id: UUID!
+  """Coverage code"""
+  code: String!
+  """Coverage name"""
+  name: String!
+  """Description"""
+  description: String!
+  """Coverage limit"""
+  limit: Money!
+  """Deductible amount"""
+  deductible: Money!
+  """Coverage premium"""
+  premium: Money!
+  """Is optional"""
+  isOptional: Boolean!
+  """Is selected"""
+  isSelected: Boolean!
+  """Sub-limits"""
+  subLimits: [SubLimit!]
+}
+
+"""Sub-limit within coverage"""
+type SubLimit {
+  """Description"""
+  description: String!
+  """Limit amount"""
+  limit: Money!
+  """Per occurrence or aggregate"""
+  limitType: LimitType!
+}
+
+"""Limit type"""
+enum LimitType {
+  PER_OCCURRENCE
+  AGGREGATE
+  ANNUAL
+  LIFETIME
+}
+
+"""Premium breakdown"""
+type PremiumBreakdown {
+  """Base premium"""
+  basePremium: Money!
+  """Taxes"""
+  taxes: Money!
+  """Fees"""
+  fees: Money!
+  """Discounts"""
+  discounts: Money!
+  """Surcharges"""
+  surcharges: Money!
+  """Total premium"""
+  total: Money!
+  """Line items"""
+  lineItems: [PremiumLineItem!]!
+}
+
+"""Premium line item"""
+type PremiumLineItem {
+  """Description"""
+  description: String!
+  """Amount"""
+  amount: Money!
+  """Type"""
+  type: LineItemType!
+}
+
+"""Line item type"""
+enum LineItemType {
+  COVERAGE
+  TAX
+  FEE
+  DISCOUNT
+  SURCHARGE
+}
+
+"""Policy endorsement"""
+type Endorsement {
+  """Endorsement ID"""
+  id: UUID!
+  """Endorsement number"""
+  number: String!
+  """Type"""
+  type: EndorsementType!
+  """Effective date"""
+  effectiveDate: DateTime!
+  """Description"""
+  description: String!
+  """Premium change"""
+  premiumChange: Money
+  """Status"""
+  status: EndorsementStatus!
+}
+
+"""Endorsement type"""
+enum EndorsementType {
+  ADD_COVERAGE
+  REMOVE_COVERAGE
+  MODIFY_COVERAGE
+  ADD_INSURED
+  REMOVE_INSURED
+  ADDRESS_CHANGE
+  VEHICLE_CHANGE
+  GENERAL
+}
+
+"""Endorsement status"""
+enum EndorsementStatus {
+  PENDING
+  APPROVED
+  APPLIED
+  REJECTED
+}
+
+"""Risk information"""
+type RiskInfo {
+  """Risk address"""
+  address: Address
+  """Risk details (varies by product)"""
+  details: JSON!
+  """Risk score"""
+  score: Float
+  """Risk factors"""
+  factors: [RiskFactor!]
+}
+
+"""Risk factor"""
+type RiskFactor {
+  """Factor name"""
+  name: String!
+  """Factor value"""
+  value: String!
+  """Impact on premium"""
+  impact: Float!
+}
+
+# ==============================================================================
+# Product Types
+# ==============================================================================
+
+"""Insurance product"""
+type Product {
+  """Product code"""
+  code: String!
+  """Product name"""
+  name: String!
+  """Product type"""
+  type: ProductType!
+  """Description"""
+  description: String!
+  """Available coverages"""
+  availableCoverages: [CoverageOption!]!
+  """Required coverages"""
+  requiredCoverages: [String!]!
+  """Minimum premium"""
+  minimumPremium: Money
+  """Is active"""
+  isActive: Boolean!
+  """Terms and conditions URL"""
+  termsUrl: String
+  """Product brochure URL"""
+  brochureUrl: String
+}
+
+"""Product type"""
+enum ProductType {
+  AUTO
+  HOME
+  LIFE
+  HEALTH
+  TRAVEL
+  BUSINESS
+  LIABILITY
+  OTHER
+}
+
+"""Coverage option"""
+type CoverageOption {
+  """Code"""
+  code: String!
+  """Name"""
+  name: String!
+  """Description"""
+  description: String!
+  """Is optional"""
+  isOptional: Boolean!
+  """Base premium"""
+  basePremium: Money
+  """Available limits"""
+  availableLimits: [Money!]
+  """Available deductibles"""
+  availableDeductibles: [Money!]
+}
+
+"""Coverage recommendation"""
+type CoverageRecommendation {
+  """Coverage code"""
+  coverageCode: String!
+  """Coverage name"""
+  name: String!
+  """Recommended limit"""
+  recommendedLimit: Money!
+  """Recommended deductible"""
+  recommendedDeductible: Money!
+  """Recommendation reason"""
+  reason: String!
+  """Confidence score"""
+  confidence: Float!
+}
+
+# ==============================================================================
+# Claim Types
+# ==============================================================================
+
+"""Insurance claim"""
+type Claim @key(fields: "id") {
+  """Unique identifier"""
+  id: UUID!
+
+  """Claim number"""
+  claimNumber: String!
+
+  """Claim status"""
+  status: ClaimStatus!
+
+  """Related policy"""
+  policy: Policy!
+
+  """Policy ID"""
+  policyId: UUID!
+
+  """Claimant"""
+  claimant: Party!
+
+  """Claimant ID"""
+  claimantId: UUID!
+
+  """Loss date"""
+  lossDate: DateTime!
+
+  """Reported date"""
+  reportedDate: DateTime!
+
+  """Loss type"""
+  lossType: LossType!
+
+  """Loss description"""
+  description: String!
+
+  """Loss location"""
+  lossLocation: Address
+
+  """Estimated amount"""
+  estimatedAmount: Money
+
+  """Approved amount"""
+  approvedAmount: Money
+
+  """Paid amount"""
+  paidAmount: Money
+
+  """Reserve amount"""
+  reserveAmount: Money
+
+  """Supporting documents"""
+  documents: [Document!]!
+
+  """Claim notes"""
+  notes: [ClaimNote!]!
+
+  """Claim timeline"""
+  timeline: [ClaimEvent!]!
+
+  """Assigned adjuster"""
+  adjuster: Party
+
+  """Third parties involved"""
+  thirdParties: [ThirdParty!]
+
+  """Subrogation info"""
+  subrogation: SubrogationInfo
+
+  """Audit info"""
+  audit: AuditInfo!
+}
+
+"""Claim status"""
+enum ClaimStatus {
+  """Initial draft"""
+  DRAFT
+  """Submitted for review"""
+  SUBMITTED
+  """Under review"""
+  UNDER_REVIEW
+  """Additional info requested"""
+  INFO_REQUESTED
+  """Approved for payment"""
+  APPROVED
+  """Rejected"""
+  REJECTED
+  """Payment processed"""
+  PAID
+  """Claim closed"""
+  CLOSED
+  """Reopened"""
+  REOPENED
+}
+
+"""Loss type"""
+enum LossType {
+  COLLISION
+  THEFT
+  FIRE
+  WATER_DAMAGE
+  WEATHER
+  VANDALISM
+  LIABILITY
+  MEDICAL
+  DEATH
+  PROPERTY_DAMAGE
+  OTHER
+}
+
+"""Claim note"""
+type ClaimNote {
+  """Note ID"""
+  id: UUID!
+  """Author"""
+  author: String!
+  """Content"""
+  content: String!
+  """Created timestamp"""
+  createdAt: DateTime!
+  """Is internal note"""
+  isInternal: Boolean!
+}
+
+"""Claim event for timeline"""
+type ClaimEvent {
+  """Event ID"""
+  id: UUID!
+  """Event type"""
+  type: ClaimEventType!
+  """Description"""
+  description: String!
+  """Timestamp"""
+  timestamp: DateTime!
+  """Actor"""
+  actor: String
+  """Additional details"""
+  details: JSON
+}
+
+"""Claim event type"""
+enum ClaimEventType {
+  CREATED
+  SUBMITTED
+  ASSIGNED
+  DOCUMENT_ADDED
+  NOTE_ADDED
+  STATUS_CHANGED
+  AMOUNT_UPDATED
+  APPROVED
+  REJECTED
+  PAYMENT_INITIATED
+  PAYMENT_COMPLETED
+  CLOSED
+  REOPENED
+}
+
+"""Third party involved in claim"""
+type ThirdParty {
+  """Name"""
+  name: String!
+  """Role"""
+  role: String!
+  """Contact info"""
+  contact: String
+  """Insurance company"""
+  insuranceCompany: String
+  """Policy number"""
+  policyNumber: String
+}
+
+"""Subrogation information"""
+type SubrogationInfo {
+  """Has subrogation potential"""
+  hasPotential: Boolean!
+  """Status"""
+  status: SubrogationStatus
+  """Amount recovered"""
+  amountRecovered: Money
+  """Target party"""
+  targetParty: String
+}
+
+"""Subrogation status"""
+enum SubrogationStatus {
+  IDENTIFIED
+  IN_PROGRESS
+  RECOVERED
+  WAIVED
+  CLOSED
+}
+
+# ==============================================================================
+# Quote Types
+# ==============================================================================
+
+"""Insurance quote"""
+type Quote {
+  """Unique identifier"""
+  id: UUID!
+
+  """Quote number"""
+  quoteNumber: String!
+
+  """Quote status"""
+  status: QuoteStatus!
+
+  """Product code"""
+  productCode: String!
+
+  """Product"""
+  product: Product!
+
+  """Quote holder"""
+  holder: Party
+
+  """Selected coverages"""
+  coverages: [Coverage!]!
+
+  """Total premium"""
+  totalPremium: Money!
+
+  """Premium breakdown"""
+  premiumBreakdown: PremiumBreakdown!
+
+  """Valid until date"""
+  validUntil: DateTime!
+
+  """Quote documents"""
+  documents: [Document!]!
+
+  """Risk information"""
+  riskInfo: RiskInfo
+
+  """Created timestamp"""
+  createdAt: DateTime!
+
+  """Is expired"""
+  isExpired: Boolean!
+}
+
+"""Quote status"""
+enum QuoteStatus {
+  DRAFT
+  CALCULATING
+  READY
+  ACCEPTED
+  EXPIRED
+  CONVERTED
+}
+
+"""Premium calculation result"""
+type PremiumCalculation {
+  """Calculated premium"""
+  premium: Money!
+  """Premium breakdown"""
+  breakdown: PremiumBreakdown!
+  """Risk factors applied"""
+  riskFactors: [RiskFactor!]!
+  """Discounts applied"""
+  discountsApplied: [DiscountApplied!]!
+  """Is indicative (not final)"""
+  isIndicative: Boolean!
+  """Valid for duration"""
+  validForMinutes: Int!
+}
+
+"""Applied discount"""
+type DiscountApplied {
+  """Discount code"""
+  code: String!
+  """Discount name"""
+  name: String!
+  """Discount amount"""
+  amount: Money!
+  """Discount percentage"""
+  percentage: Float
+}
+
+# ==============================================================================
+# Receipt & Payment Types
+# ==============================================================================
+
+"""Payment receipt"""
+type Receipt {
+  """Unique identifier"""
+  id: UUID!
+  """Receipt number"""
+  receiptNumber: String!
+  """Related policy"""
+  policy: Policy!
+  """Policy ID"""
+  policyId: UUID!
+  """Amount due"""
+  amount: Money!
+  """Due date"""
+  dueDate: DateTime!
+  """Paid date"""
+  paidDate: DateTime
+  """Payment status"""
+  status: ReceiptStatus!
+  """Payment method used"""
+  paymentMethod: String
+  """Installment number"""
+  installmentNumber: Int
+  """Total installments"""
+  totalInstallments: Int
+}
+
+"""Receipt status"""
+enum ReceiptStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+"""Payment result"""
+type PaymentResult {
+  """Success flag"""
+  success: Boolean!
+  """Transaction ID"""
+  transactionId: String
+  """Payment status"""
+  status: PaymentStatus!
+  """Receipt"""
+  receipt: Receipt
+  """Error message"""
+  error: String
+}
+
+"""Payment status"""
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+# ==============================================================================
+# Document Types
+# ==============================================================================
+
+"""Document"""
+type Document {
+  """Unique identifier"""
+  id: UUID!
+  """Document name"""
+  name: String!
+  """Document type"""
+  type: DocumentType!
+  """MIME type"""
+  mimeType: String!
+  """File size in bytes"""
+  size: Int!
+  """Download URL"""
+  url: String!
+  """Uploaded by"""
+  uploadedBy: String!
+  """Upload timestamp"""
+  uploadedAt: DateTime!
+  """Document metadata"""
+  metadata: JSON
+}
+
+"""Document type"""
+enum DocumentType {
+  POLICY_DOCUMENT
+  QUOTE_DOCUMENT
+  CLAIM_PHOTO
+  CLAIM_REPORT
+  MEDICAL_REPORT
+  POLICE_REPORT
+  INVOICE
+  RECEIPT
+  ID_DOCUMENT
+  PROOF_OF_OWNERSHIP
+  OTHER
+}
+
+"""Document result"""
+type DocumentResult {
+  """Success flag"""
+  success: Boolean!
+  """Document"""
+  document: Document
+  """Error message"""
+  error: String
+}
+
+"""Policy document type"""
+enum PolicyDocumentType {
+  POLICY_SCHEDULE
+  CERTIFICATE
+  TERMS_CONDITIONS
+  ID_CARD
+  CLAIM_FORM
+}
+
+# ==============================================================================
+# Input Types
+# ==============================================================================
+
+"""Quote creation input"""
+input QuoteInput {
+  """Product code"""
+  productCode: String!
+  """Existing holder ID"""
+  holderId: UUID
+  """New holder data"""
+  holderData: PartyInput
+  """Selected coverage codes"""
+  coverages: [CoverageSelectionInput!]!
+  """Effective date"""
+  effectiveDate: DateTime!
+  """Risk information"""
+  riskInfo: RiskInfoInput
+  """Discount codes"""
+  discountCodes: [String!]
+}
+
+"""Coverage selection input"""
+input CoverageSelectionInput {
+  """Coverage code"""
+  code: String!
+  """Selected limit"""
+  limit: MoneyInput
+  """Selected deductible"""
+  deductible: MoneyInput
+}
+
+"""Quote update input"""
+input QuoteUpdateInput {
+  """Updated coverages"""
+  coverages: [CoverageSelectionInput!]
+  """Updated effective date"""
+  effectiveDate: DateTime
+  """Updated risk info"""
+  riskInfo: RiskInfoInput
+  """Discount codes"""
+  discountCodes: [String!]
+}
+
+"""Risk information input"""
+input RiskInfoInput {
+  """Risk address"""
+  address: AddressInput
+  """Risk details (product-specific)"""
+  details: JSON!
+}
+
+"""Risk profile input for recommendations"""
+input RiskProfileInput {
+  """Party type"""
+  partyType: PartyType!
+  """Age"""
+  age: Int
+  """Location"""
+  location: AddressInput
+  """Existing policies"""
+  existingPolicies: [String!]
+  """Additional factors"""
+  factors: JSON
+}
+
+"""Claim creation input"""
+input ClaimInput {
+  """Policy ID"""
+  policyId: UUID!
+  """Loss date"""
+  lossDate: DateTime!
+  """Loss type"""
+  lossType: LossType!
+  """Description"""
+  description: String!
+  """Loss location"""
+  lossLocation: AddressInput
+  """Estimated amount"""
+  estimatedAmount: MoneyInput
+  """Initial documents"""
+  documents: [DocumentInput!]
+  """Third parties"""
+  thirdParties: [ThirdPartyInput!]
+}
+
+"""Document input"""
+input DocumentInput {
+  """File name"""
+  name: String!
+  """Document type"""
+  type: DocumentType!
+  """Base64 content"""
+  content: String!
+}
+
+"""Third party input"""
+input ThirdPartyInput {
+  """Name"""
+  name: String!
+  """Role"""
+  role: String!
+  """Contact"""
+  contact: String
+  """Insurance company"""
+  insuranceCompany: String
+  """Policy number"""
+  policyNumber: String
+}
+
+"""Claim update input"""
+input ClaimUpdateInput {
+  """Description"""
+  description: String
+  """Estimated amount"""
+  estimatedAmount: MoneyInput
+  """Loss location"""
+  lossLocation: AddressInput
+  """Status"""
+  status: ClaimStatus
+  """Adjuster ID"""
+  adjusterId: UUID
+  """Reserve amount"""
+  reserveAmount: MoneyInput
+}
+
+"""Payment input"""
+input PaymentInput {
+  """Amount"""
+  amount: MoneyInput!
+  """Payment method"""
+  method: String!
+  """Reference"""
+  reference: String
+  """Payee details"""
+  payee: PayeeInput!
+}
+
+"""Payee input"""
+input PayeeInput {
+  """Name"""
+  name: String!
+  """Bank account"""
+  bankAccount: String
+  """IBAN"""
+  iban: String
+}
+
+"""Payment method input"""
+input PaymentMethodInput {
+  """Method type"""
+  type: PaymentMethodType!
+  """Card token (for card payments)"""
+  cardToken: String
+  """Bank account (for direct debit)"""
+  bankAccount: String
+  """Save for future use"""
+  saveForFuture: Boolean = false
+}
+
+"""Payment method type"""
+enum PaymentMethodType {
+  CARD
+  DIRECT_DEBIT
+  BANK_TRANSFER
+  WALLET
+}
+
+"""Renewal options input"""
+input RenewalOptionsInput {
+  """Modify coverages"""
+  coverages: [CoverageSelectionInput!]
+  """New effective date"""
+  effectiveDate: DateTime
+  """Apply discount codes"""
+  discountCodes: [String!]
+}
+
+"""Coverage modification input"""
+input CoverageModificationInput {
+  """Add coverages"""
+  add: [CoverageSelectionInput!]
+  """Remove coverage codes"""
+  remove: [String!]
+  """Modify existing coverages"""
+  modify: [CoverageSelectionInput!]
+  """Effective date"""
+  effectiveDate: DateTime!
+}
+
+"""Policy filter input"""
+input PolicyFilterInput {
+  """Product codes"""
+  productCodes: [String!]
+  """Statuses"""
+  statuses: [PolicyStatus!]
+  """Holder ID"""
+  holderId: UUID
+  """Effective date range"""
+  effectiveDate: DateRangeInput
+  """Expiration date range"""
+  expirationDate: DateRangeInput
+  """Has claims"""
+  hasClaims: Boolean
+}
+
+"""Claim filter input"""
+input ClaimFilterInput {
+  """Statuses"""
+  statuses: [ClaimStatus!]
+  """Loss types"""
+  lossTypes: [LossType!]
+  """Policy ID"""
+  policyId: UUID
+  """Claimant ID"""
+  claimantId: UUID
+  """Loss date range"""
+  lossDate: DateRangeInput
+  """Reported date range"""
+  reportedDate: DateRangeInput
+  """Adjuster ID"""
+  adjusterId: UUID
+}
+
+# ==============================================================================
+# Result Types
+# ==============================================================================
+
+"""Quote operation result"""
+type QuoteResult {
+  """Success flag"""
+  success: Boolean!
+  """Quote"""
+  quote: Quote
+  """Errors"""
+  errors: [Error!]
+  """Warnings"""
+  warnings: [String!]
+}
+
+"""Policy operation result"""
+type PolicyResult {
+  """Success flag"""
+  success: Boolean!
+  """Policy"""
+  policy: Policy
+  """Errors"""
+  errors: [Error!]
+  """Warnings"""
+  warnings: [String!]
+}
+
+"""Claim operation result"""
+type ClaimResult {
+  """Success flag"""
+  success: Boolean!
+  """Claim"""
+  claim: Claim
+  """Errors"""
+  errors: [Error!]
+  """Warnings"""
+  warnings: [String!]
+}
+
+"""Policy connection for pagination"""
+type PolicyConnection {
+  """Policies"""
+  items: [Policy!]!
+  """Page info"""
+  pageInfo: PageInfo!
+}
+
+"""Claim connection for pagination"""
+type ClaimConnection {
+  """Claims"""
+  items: [Claim!]!
+  """Page info"""
+  pageInfo: PageInfo!
+}

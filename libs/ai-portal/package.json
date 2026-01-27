@@ -1,0 +1,34 @@
+{
+  "name": "@ai-core/ai-portal",
+  "version": "1.0.0",
+  "description": "AI Portal module for e-cliente and web premium portals",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "portal",
+    "e-cliente",
+    "web-premium",
+    "insurance",
+    "gamification",
+    "notifications"
+  ],
+  "author": "AI-Core Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0"
+  }
+}

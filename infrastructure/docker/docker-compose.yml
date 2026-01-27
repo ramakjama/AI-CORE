@@ -1,0 +1,141 @@
+version: '3.9'
+
+services:
+  # ============================================
+  # DATABASES
+  # ============================================
+  postgres-global:
+    image: postgres:16-alpine
+    container_name: ai-core-postgres-global
+    environment:
+      POSTGRES_USER: aicore
+      POSTGRES_PASSWORD: aicore_dev
+      POSTGRES_DB: sm_global
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_global_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aicore -d sm_global"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-insurance:
+    image: postgres:16-alpine
+    container_name: ai-core-postgres-insurance
+    environment:
+      POSTGRES_USER: aicore
+      POSTGRES_PASSWORD: aicore_dev
+      POSTGRES_DB: ss_insurance
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_insurance_data:/var/lib/postgresql/data
+
+  postgres-analytics:
+    image: postgres:16-alpine
+    container_name: ai-core-postgres-analytics
+    environment:
+      POSTGRES_USER: aicore
+      POSTGRES_PASSWORD: aicore_dev
+      POSTGRES_DB: sm_analytics
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
+
+  # ============================================
+  # CACHE & MESSAGE BROKER
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: ai-core-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: ai-core-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["--jetstream", "--store_dir=/data"]
+    volumes:
+      - nats_data:/data
+
+  # ============================================
+  # SEARCH & VECTOR
+  # ============================================
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: ai-core-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+  # ============================================
+  # MONITORING
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: ai-core-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ai-core-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # ============================================
+  # ADMIN TOOLS
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ai-core-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@aicore.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-global
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: ai-core-redisinsight
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+
+volumes:
+  postgres_global_data:
+  postgres_insurance_data:
+  postgres_analytics_data:
+  redis_data:
+  nats_data:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: ai-core-network

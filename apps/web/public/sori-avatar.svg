@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <defs>
+    <linearGradient id="soriGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E30613"/>
+      <stop offset="50%" style="stop-color:#AF52DE"/>
+      <stop offset="100%" style="stop-color:#5856D6"/>
+    </linearGradient>
+    <linearGradient id="faceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#f0f0f5"/>
+    </linearGradient>
+    <filter id="soriGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="40" cy="40" r="38" fill="url(#soriGrad)" filter="url(#soriGlow)"/>
+
+  <!-- Inner glow -->
+  <circle cx="40" cy="40" r="32" fill="white" fill-opacity="0.15"/>
+
+  <!-- Robot face -->
+  <rect x="22" y="24" rx="8" ry="8" width="36" height="32" fill="url(#faceGrad)"/>
+
+  <!-- Eyes -->
+  <circle cx="32" cy="36" r="4" fill="#1d1d1f"/>
+  <circle cx="48" cy="36" r="4" fill="#1d1d1f"/>
+  <circle cx="33" cy="35" r="1.5" fill="white"/>
+  <circle cx="49" cy="35" r="1.5" fill="white"/>
+
+  <!-- Smile -->
+  <path d="M30 46 Q40 52 50 46" stroke="#E30613" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+  <!-- Antenna -->
+  <line x1="40" y1="24" x2="40" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="40" cy="14" r="3" fill="#34C759"/>
+
+  <!-- AI sparkles -->
+  <g fill="#ffffff" fill-opacity="0.9">
+    <polygon points="15,20 17,25 22,25 18,28 20,33 15,30 10,33 12,28 8,25 13,25"/>
+    <polygon points="65,50 66,53 69,53 67,55 68,58 65,56 62,58 63,55 61,53 64,53" transform="scale(0.8) translate(12, 8)"/>
+  </g>
+</svg>

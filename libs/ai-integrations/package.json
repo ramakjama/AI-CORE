@@ -1,0 +1,47 @@
+{
+  "name": "@codex/ai-integrations",
+  "version": "1.0.0",
+  "description": "Hub de integraciones, ETL y conectores para el ecosistema Codex",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "amqplib": "^0.10.3",
+    "kafkajs": "^2.2.4",
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.0",
+    "crypto-js": "^4.2.0",
+    "xml2js": "^0.6.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/amqplib": "^0.10.4",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^9.0.7",
+    "@types/crypto-js": "^4.2.1",
+    "@types/xml2js": "^0.4.14",
+    "@types/jsonwebtoken": "^9.0.5",
+    "typescript": "^5.3.2"
+  },
+  "keywords": [
+    "integrations",
+    "etl",
+    "connectors",
+    "webhooks",
+    "sync",
+    "insurance",
+    "banking",
+    "open-banking",
+    "crm",
+    "erp"
+  ],
+  "author": "Codex Team",
+  "license": "MIT"
+}

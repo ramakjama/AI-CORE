@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/part-of: ai-core-platform
+    environment: production
+  annotations:
+    description: "AI-Core Platform Namespace"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-core-dev
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/part-of: ai-core-platform
+    environment: development
+  annotations:
+    description: "AI-Core Platform Development Namespace"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-core-staging
+  labels:
+    app.kubernetes.io/name: ai-core
+    app.kubernetes.io/part-of: ai-core-platform
+    environment: staging
+  annotations:
+    description: "AI-Core Platform Staging Namespace"
+---
+# Resource Quotas for Production
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ai-core-quota
+  namespace: ai-core
+spec:
+  hard:
+    requests.cpu: "50"
+    requests.memory: 100Gi
+    limits.cpu: "100"
+    limits.memory: 200Gi
+    persistentvolumeclaims: "20"
+    pods: "100"
+    services: "30"
+    secrets: "50"
+    configmaps: "50"
+---
+# Limit Range for Production
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: ai-core-limits
+  namespace: ai-core
+spec:
+  limits:
+    - default:
+        cpu: "1"
+        memory: 1Gi
+      defaultRequest:
+        cpu: "100m"
+        memory: 256Mi
+      type: Container
+    - max:
+        storage: 100Gi
+      type: PersistentVolumeClaim
+---
+# Network Policy - Default Deny All Ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ai-core
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Network Policy - Allow Internal Communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal
+  namespace: ai-core
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: ai-core-platform
+---
+# Network Policy - Allow Ingress Controller
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: ai-core
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000

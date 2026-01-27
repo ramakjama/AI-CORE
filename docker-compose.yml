@@ -1,0 +1,434 @@
+# =============================================================================
+# AI-CORE Docker Compose Configuration
+# Development environment with PostgreSQL, Redis, and Kafka
+# =============================================================================
+# Usage:
+#   docker-compose up -d              # Start all services
+#   docker-compose down               # Stop all services
+#   docker-compose logs -f postgres   # View PostgreSQL logs
+#   docker-compose ps                 # View running services
+# =============================================================================
+
+version: '3.9'
+
+services:
+  # ===========================================================================
+  # PostgreSQL - Primary Database Server
+  # ===========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-core-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ai_core_main
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # PostgreSQL Database Initialization Script
+  # Creates all 38+ databases on first run
+  # ===========================================================================
+  postgres-init:
+    image: postgres:16-alpine
+    container_name: ai-core-postgres-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: password
+    volumes:
+      - ./infrastructure/docker/postgres/create-databases.sh:/create-databases.sh:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Creating AI-CORE databases..."
+
+        # Core System Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS ai_core_global;" 2>/dev/null || psql -c "SELECT 1" -d ai_core_global
+        psql -c "CREATE DATABASE IF NOT EXISTS ai_core_system;" 2>/dev/null || psql -c "SELECT 1" -d ai_core_system
+        psql -c "CREATE DATABASE IF NOT EXISTS ai_core_audit;" 2>/dev/null || psql -c "SELECT 1" -d ai_core_audit
+        psql -c "CREATE DATABASE IF NOT EXISTS ai_core_logs;" 2>/dev/null || psql -c "SELECT 1" -d ai_core_logs
+
+        # Insurance Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS ss_insurance;" 2>/dev/null || psql -c "SELECT 1" -d ss_insurance
+        psql -c "CREATE DATABASE IF NOT EXISTS ss_policies;" 2>/dev/null || psql -c "SELECT 1" -d ss_policies
+        psql -c "CREATE DATABASE IF NOT EXISTS ss_claims;" 2>/dev/null || psql -c "SELECT 1" -d ss_claims
+        psql -c "CREATE DATABASE IF NOT EXISTS ss_commissions;" 2>/dev/null || psql -c "SELECT 1" -d ss_commissions
+        psql -c "CREATE DATABASE IF NOT EXISTS ss_carriers;" 2>/dev/null || psql -c "SELECT 1" -d ss_carriers
+
+        # HR Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_hr;" 2>/dev/null || psql -c "SELECT 1" -d sm_hr
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_hr_payroll;" 2>/dev/null || psql -c "SELECT 1" -d sm_hr_payroll
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_hr_recruitment;" 2>/dev/null || psql -c "SELECT 1" -d sm_hr_recruitment
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_hr_training;" 2>/dev/null || psql -c "SELECT 1" -d sm_hr_training
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_hr_performance;" 2>/dev/null || psql -c "SELECT 1" -d sm_hr_performance
+
+        # Analytics Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_analytics;" 2>/dev/null || psql -c "SELECT 1" -d sm_analytics
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_analytics_reports;" 2>/dev/null || psql -c "SELECT 1" -d sm_analytics_reports
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_analytics_dashboards;" 2>/dev/null || psql -c "SELECT 1" -d sm_analytics_dashboards
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_analytics_metrics;" 2>/dev/null || psql -c "SELECT 1" -d sm_analytics_metrics
+
+        # AI Agents Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_ai_agents;" 2>/dev/null || psql -c "SELECT 1" -d sm_ai_agents
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_ai_models;" 2>/dev/null || psql -c "SELECT 1" -d sm_ai_models
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_ai_training;" 2>/dev/null || psql -c "SELECT 1" -d sm_ai_training
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_ai_prompts;" 2>/dev/null || psql -c "SELECT 1" -d sm_ai_prompts
+
+        # Communications Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_communications;" 2>/dev/null || psql -c "SELECT 1" -d sm_communications
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_comms_email;" 2>/dev/null || psql -c "SELECT 1" -d sm_comms_email
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_comms_sms;" 2>/dev/null || psql -c "SELECT 1" -d sm_comms_sms
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_comms_whatsapp;" 2>/dev/null || psql -c "SELECT 1" -d sm_comms_whatsapp
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_comms_voice;" 2>/dev/null || psql -c "SELECT 1" -d sm_comms_voice
+
+        # Finance Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_finance;" 2>/dev/null || psql -c "SELECT 1" -d sm_finance
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_finance_accounting;" 2>/dev/null || psql -c "SELECT 1" -d sm_finance_accounting
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_finance_invoicing;" 2>/dev/null || psql -c "SELECT 1" -d sm_finance_invoicing
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_finance_treasury;" 2>/dev/null || psql -c "SELECT 1" -d sm_finance_treasury
+
+        # CRM Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_crm;" 2>/dev/null || psql -c "SELECT 1" -d sm_crm
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_leads;" 2>/dev/null || psql -c "SELECT 1" -d sm_leads
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_customers;" 2>/dev/null || psql -c "SELECT 1" -d sm_customers
+
+        # Documents Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_documents;" 2>/dev/null || psql -c "SELECT 1" -d sm_documents
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_storage;" 2>/dev/null || psql -c "SELECT 1" -d sm_storage
+
+        # Workflows Module Databases
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_workflows;" 2>/dev/null || psql -c "SELECT 1" -d sm_workflows
+        psql -c "CREATE DATABASE IF NOT EXISTS sm_tasks;" 2>/dev/null || psql -c "SELECT 1" -d sm_tasks
+
+        echo "All databases created successfully!"
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # PgAdmin - Database Administration UI
+  # ===========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ai-core-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ai-core.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Redis - Cache & Session Store
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: ai-core-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Redis Commander - Redis UI
+  # ===========================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ai-core-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Zookeeper - Kafka Coordinator
+  # ===========================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ai-core-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Kafka - Message Broker
+  # ===========================================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ai-core-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_RETENTION_BYTES: 1073741824
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Schema Registry - Kafka Schema Management
+  # ===========================================================================
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: ai-core-schema-registry
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Kafka UI - Kafka Administration UI
+  # ===========================================================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ai-core-kafka-ui
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      KAFKA_CLUSTERS_0_NAME: ai-core-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8082
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8080:8080"
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # MinIO - S3-Compatible Object Storage (Development)
+  # ===========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: ai-core-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - ai-core-network
+
+  # ===========================================================================
+  # Elasticsearch - Search Engine (Optional)
+  # ===========================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: ai-core-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ai-core-network
+    profiles:
+      - full
+
+  # ===========================================================================
+  # Qdrant - Vector Database (Optional)
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ai-core-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ai-core-network
+    profiles:
+      - full
+      - ai
+
+  # ===========================================================================
+  # Prometheus - Metrics Collection (Optional)
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ai-core-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - ai-core-network
+    profiles:
+      - monitoring
+
+  # ===========================================================================
+  # Grafana - Metrics Visualization (Optional)
+  # ===========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ai-core-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - ai-core-network
+    profiles:
+      - monitoring
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  ai-core-network:
+    driver: bridge
+    name: ai-core-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: ai-core-postgres-data
+  pgadmin_data:
+    name: ai-core-pgadmin-data
+  redis_data:
+    name: ai-core-redis-data
+  zookeeper_data:
+    name: ai-core-zookeeper-data
+  zookeeper_log:
+    name: ai-core-zookeeper-log
+  kafka_data:
+    name: ai-core-kafka-data
+  minio_data:
+    name: ai-core-minio-data
+  elasticsearch_data:
+    name: ai-core-elasticsearch-data
+  qdrant_data:
+    name: ai-core-qdrant-data
+  prometheus_data:
+    name: ai-core-prometheus-data
+  grafana_data:
+    name: ai-core-grafana-data

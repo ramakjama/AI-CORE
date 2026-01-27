@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-core-web
+  namespace: ai-core
+  labels:
+    app.kubernetes.io/name: ai-core-web
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: ai-core-platform
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ai-core-web
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+  sessionAffinity: None

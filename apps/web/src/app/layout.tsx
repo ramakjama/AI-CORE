@@ -1,0 +1,71 @@
+import type { ReactNode } from 'react';
+
+// import './globals.css'; // Temporalmente deshabilitado
+
+export const metadata = {
+  title: 'SORIANO MEDIADORES | ERP Corporativo',
+  description: 'Sistema de Gestión Empresarial - Soriano Mediadores de Seguros S.L.',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/logo-icon.svg',
+  },
+};
+
+export default function RootLayout({ children }: { children: ReactNode }): React.ReactElement {
+  return (
+    <html lang="es" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <style>{`
+          :root {
+            --soriano-red: #E30613;
+            --soriano-red-dark: #8B0309;
+            --soriano-red-light: #FF4D4D;
+            --soriano-red-glow: rgba(227, 6, 19, 0.5);
+            --soriano-red-soft: rgba(227, 6, 19, 0.15);
+            --soriano-red-subtle: rgba(227, 6, 19, 0.08);
+            --color-bg: #111111;
+            --color-void: #0a0a0a;
+            --color-surface: #1a1a1a;
+            --color-surface-2: #222222;
+            --color-surface-hover: #333333;
+            --color-text: #f5f5f7;
+            --color-text-2: #a1a1a6;
+            --color-text-3: #6e6e73;
+            --color-text-4: #48484a;
+            --color-border: rgba(255, 255, 255, 0.1);
+            --color-border-strong: rgba(255, 255, 255, 0.2);
+            --color-divider: rgba(255, 255, 255, 0.06);
+            --color-success: #34C759;
+            --color-success-soft: rgba(52, 199, 89, 0.15);
+            --color-warning: #FF9500;
+            --color-warning-soft: rgba(255, 149, 0, 0.15);
+            --color-error: #FF3B30;
+            --color-error-soft: rgba(255, 59, 48, 0.15);
+            --color-info: #007AFF;
+            --color-info-soft: rgba(0, 122, 255, 0.15);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+          body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-text); min-height: 100vh; line-height: 1.5; }
+          a { color: var(--soriano-red); text-decoration: none; }
+          a:hover { color: var(--soriano-red-light); }
+          button { font-family: var(--font-sans); cursor: pointer; border: none; }
+          input, textarea, select { font-family: var(--font-sans); font-size: 0.9375rem; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 16px; outline: none; }
+          input:focus, textarea:focus, select:focus { border-color: var(--soriano-red); box-shadow: 0 0 0 3px var(--soriano-red-subtle); }
+          h1, h2, h3, h4, h5, h6 { font-weight: 600; color: var(--color-text); }
+          p { color: var(--color-text-2); }
+          .badge { display: inline-flex; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; border-radius: 999px; }
+          .badge-success { background: var(--color-success-soft); color: var(--color-success); }
+        `}</style>
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}

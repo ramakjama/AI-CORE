@@ -1,0 +1,181 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "**/.env.*local",
+    ".env",
+    ".env.example",
+    "config/**/*.ts"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "APP_ENV",
+    "DEBUG",
+    "LOG_LEVEL",
+    "APP_PORT",
+    "APP_URL",
+    "API_PREFIX",
+
+    "DATABASE_URL",
+    "SM_GLOBAL_DATABASE_URL",
+    "SM_SYSTEM_DATABASE_URL",
+    "SM_AUDIT_DATABASE_URL",
+    "SM_LOGS_DATABASE_URL",
+
+    "SS_INSURANCE_DATABASE_URL",
+    "SS_POLICIES_DATABASE_URL",
+    "SS_CLAIMS_DATABASE_URL",
+    "SS_COMMISSIONS_DATABASE_URL",
+    "SS_CARRIERS_DATABASE_URL",
+
+    "SM_HR_DATABASE_URL",
+    "SM_HR_PAYROLL_DATABASE_URL",
+    "SM_HR_RECRUITMENT_DATABASE_URL",
+    "SM_HR_TRAINING_DATABASE_URL",
+    "SM_HR_PERFORMANCE_DATABASE_URL",
+
+    "SM_ANALYTICS_DATABASE_URL",
+    "SM_ANALYTICS_REPORTS_DATABASE_URL",
+    "SM_ANALYTICS_DASHBOARDS_DATABASE_URL",
+    "SM_ANALYTICS_METRICS_DATABASE_URL",
+
+    "SM_AI_AGENTS_DATABASE_URL",
+    "SM_AI_MODELS_DATABASE_URL",
+    "SM_AI_TRAINING_DATABASE_URL",
+    "SM_AI_PROMPTS_DATABASE_URL",
+
+    "SM_COMMUNICATIONS_DATABASE_URL",
+    "SM_COMMS_EMAIL_DATABASE_URL",
+    "SM_COMMS_SMS_DATABASE_URL",
+    "SM_COMMS_WHATSAPP_DATABASE_URL",
+    "SM_COMMS_VOICE_DATABASE_URL",
+
+    "SM_FINANCE_DATABASE_URL",
+    "SM_FINANCE_ACCOUNTING_DATABASE_URL",
+    "SM_FINANCE_INVOICING_DATABASE_URL",
+    "SM_FINANCE_TREASURY_DATABASE_URL",
+
+    "SM_CRM_DATABASE_URL",
+    "SM_LEADS_DATABASE_URL",
+    "SM_CUSTOMERS_DATABASE_URL",
+
+    "SM_DOCUMENTS_DATABASE_URL",
+    "SM_STORAGE_DATABASE_URL",
+
+    "SM_WORKFLOWS_DATABASE_URL",
+    "SM_TASKS_DATABASE_URL",
+
+    "REDIS_URL",
+    "KAFKA_BROKERS",
+
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "AZURE_OPENAI_API_KEY",
+    "GOOGLE_AI_API_KEY",
+
+    "JWT_SECRET",
+    "SESSION_SECRET",
+    "ENCRYPTION_KEY",
+
+    "TWILIO_ACCOUNT_SID",
+    "TWILIO_AUTH_TOKEN",
+    "WHATSAPP_ACCESS_TOKEN",
+    "SMTP_HOST",
+    "SMTP_USER",
+
+    "SENTRY_DSN",
+    "FEATURE_AI_AGENTS",
+    "FEATURE_VOICE_CALLS",
+    "FEATURE_WHATSAPP",
+    "FEATURE_ANALYTICS",
+    "FEATURE_MULTI_TENANT",
+    "FEATURE_SSO"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "build/**", "out/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "dev:api": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "dev:web": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "dev:desktop": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "lint:fix": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "**/*.test.ts", "**/*.spec.ts"],
+      "outputs": ["coverage/**"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "db:generate": {
+      "cache": false,
+      "outputs": ["generated/**", "src/generated/**"]
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "db:seed": {
+      "cache": false,
+      "dependsOn": ["db:migrate"]
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
+    },
+    "format": {
+      "cache": false,
+      "outputs": []
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    }
+  },
+  "ui": "tui"
+}

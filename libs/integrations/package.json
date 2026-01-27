@@ -1,0 +1,31 @@
+{
+  "name": "@ai-core/integrations",
+  "version": "1.0.0",
+  "description": "AI-CORE Integrations Hub - ETL, Webhooks, API Connectors",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "kafkajs": "^2.2.4",
+    "amqplib": "^0.10.3",
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.0",
+    "xml2js": "^0.6.2",
+    "jsonwebtoken": "^9.0.2",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/amqplib": "^0.10.4",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^9.0.8",
+    "@types/xml2js": "^0.4.14",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/crypto-js": "^4.2.2"
+  }
+}

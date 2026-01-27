@@ -1,0 +1,116 @@
+{
+  "name": "ai-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-CORE Enterprise Platform - Sistema integral de gestion empresarial con IA",
+  "author": "SOBI - AI Innovation Technologies",
+  "license": "PROPRIETARY",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "libs/*",
+    "libs/shared/*",
+    "libs/ai-*",
+    "services/*",
+    "tools/*",
+    "config"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@ai-core/web",
+    "dev:admin": "turbo run dev --filter=@ai-core/admin",
+    "dev:desktop": "turbo run dev --filter=@ai-core/desktop",
+    "dev:mobile": "turbo run dev --filter=@ai-core/mobile",
+    "dev:api": "turbo run dev --filter=@ai-core/api",
+    "dev:portal-customer": "turbo run dev --filter=@ai-core/portal-customer",
+    "dev:portal-employee": "turbo run dev --filter=@ai-core/portal-employee",
+    "dev:services": "turbo run dev --filter=@ai-core/event-bus --filter=@ai-core/scheduler --filter=@ai-core/notification",
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter=@ai-core/web",
+    "build:admin": "turbo run build --filter=@ai-core/admin",
+    "build:desktop": "turbo run build --filter=@ai-core/desktop",
+    "build:api": "turbo run build --filter=@ai-core/api",
+    "build:libs": "turbo run build --filter=./libs/*",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test -- --coverage",
+    "test:e2e": "turbo run test:e2e",
+    "test:integration": "turbo run test:integration",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "clean:turbo": "rm -rf .turbo && rm -rf **/node_modules/.cache/turbo",
+    "db:generate": "turbo run db:generate",
+    "db:generate:all": "turbo run db:generate --filter=@ai-core/database",
+    "db:push": "turbo run db:push",
+    "db:migrate": "turbo run db:migrate",
+    "db:migrate:dev": "turbo run db:migrate -- --name",
+    "db:seed": "turbo run db:seed",
+    "db:studio": "turbo run db:studio",
+    "db:reset": "turbo run db:migrate -- --reset && pnpm db:seed",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
+    "prepare": "husky install",
+    "docker:up": "docker-compose up -d",
+    "docker:up:full": "docker-compose --profile full up -d",
+    "docker:up:monitoring": "docker-compose --profile monitoring up -d",
+    "docker:up:ai": "docker-compose --profile ai up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:ps": "docker-compose ps",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "echo 'Installation complete'",
+    "release": "changeset",
+    "release:version": "changeset version",
+    "release:publish": "pnpm build && changeset publish",
+    "analyze": "ANALYZE=true pnpm build",
+    "storybook": "turbo run storybook --filter=@ai-core/ui",
+    "storybook:build": "turbo run storybook:build --filter=@ai-core/ui"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^20.11.0",
+    "dotenv": "^16.4.0",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "zod": "^3.22.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "zod": "^3.22.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,scss}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@babel/*",
+        "typescript"
+      ],
+      "allowedVersions": {
+        "react": "18",
+        "react-dom": "18"
+      }
+    },
+    "overrides": {
+      "typescript": "^5.4.0"
+    }
+  }
+}

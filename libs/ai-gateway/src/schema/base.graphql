@@ -1,0 +1,295 @@
+# ==============================================================================
+# AI Gateway - Base GraphQL Schema
+# Shared types, scalars, and directives for GraphQL Federation
+# ==============================================================================
+
+# Custom Scalars
+scalar DateTime
+scalar JSON
+scalar UUID
+scalar Decimal
+scalar Upload
+
+# ==============================================================================
+# Directives
+# ==============================================================================
+
+"""
+Authentication directive - Requires user to be authenticated with specified role
+"""
+directive @auth(
+  """The minimum role required to access this field"""
+  requires: Role = USER
+) on FIELD_DEFINITION | OBJECT
+
+"""
+Rate limiting directive - Limits requests to a field
+"""
+directive @rateLimit(
+  """Maximum number of requests allowed in the window"""
+  max: Int!
+  """Time window (e.g., "1m", "1h", "1d")"""
+  window: String!
+  """Optional key to use for rate limiting (defaults to user/IP)"""
+  key: String
+) on FIELD_DEFINITION
+
+"""
+Caching directive - Caches field results
+"""
+directive @cache(
+  """Maximum age in seconds"""
+  maxAge: Int!
+  """Cache scope"""
+  scope: CacheScope = PRIVATE
+  """Cache tags for invalidation"""
+  tags: [String!]
+) on FIELD_DEFINITION
+
+"""
+Deprecated directive with reason
+"""
+directive @deprecated(
+  """Reason for deprecation"""
+  reason: String = "No longer supported"
+) on FIELD_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""
+Federation key directive
+"""
+directive @key(fields: String!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+"""
+Federation external directive
+"""
+directive @external on FIELD_DEFINITION
+
+"""
+Federation requires directive
+"""
+directive @requires(fields: String!) on FIELD_DEFINITION
+
+"""
+Federation provides directive
+"""
+directive @provides(fields: String!) on FIELD_DEFINITION
+
+"""
+Federation shareable directive
+"""
+directive @shareable on OBJECT | FIELD_DEFINITION
+
+"""
+Federation inaccessible directive
+"""
+directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"""
+Federation override directive
+"""
+directive @override(from: String!) on FIELD_DEFINITION
+
+# ==============================================================================
+# Enums
+# ==============================================================================
+
+"""User roles in the system"""
+enum Role {
+  """System administrator with full access"""
+  ADMIN
+  """Manager with elevated permissions"""
+  MANAGER
+  """Regular user"""
+  USER
+  """Insurance agent"""
+  AGENT
+  """System service account"""
+  SYSTEM
+}
+
+"""Cache scope"""
+enum CacheScope {
+  """Cached per user"""
+  PRIVATE
+  """Cached globally"""
+  PUBLIC
+}
+
+"""Sort order"""
+enum SortOrder {
+  ASC
+  DESC
+}
+
+# ==============================================================================
+# Root Types
+# ==============================================================================
+
+type Query {
+  """Health check endpoint"""
+  _health: HealthCheck!
+
+  """Service information"""
+  _service: ServiceInfo!
+}
+
+type Mutation {
+  """No-op mutation for schema validation"""
+  _noop: Boolean
+}
+
+type Subscription {
+  """Health check stream"""
+  _healthStream: HealthCheck!
+}
+
+# ==============================================================================
+# Common Types
+# ==============================================================================
+
+"""Health check response"""
+type HealthCheck {
+  """Service status"""
+  status: HealthStatus!
+  """Current timestamp"""
+  timestamp: DateTime!
+  """Service version"""
+  version: String!
+  """Uptime in seconds"""
+  uptime: Int!
+  """Subgraph health status"""
+  subgraphs: [SubgraphHealth!]
+}
+
+"""Health status"""
+enum HealthStatus {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+}
+
+"""Subgraph health information"""
+type SubgraphHealth {
+  """Subgraph name"""
+  name: String!
+  """Subgraph status"""
+  status: HealthStatus!
+  """Response time in milliseconds"""
+  responseTime: Int
+  """Last check timestamp"""
+  lastCheck: DateTime!
+}
+
+"""Service information for federation"""
+type ServiceInfo {
+  """SDL schema"""
+  sdl: String!
+  """Service name"""
+  name: String!
+  """Service version"""
+  version: String!
+}
+
+"""Monetary value"""
+type Money {
+  """Amount in minor units (cents)"""
+  amount: Decimal!
+  """ISO 4217 currency code"""
+  currency: String!
+  """Formatted display value"""
+  formatted: String!
+}
+
+"""Monetary input"""
+input MoneyInput {
+  """Amount in minor units"""
+  amount: Decimal!
+  """ISO 4217 currency code"""
+  currency: String!
+}
+
+"""Pagination input"""
+input PaginationInput {
+  """Page number (1-based)"""
+  page: Int = 1
+  """Items per page"""
+  pageSize: Int = 20
+  """Field to sort by"""
+  sortBy: String
+  """Sort direction"""
+  sortOrder: SortOrder = ASC
+}
+
+"""Paginated response info"""
+type PageInfo {
+  """Current page"""
+  page: Int!
+  """Items per page"""
+  pageSize: Int!
+  """Total items"""
+  total: Int!
+  """Total pages"""
+  totalPages: Int!
+  """Has next page"""
+  hasNext: Boolean!
+  """Has previous page"""
+  hasPrevious: Boolean!
+}
+
+"""Date range filter"""
+input DateRangeInput {
+  """Start date (inclusive)"""
+  from: DateTime
+  """End date (inclusive)"""
+  to: DateTime
+}
+
+"""Generic error type"""
+type Error {
+  """Error code"""
+  code: String!
+  """Error message"""
+  message: String!
+  """Field path if applicable"""
+  path: String
+  """Additional details"""
+  details: JSON
+}
+
+"""Operation result wrapper"""
+type OperationResult {
+  """Whether operation succeeded"""
+  success: Boolean!
+  """Success or error message"""
+  message: String
+  """Errors if any"""
+  errors: [Error!]
+}
+
+"""Audit information"""
+type AuditInfo {
+  """Created timestamp"""
+  createdAt: DateTime!
+  """Created by user ID"""
+  createdBy: String
+  """Last updated timestamp"""
+  updatedAt: DateTime!
+  """Updated by user ID"""
+  updatedBy: String
+  """Version number for optimistic locking"""
+  version: Int!
+}
+
+"""File upload result"""
+type UploadResult {
+  """Upload ID"""
+  id: UUID!
+  """File name"""
+  name: String!
+  """MIME type"""
+  mimeType: String!
+  """File size in bytes"""
+  size: Int!
+  """File URL"""
+  url: String!
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@ai-core/ai-voice",
+  "version": "1.0.0",
+  "description": "AI-CORE Voice Module - Twilio Voice, WebRTC, PBX Virtual",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "twilio": "^4.23.0",
+    "@twilio/voice-sdk": "^2.10.0",
+    "ws": "^8.16.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/ws": "^8.5.10",
+    "@types/uuid": "^9.0.8"
+  }
+}
