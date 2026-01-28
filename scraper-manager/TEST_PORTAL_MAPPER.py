@@ -179,22 +179,23 @@ class PortalMapperTest:
                     self.log_test("Status", "Status contiene summary",
                                 "summary" in data)
 
-                    # Verificar que el status es RUNNING
-                    is_running = data.get("status") == "RUNNING"
-                    self.log_test("Status", "Status es RUNNING", is_running,
-                                f"Status actual: {data.get('status')}")
+                    # Verificar que el status es RUNNING o COMPLETED (puede ser muy rápido)
+                    status = data.get("status")
+                    is_valid = status in ["RUNNING", "COMPLETED"]
+                    self.log_test("Status", "Status es RUNNING o COMPLETED", is_valid,
+                                f"Status actual: {status}")
                 else:
                     self.log_test("Status", "Status contiene estado", False)
                     self.log_test("Status", "Status contiene progress", False)
                     self.log_test("Status", "Status contiene summary", False)
-                    self.log_test("Status", "Status es RUNNING", False)
+                    self.log_test("Status", "Status es RUNNING o COMPLETED", False)
 
         except Exception as e:
             self.log_test("Status", "Get status responde", False, str(e))
             self.log_test("Status", "Status contiene estado", False, str(e))
             self.log_test("Status", "Status contiene progress", False, str(e))
             self.log_test("Status", "Status contiene summary", False, str(e))
-            self.log_test("Status", "Status es RUNNING", False, str(e))
+            self.log_test("Status", "Status es RUNNING o COMPLETED", False, str(e))
 
         # Test 3.2: Polling múltiple
         print("\n[TEST] Realizando polling múltiple...")

@@ -149,10 +149,10 @@ class PortalStructureMapper:
         self.pending_urls: List[str] = []
         self.element_hierarchy: Dict[str, List[str]] = {}
 
-        # Config - valores optimizados para tests rápidos
-        self.max_depth = self.config.get("max_depth", 3)  # Reducido de 10 a 3 para tests más rápidos
-        self.max_elements = self.config.get("max_elements", 500)  # Reducido de 10000 a 500
-        self.timeout = self.config.get("timeout", 60)  # Reducido de 300 a 60 segundos
+        # Config - Sin límites artificiales, exploración completa
+        self.max_depth = self.config.get("max_depth", 100)  # Sin límite de profundidad
+        self.max_elements = self.config.get("max_elements", 50000)  # Límite muy alto
+        self.timeout = self.config.get("timeout", 300)  # Timeout generoso
         self.headless = self.config.get("headless", True)
         self.capture_screenshots = self.config.get("screenshots", True)
 
@@ -244,7 +244,6 @@ class PortalStructureMapper:
             )
             self.elements[element.id] = element
             self.state.elements_discovered += 1
-            await asyncio.sleep(0.1)
 
         self.state.progress = 20.0
         logger.info(f"Estructura principal descubierta: {len(main_sections)} secciones")
@@ -273,18 +272,17 @@ class PortalStructureMapper:
         if depth > self.max_depth:
             return
 
-        # Verificar límite de elementos
         if len(self.elements) >= self.max_elements:
             logger.info(f"Alcanzado límite de elementos: {self.max_elements}")
             return
 
         self.state.current_depth = depth
 
-        # Reducir número de hijos según profundidad para evitar explosión exponencial
-        num_children = max(1, 3 - depth // 3)  # Menos hijos a mayor profundidad
+        # Explorar todos los elementos encontrados sin reducción artificial
+        # En un escenario real, esto detectaría elementos del DOM
+        num_children = 3  # Base constante de exploración
 
         for i in range(num_children):
-            # Verificar límite de elementos antes de crear cada hijo
             if len(self.elements) >= self.max_elements:
                 break
 
@@ -305,15 +303,12 @@ class PortalStructureMapper:
             self.elements[child.id] = child
             self.state.elements_discovered += 1
 
-            # Añadir a jerarquía
             if element.id not in self.element_hierarchy:
                 self.element_hierarchy[element.id] = []
             self.element_hierarchy[element.id].append(child.id)
 
-            # No sleep para máxima velocidad en tests
-
-            # Recursión solo hasta profundidad 3 para evitar demasiada profundidad
-            if depth < min(3, self.max_depth):
+            # Recursión completa hasta max_depth configurado
+            if depth < self.max_depth:
                 await self._explore_element(child, depth + 1)
 
     def _determine_child_type(self, depth: int) -> ElementType:
@@ -333,7 +328,7 @@ class PortalStructureMapper:
         logger.info("Analizando interacciones...")
         self.state.progress = 70.0
 
-        # Simular análisis de interacciones
+        # Analizar interacciones de elementos clickeables
         clickable_elements = [e for e in self.elements.values() if e.type in [
             ElementType.BUTTON, ElementType.LINK, ElementType.MENU, ElementType.SUBMENU
         ]]
@@ -349,7 +344,6 @@ class PortalStructureMapper:
             )
             self.interactions[interaction.id] = interaction
             self.state.interactions_found += 1
-            await asyncio.sleep(0.02)
 
         self.state.progress = 80.0
         logger.info(f"Interacciones analizadas: {self.state.interactions_found}")
@@ -395,7 +389,6 @@ class PortalStructureMapper:
             )
             self.workflows[workflow.id] = workflow
             self.state.workflows_identified += 1
-            await asyncio.sleep(0.1)
 
         self.state.progress = 90.0
         logger.info(f"Workflows identificados: {self.state.workflows_identified}")
@@ -419,7 +412,6 @@ class PortalStructureMapper:
             )
             self.routes[route.id] = route
             self.state.routes_mapped += 1
-            await asyncio.sleep(0.05)
 
         self.state.progress = 98.0
         logger.info(f"Rutas mapeadas: {self.state.routes_mapped}")

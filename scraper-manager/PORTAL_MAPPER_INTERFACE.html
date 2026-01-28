@@ -78,6 +78,13 @@
             font-weight: 600;
         }
 
+        .form-group .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
         .form-group input,
         .form-group select {
             width: 100%;
@@ -291,15 +298,73 @@
             margin-right: 10px;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
         }
 
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mode-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .mode-card h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .mode-card p {
+            color: #666;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -307,15 +372,15 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🗺️ Portal Structure Mapper</h1>
-            <p>Módulo 2 - Mapeo Exhaustivo de Estructura del Portal</p>
+            <h1>🗺️ Mapeo de Portal</h1>
+            <p>Descubre y registra automáticamente toda la estructura del portal</p>
         </div>
 
         <!-- Main Grid -->
         <div class="main-grid">
             <!-- Configuration Card -->
             <div class="card">
-                <h2>⚙️ Configuración del Mapeo</h2>
+                <h2>⚙️ Configuración</h2>
 
                 <div class="form-group">
                     <label>URL del Portal</label>
@@ -325,42 +390,34 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Usuario</label>
-                        <input type="text" id="username" placeholder="usuario">
+                        <input type="text" id="username" placeholder="Tu usuario">
                     </div>
                     <div class="form-group">
                         <label>Contraseña</label>
-                        <input type="password" id="password" placeholder="contraseña">
+                        <input type="password" id="password" placeholder="Tu contraseña">
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Profundidad Máxima</label>
-                        <input type="number" id="max-depth" value="10" min="1" max="20">
-                    </div>
-                    <div class="form-group">
-                        <label>Timeout (segundos)</label>
-                        <input type="number" id="timeout" value="300" min="60" max="3600">
-                    </div>
+                <div class="form-group">
+                    <label>Modo de Exploración</label>
+                    <select id="exploration-mode">
+                        <option value="quick">⚡ Rápido - Estructura básica (5 min)</option>
+                        <option value="normal" selected>🎯 Normal - Exploración completa (15 min)</option>
+                        <option value="deep">🔍 Profundo - Análisis exhaustivo (30 min)</option>
+                        <option value="unlimited">🚀 Ilimitado - Todo sin restricciones (1+ hora)</option>
+                    </select>
+                    <p class="help-text">Selecciona qué tan profundo quieres explorar el portal</p>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Elementos Máximos</label>
-                        <input type="number" id="max-elements" value="10000" min="100" max="100000" step="100">
+                <div class="form-group">
+                    <label>Capturar Evidencias</label>
+                    <div class="toggle-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="screenshots" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Guardar capturas de pantalla durante el mapeo</span>
                     </div>
-                    <div class="form-group">
-                        <label>Modo</label>
-                        <select id="mode">
-                            <option value="headless">Headless</option>
-                            <option value="visible">Visible</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="screenshots" checked>
-                    <label for="screenshots">Capturar Screenshots</label>
                 </div>
 
                 <button class="btn btn-primary" id="start-btn" onclick="startMapping()">
@@ -368,16 +425,16 @@
                 </button>
 
                 <button class="btn btn-danger" id="stop-btn" onclick="stopMapping()" style="display: none; margin-top: 10px;">
-                    🛑 Detener Mapeo
+                    🛑 Detener
                 </button>
             </div>
 
             <!-- Status Card -->
             <div class="card">
-                <h2>📊 Estado del Mapeo</h2>
+                <h2>📊 Estado</h2>
 
                 <div id="status-display">
-                    <span class="status-badge status-idle">⚪ IDLE</span>
+                    <span class="status-badge status-idle">⚪ Listo para comenzar</span>
                 </div>
 
                 <div class="progress-container">
@@ -397,7 +454,7 @@
                     </div>
                     <div class="stat-box">
                         <div class="value" id="stat-workflows">0</div>
-                        <div class="label">Workflows</div>
+                        <div class="label">Flujos</div>
                     </div>
                     <div class="stat-box">
                         <div class="value" id="stat-routes">0</div>
@@ -406,12 +463,35 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 20px;">
-                    <label>Profundidad Actual: <span id="current-depth">0</span> / <span id="max-depth-display">10</span></label>
+                    <label>Nivel de Exploración: <span id="current-depth">0</span></label>
                 </div>
 
                 <button class="btn btn-primary" id="report-btn" onclick="viewReport()" style="display: none; margin-top: 20px;">
-                    📄 Ver Reporte Completo
+                    📥 Descargar Reporte Completo
                 </button>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card full-width">
+            <h2>ℹ️ ¿Qué hace cada modo?</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div class="mode-card">
+                    <h4>⚡ Modo Rápido</h4>
+                    <p>Explora solo la estructura principal del portal (hasta nivel 5). Ideal para pruebas rápidas.</p>
+                </div>
+                <div class="mode-card">
+                    <h4>🎯 Modo Normal</h4>
+                    <p>Exploración completa de todos los elementos hasta 10 niveles de profundidad. Recomendado para uso general.</p>
+                </div>
+                <div class="mode-card">
+                    <h4>🔍 Modo Profundo</h4>
+                    <p>Análisis exhaustivo hasta 20 niveles de profundidad. Descubre elementos ocultos y flujos complejos.</p>
+                </div>
+                <div class="mode-card">
+                    <h4>🚀 Modo Ilimitado</h4>
+                    <p>Sin límites de profundidad ni elementos. Registra absolutamente todo lo que encuentre en el portal.</p>
+                </div>
             </div>
         </div>
 
@@ -435,11 +515,7 @@
                 <div class="form-group">
                     <label>Filtrar por Nivel</label>
                     <select id="filter-level" onchange="filterElements()">
-                        <option value="">Todos</option>
-                        <option value="0">Nivel 0</option>
-                        <option value="1">Nivel 1</option>
-                        <option value="2">Nivel 2</option>
-                        <option value="3">Nivel 3</option>
+                        <option value="">Todos los niveles</option>
                     </select>
                 </div>
             </div>
@@ -453,7 +529,7 @@
 
         <!-- Log Viewer Card (Full Width) -->
         <div class="card full-width">
-            <h2>📝 Log del Sistema</h2>
+            <h2>📝 Registro de Actividad</h2>
             <div class="log-viewer" id="log-viewer"></div>
         </div>
     </div>
@@ -463,6 +539,30 @@
         const TOKEN = 'demo-token-admin';
         let statusInterval = null;
         let elementsCache = [];
+
+        // Configuración por modo
+        const MODE_CONFIGS = {
+            quick: {
+                max_depth: 5,
+                max_elements: 1000,
+                timeout: 300
+            },
+            normal: {
+                max_depth: 10,
+                max_elements: 5000,
+                timeout: 900
+            },
+            deep: {
+                max_depth: 20,
+                max_elements: 20000,
+                timeout: 1800
+            },
+            unlimited: {
+                max_depth: 100,
+                max_elements: 100000,
+                timeout: 7200
+            }
+        };
 
         function addLog(message) {
             const logViewer = document.getElementById('log-viewer');
@@ -478,10 +578,7 @@
             const portalUrl = document.getElementById('portal-url').value;
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const maxDepth = parseInt(document.getElementById('max-depth').value);
-            const timeout = parseInt(document.getElementById('timeout').value);
-            const maxElements = parseInt(document.getElementById('max-elements').value);
-            const headless = document.getElementById('mode').value === 'headless';
+            const mode = document.getElementById('exploration-mode').value;
             const screenshots = document.getElementById('screenshots').checked;
 
             if (!portalUrl) {
@@ -494,6 +591,9 @@
                 return;
             }
 
+            // Obtener configuración según el modo seleccionado
+            const config = MODE_CONFIGS[mode];
+
             const payload = {
                 portal_url: portalUrl,
                 credentials: {
@@ -501,16 +601,17 @@
                     password: password
                 },
                 config: {
-                    max_depth: maxDepth,
-                    timeout: timeout,
-                    max_elements: maxElements,
-                    headless: headless,
+                    max_depth: config.max_depth,
+                    timeout: config.timeout,
+                    max_elements: config.max_elements,
+                    headless: true,
                     screenshots: screenshots
                 }
             };
 
             try {
                 addLog('🚀 Iniciando mapeo del portal...');
+                addLog(`📍 Modo: ${mode.toUpperCase()}`);
 
                 const response = await fetch(`${API_URL}/api/mapper/start`, {
                     method: 'POST',
@@ -525,10 +626,10 @@
                     const data = await response.json();
                     addLog('✅ Mapeo iniciado exitosamente');
                     addLog(`📍 URL: ${data.portal_url}`);
+                    addLog(`📊 Profundidad máxima: ${config.max_depth} niveles`);
 
                     document.getElementById('start-btn').style.display = 'none';
                     document.getElementById('stop-btn').style.display = 'block';
-                    document.getElementById('max-depth-display').textContent = maxDepth;
 
                     // Iniciar polling del estado
                     startStatusPolling();
@@ -556,7 +657,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    addLog('✅ Mapeo detenido exitosamente');
+                    addLog('✅ Mapeo detenido');
 
                     document.getElementById('start-btn').style.display = 'block';
                     document.getElementById('stop-btn').style.display = 'none';
@@ -581,7 +682,7 @@
 
             statusInterval = setInterval(async () => {
                 await updateStatus();
-            }, 2000);  // Actualizar cada 2 segundos
+            }, 2000);
         }
 
         async function updateStatus() {
@@ -596,7 +697,6 @@
                     const data = await response.json();
                     updateUI(data);
 
-                    // Si se completó, detener polling
                     if (data.status === 'COMPLETED' || data.status === 'ERROR' || data.status === 'STOPPED') {
                         if (statusInterval) {
                             clearInterval(statusInterval);
@@ -618,42 +718,55 @@
         }
 
         function updateUI(data) {
-            // Update status badge
             const statusDisplay = document.getElementById('status-display');
             let badgeClass = 'status-idle';
-            let badgeText = '⚪ IDLE';
+            let badgeText = '⚪ Listo';
 
             switch (data.status) {
                 case 'RUNNING':
                     badgeClass = 'status-running';
-                    badgeText = '🟢 RUNNING';
+                    badgeText = '🟢 Explorando...';
                     break;
                 case 'COMPLETED':
                     badgeClass = 'status-completed';
-                    badgeText = '🔵 COMPLETED';
+                    badgeText = '✅ Completado';
                     break;
                 case 'ERROR':
                     badgeClass = 'status-error';
-                    badgeText = '🔴 ERROR';
+                    badgeText = '❌ Error';
                     break;
             }
 
             statusDisplay.innerHTML = `<span class="status-badge ${badgeClass}">${badgeText}</span>`;
 
-            // Update progress
             const progress = data.progress || 0;
             const progressFill = document.getElementById('progress-fill');
             progressFill.style.width = `${progress}%`;
             progressFill.textContent = `${progress.toFixed(1)}%`;
 
-            // Update stats
             document.getElementById('stat-elements').textContent = data.summary?.elements || 0;
             document.getElementById('stat-interactions').textContent = data.summary?.interactions || 0;
             document.getElementById('stat-workflows').textContent = data.summary?.workflows || 0;
             document.getElementById('stat-routes').textContent = data.summary?.routes || 0;
 
-            // Update depth
-            document.getElementById('current-depth').textContent = data.current_depth || 0;
+            document.getElementById('current-depth').textContent = `Nivel ${data.current_depth || 0}`;
+
+            // Actualizar filtro de niveles dinámicamente
+            updateLevelFilter(data.current_depth || 0);
+        }
+
+        function updateLevelFilter(maxLevel) {
+            const filterLevel = document.getElementById('filter-level');
+            const currentOptions = filterLevel.querySelectorAll('option:not(:first-child)');
+
+            if (currentOptions.length < maxLevel) {
+                for (let i = currentOptions.length; i <= maxLevel; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `Nivel ${i}`;
+                    filterLevel.appendChild(option);
+                }
+            }
         }
 
         async function loadElements() {
@@ -668,7 +781,7 @@
                     const data = await response.json();
                     elementsCache = data.elements || [];
                     renderElements(elementsCache);
-                    addLog(`📦 Cargados ${elementsCache.length} elementos`);
+                    addLog(`📦 ${elementsCache.length} elementos cargados`);
                 }
             } catch (error) {
                 console.error('Error loading elements:', error);
@@ -717,7 +830,7 @@
 
         async function viewReport() {
             try {
-                addLog('📄 Cargando reporte completo...');
+                addLog('📄 Generando reporte...');
 
                 const response = await fetch(`${API_URL}/api/mapper/report`, {
                     headers: {
@@ -728,7 +841,6 @@
                 if (response.ok) {
                     const report = await response.json();
 
-                    // Mostrar reporte en nueva ventana o descargar
                     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -736,7 +848,7 @@
                     a.download = `portal_structure_report_${new Date().toISOString().split('T')[0]}.json`;
                     a.click();
 
-                    addLog('✅ Reporte descargado exitosamente');
+                    addLog('✅ Reporte descargado');
                 } else {
                     const error = await response.json();
                     addLog(`❌ Error: ${error.detail}`);
@@ -749,8 +861,8 @@
         }
 
         // Initialize
-        addLog('🎯 Portal Structure Mapper iniciado');
-        addLog('📡 Conectando con API en ' + API_URL);
+        addLog('🎯 Sistema listo');
+        addLog('💡 Completa el formulario y haz clic en "Iniciar Mapeo"');
     </script>
 </body>
 </html>

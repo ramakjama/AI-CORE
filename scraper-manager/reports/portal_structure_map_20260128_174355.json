@@ -1,0 +1,5011 @@
+{
+  "metadata": {
+    "portal_url": "https://portal.occident.es",
+    "mapping_date": "2026-01-28T17:43:55.047522",
+    "duration_seconds": 0.0,
+    "version": "1.0.0"
+  },
+  "summary": {
+    "total_elements": 279,
+    "total_interactions": 0,
+    "total_workflows": 3,
+    "total_routes": 9,
+    "max_depth_reached": 3
+  },
+  "structure": {
+    "elements": [
+      {
+        "id": "main_0",
+        "type": "screen",
+        "name": "Dashboard",
+        "selector": "#menu-dashboard",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-dashboard"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.272975"
+      },
+      {
+        "id": "main_1",
+        "type": "screen",
+        "name": "Clientes",
+        "selector": "#menu-clientes",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-clientes"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.395518"
+      },
+      {
+        "id": "main_2",
+        "type": "screen",
+        "name": "Pólizas",
+        "selector": "#menu-pólizas",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-pólizas"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.503598"
+      },
+      {
+        "id": "main_3",
+        "type": "screen",
+        "name": "Recibos",
+        "selector": "#menu-recibos",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-recibos"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.611198"
+      },
+      {
+        "id": "main_4",
+        "type": "screen",
+        "name": "Siniestros",
+        "selector": "#menu-siniestros",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-siniestros"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.719628"
+      },
+      {
+        "id": "main_5",
+        "type": "screen",
+        "name": "Documentos",
+        "selector": "#menu-documentos",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-documentos"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.827861"
+      },
+      {
+        "id": "main_6",
+        "type": "screen",
+        "name": "Informes",
+        "selector": "#menu-informes",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-informes"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:53.922503"
+      },
+      {
+        "id": "main_7",
+        "type": "screen",
+        "name": "Configuración",
+        "selector": "#menu-configuración",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-configuración"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.029053"
+      },
+      {
+        "id": "main_8",
+        "type": "screen",
+        "name": "Ayuda",
+        "selector": "#menu-ayuda",
+        "xpath": null,
+        "parent_id": null,
+        "level": 0,
+        "attributes": {
+          "visible": true,
+          "enabled": true,
+          "icon": "icon-ayuda"
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.137144"
+      },
+      {
+        "id": "main_0_child_0",
+        "type": "subscreen",
+        "name": "Dashboard - Item 1",
+        "selector": "#menu-dashboard > .child-0",
+        "xpath": null,
+        "parent_id": "main_0",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_0",
+        "type": "window",
+        "name": "Dashboard - Item 1 - Item 1",
+        "selector": "#menu-dashboard > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-dashboard > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-dashboard > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_1",
+        "type": "window",
+        "name": "Dashboard - Item 1 - Item 2",
+        "selector": "#menu-dashboard > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-dashboard > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-dashboard > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_2",
+        "type": "window",
+        "name": "Dashboard - Item 1 - Item 3",
+        "selector": "#menu-dashboard > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_0_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-dashboard > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-dashboard > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1",
+        "type": "subscreen",
+        "name": "Dashboard - Item 2",
+        "selector": "#menu-dashboard > .child-1",
+        "xpath": null,
+        "parent_id": "main_0",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_0",
+        "type": "window",
+        "name": "Dashboard - Item 2 - Item 1",
+        "selector": "#menu-dashboard > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-dashboard > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-dashboard > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_1",
+        "type": "window",
+        "name": "Dashboard - Item 2 - Item 2",
+        "selector": "#menu-dashboard > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-dashboard > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-dashboard > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_2",
+        "type": "window",
+        "name": "Dashboard - Item 2 - Item 3",
+        "selector": "#menu-dashboard > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_0_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-dashboard > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-dashboard > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_2",
+        "type": "subscreen",
+        "name": "Dashboard - Item 3",
+        "selector": "#menu-dashboard > .child-2",
+        "xpath": null,
+        "parent_id": "main_0",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_2_child_0",
+        "type": "window",
+        "name": "Dashboard - Item 3 - Item 1",
+        "selector": "#menu-dashboard > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-dashboard > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-dashboard > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245222"
+      },
+      {
+        "id": "main_0_child_2_child_1",
+        "type": "window",
+        "name": "Dashboard - Item 3 - Item 2",
+        "selector": "#menu-dashboard > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_0_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-dashboard > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_0_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-dashboard > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_0_child_2_child_2",
+        "type": "window",
+        "name": "Dashboard - Item 3 - Item 3",
+        "selector": "#menu-dashboard > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_0_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_0_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-dashboard > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_0_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Dashboard - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-dashboard > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_0_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0",
+        "type": "subscreen",
+        "name": "Clientes - Item 1",
+        "selector": "#menu-clientes > .child-0",
+        "xpath": null,
+        "parent_id": "main_1",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_0",
+        "type": "window",
+        "name": "Clientes - Item 1 - Item 1",
+        "selector": "#menu-clientes > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-clientes > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-clientes > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_1",
+        "type": "window",
+        "name": "Clientes - Item 1 - Item 2",
+        "selector": "#menu-clientes > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-clientes > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-clientes > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_2",
+        "type": "window",
+        "name": "Clientes - Item 1 - Item 3",
+        "selector": "#menu-clientes > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_1_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-clientes > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-clientes > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1",
+        "type": "subscreen",
+        "name": "Clientes - Item 2",
+        "selector": "#menu-clientes > .child-1",
+        "xpath": null,
+        "parent_id": "main_1",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_0",
+        "type": "window",
+        "name": "Clientes - Item 2 - Item 1",
+        "selector": "#menu-clientes > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-clientes > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-clientes > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_1",
+        "type": "window",
+        "name": "Clientes - Item 2 - Item 2",
+        "selector": "#menu-clientes > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-clientes > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-clientes > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_2",
+        "type": "window",
+        "name": "Clientes - Item 2 - Item 3",
+        "selector": "#menu-clientes > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_1_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-clientes > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-clientes > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2",
+        "type": "subscreen",
+        "name": "Clientes - Item 3",
+        "selector": "#menu-clientes > .child-2",
+        "xpath": null,
+        "parent_id": "main_1",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_0",
+        "type": "window",
+        "name": "Clientes - Item 3 - Item 1",
+        "selector": "#menu-clientes > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-clientes > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-clientes > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_1",
+        "type": "window",
+        "name": "Clientes - Item 3 - Item 2",
+        "selector": "#menu-clientes > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-clientes > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-clientes > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_2",
+        "type": "window",
+        "name": "Clientes - Item 3 - Item 3",
+        "selector": "#menu-clientes > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_1_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-clientes > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_1_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Clientes - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-clientes > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_1_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0",
+        "type": "subscreen",
+        "name": "Pólizas - Item 1",
+        "selector": "#menu-pólizas > .child-0",
+        "xpath": null,
+        "parent_id": "main_2",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_0",
+        "type": "window",
+        "name": "Pólizas - Item 1 - Item 1",
+        "selector": "#menu-pólizas > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-pólizas > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-pólizas > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_1",
+        "type": "window",
+        "name": "Pólizas - Item 1 - Item 2",
+        "selector": "#menu-pólizas > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-pólizas > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-pólizas > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_2",
+        "type": "window",
+        "name": "Pólizas - Item 1 - Item 3",
+        "selector": "#menu-pólizas > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_2_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-pólizas > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-pólizas > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1",
+        "type": "subscreen",
+        "name": "Pólizas - Item 2",
+        "selector": "#menu-pólizas > .child-1",
+        "xpath": null,
+        "parent_id": "main_2",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_0",
+        "type": "window",
+        "name": "Pólizas - Item 2 - Item 1",
+        "selector": "#menu-pólizas > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-pólizas > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-pólizas > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_1",
+        "type": "window",
+        "name": "Pólizas - Item 2 - Item 2",
+        "selector": "#menu-pólizas > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-pólizas > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-pólizas > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_2",
+        "type": "window",
+        "name": "Pólizas - Item 2 - Item 3",
+        "selector": "#menu-pólizas > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_2_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-pólizas > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-pólizas > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2",
+        "type": "subscreen",
+        "name": "Pólizas - Item 3",
+        "selector": "#menu-pólizas > .child-2",
+        "xpath": null,
+        "parent_id": "main_2",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_0",
+        "type": "window",
+        "name": "Pólizas - Item 3 - Item 1",
+        "selector": "#menu-pólizas > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-pólizas > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-pólizas > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_1",
+        "type": "window",
+        "name": "Pólizas - Item 3 - Item 2",
+        "selector": "#menu-pólizas > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-pólizas > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-pólizas > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_2",
+        "type": "window",
+        "name": "Pólizas - Item 3 - Item 3",
+        "selector": "#menu-pólizas > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_2_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-pólizas > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_2_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Pólizas - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-pólizas > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_2_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0",
+        "type": "subscreen",
+        "name": "Recibos - Item 1",
+        "selector": "#menu-recibos > .child-0",
+        "xpath": null,
+        "parent_id": "main_3",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_0",
+        "type": "window",
+        "name": "Recibos - Item 1 - Item 1",
+        "selector": "#menu-recibos > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-recibos > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-recibos > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_1",
+        "type": "window",
+        "name": "Recibos - Item 1 - Item 2",
+        "selector": "#menu-recibos > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-recibos > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-recibos > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_2",
+        "type": "window",
+        "name": "Recibos - Item 1 - Item 3",
+        "selector": "#menu-recibos > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_3_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-recibos > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-recibos > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1",
+        "type": "subscreen",
+        "name": "Recibos - Item 2",
+        "selector": "#menu-recibos > .child-1",
+        "xpath": null,
+        "parent_id": "main_3",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_0",
+        "type": "window",
+        "name": "Recibos - Item 2 - Item 1",
+        "selector": "#menu-recibos > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-recibos > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-recibos > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_1",
+        "type": "window",
+        "name": "Recibos - Item 2 - Item 2",
+        "selector": "#menu-recibos > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-recibos > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-recibos > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_2",
+        "type": "window",
+        "name": "Recibos - Item 2 - Item 3",
+        "selector": "#menu-recibos > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_3_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-recibos > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-recibos > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2",
+        "type": "subscreen",
+        "name": "Recibos - Item 3",
+        "selector": "#menu-recibos > .child-2",
+        "xpath": null,
+        "parent_id": "main_3",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_0",
+        "type": "window",
+        "name": "Recibos - Item 3 - Item 1",
+        "selector": "#menu-recibos > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-recibos > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-recibos > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_1",
+        "type": "window",
+        "name": "Recibos - Item 3 - Item 2",
+        "selector": "#menu-recibos > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-recibos > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-recibos > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_2",
+        "type": "window",
+        "name": "Recibos - Item 3 - Item 3",
+        "selector": "#menu-recibos > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_3_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-recibos > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_3_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Recibos - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-recibos > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_3_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0",
+        "type": "subscreen",
+        "name": "Siniestros - Item 1",
+        "selector": "#menu-siniestros > .child-0",
+        "xpath": null,
+        "parent_id": "main_4",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_0",
+        "type": "window",
+        "name": "Siniestros - Item 1 - Item 1",
+        "selector": "#menu-siniestros > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-siniestros > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-siniestros > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_1",
+        "type": "window",
+        "name": "Siniestros - Item 1 - Item 2",
+        "selector": "#menu-siniestros > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-siniestros > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-siniestros > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_2",
+        "type": "window",
+        "name": "Siniestros - Item 1 - Item 3",
+        "selector": "#menu-siniestros > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_4_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-siniestros > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-siniestros > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1",
+        "type": "subscreen",
+        "name": "Siniestros - Item 2",
+        "selector": "#menu-siniestros > .child-1",
+        "xpath": null,
+        "parent_id": "main_4",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_0",
+        "type": "window",
+        "name": "Siniestros - Item 2 - Item 1",
+        "selector": "#menu-siniestros > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-siniestros > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-siniestros > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_1",
+        "type": "window",
+        "name": "Siniestros - Item 2 - Item 2",
+        "selector": "#menu-siniestros > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-siniestros > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-siniestros > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_2",
+        "type": "window",
+        "name": "Siniestros - Item 2 - Item 3",
+        "selector": "#menu-siniestros > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_4_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-siniestros > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-siniestros > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2",
+        "type": "subscreen",
+        "name": "Siniestros - Item 3",
+        "selector": "#menu-siniestros > .child-2",
+        "xpath": null,
+        "parent_id": "main_4",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_0",
+        "type": "window",
+        "name": "Siniestros - Item 3 - Item 1",
+        "selector": "#menu-siniestros > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-siniestros > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-siniestros > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_1",
+        "type": "window",
+        "name": "Siniestros - Item 3 - Item 2",
+        "selector": "#menu-siniestros > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-siniestros > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-siniestros > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_2",
+        "type": "window",
+        "name": "Siniestros - Item 3 - Item 3",
+        "selector": "#menu-siniestros > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_4_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-siniestros > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_4_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Siniestros - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-siniestros > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_4_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0",
+        "type": "subscreen",
+        "name": "Documentos - Item 1",
+        "selector": "#menu-documentos > .child-0",
+        "xpath": null,
+        "parent_id": "main_5",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_0",
+        "type": "window",
+        "name": "Documentos - Item 1 - Item 1",
+        "selector": "#menu-documentos > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-documentos > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-documentos > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_1",
+        "type": "window",
+        "name": "Documentos - Item 1 - Item 2",
+        "selector": "#menu-documentos > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-documentos > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-documentos > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_2",
+        "type": "window",
+        "name": "Documentos - Item 1 - Item 3",
+        "selector": "#menu-documentos > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_5_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-documentos > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-documentos > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1",
+        "type": "subscreen",
+        "name": "Documentos - Item 2",
+        "selector": "#menu-documentos > .child-1",
+        "xpath": null,
+        "parent_id": "main_5",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_0",
+        "type": "window",
+        "name": "Documentos - Item 2 - Item 1",
+        "selector": "#menu-documentos > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-documentos > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-documentos > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_1",
+        "type": "window",
+        "name": "Documentos - Item 2 - Item 2",
+        "selector": "#menu-documentos > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-documentos > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-documentos > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_2",
+        "type": "window",
+        "name": "Documentos - Item 2 - Item 3",
+        "selector": "#menu-documentos > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_5_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-documentos > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-documentos > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2",
+        "type": "subscreen",
+        "name": "Documentos - Item 3",
+        "selector": "#menu-documentos > .child-2",
+        "xpath": null,
+        "parent_id": "main_5",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_0",
+        "type": "window",
+        "name": "Documentos - Item 3 - Item 1",
+        "selector": "#menu-documentos > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-documentos > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-documentos > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_1",
+        "type": "window",
+        "name": "Documentos - Item 3 - Item 2",
+        "selector": "#menu-documentos > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-documentos > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-documentos > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_2",
+        "type": "window",
+        "name": "Documentos - Item 3 - Item 3",
+        "selector": "#menu-documentos > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_5_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-documentos > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_5_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Documentos - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-documentos > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_5_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_6_child_0",
+        "type": "subscreen",
+        "name": "Informes - Item 1",
+        "selector": "#menu-informes > .child-0",
+        "xpath": null,
+        "parent_id": "main_6",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_6_child_0_child_0",
+        "type": "window",
+        "name": "Informes - Item 1 - Item 1",
+        "selector": "#menu-informes > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_6_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-informes > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_6_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-informes > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.245703"
+      },
+      {
+        "id": "main_6_child_0_child_1",
+        "type": "window",
+        "name": "Informes - Item 1 - Item 2",
+        "selector": "#menu-informes > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-informes > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-informes > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_0_child_2",
+        "type": "window",
+        "name": "Informes - Item 1 - Item 3",
+        "selector": "#menu-informes > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_6_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-informes > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-informes > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1",
+        "type": "subscreen",
+        "name": "Informes - Item 2",
+        "selector": "#menu-informes > .child-1",
+        "xpath": null,
+        "parent_id": "main_6",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_0",
+        "type": "window",
+        "name": "Informes - Item 2 - Item 1",
+        "selector": "#menu-informes > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-informes > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-informes > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_1",
+        "type": "window",
+        "name": "Informes - Item 2 - Item 2",
+        "selector": "#menu-informes > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-informes > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-informes > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_2",
+        "type": "window",
+        "name": "Informes - Item 2 - Item 3",
+        "selector": "#menu-informes > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_6_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-informes > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-informes > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2",
+        "type": "subscreen",
+        "name": "Informes - Item 3",
+        "selector": "#menu-informes > .child-2",
+        "xpath": null,
+        "parent_id": "main_6",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_0",
+        "type": "window",
+        "name": "Informes - Item 3 - Item 1",
+        "selector": "#menu-informes > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-informes > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-informes > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_1",
+        "type": "window",
+        "name": "Informes - Item 3 - Item 2",
+        "selector": "#menu-informes > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-informes > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-informes > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_2",
+        "type": "window",
+        "name": "Informes - Item 3 - Item 3",
+        "selector": "#menu-informes > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_6_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-informes > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_6_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Informes - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-informes > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_6_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0",
+        "type": "subscreen",
+        "name": "Configuración - Item 1",
+        "selector": "#menu-configuración > .child-0",
+        "xpath": null,
+        "parent_id": "main_7",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_0",
+        "type": "window",
+        "name": "Configuración - Item 1 - Item 1",
+        "selector": "#menu-configuración > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-configuración > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-configuración > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_1",
+        "type": "window",
+        "name": "Configuración - Item 1 - Item 2",
+        "selector": "#menu-configuración > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-configuración > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-configuración > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_2",
+        "type": "window",
+        "name": "Configuración - Item 1 - Item 3",
+        "selector": "#menu-configuración > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_7_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-configuración > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-configuración > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1",
+        "type": "subscreen",
+        "name": "Configuración - Item 2",
+        "selector": "#menu-configuración > .child-1",
+        "xpath": null,
+        "parent_id": "main_7",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_0",
+        "type": "window",
+        "name": "Configuración - Item 2 - Item 1",
+        "selector": "#menu-configuración > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-configuración > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-configuración > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_1",
+        "type": "window",
+        "name": "Configuración - Item 2 - Item 2",
+        "selector": "#menu-configuración > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-configuración > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-configuración > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_2",
+        "type": "window",
+        "name": "Configuración - Item 2 - Item 3",
+        "selector": "#menu-configuración > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_7_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-configuración > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-configuración > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2",
+        "type": "subscreen",
+        "name": "Configuración - Item 3",
+        "selector": "#menu-configuración > .child-2",
+        "xpath": null,
+        "parent_id": "main_7",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_0",
+        "type": "window",
+        "name": "Configuración - Item 3 - Item 1",
+        "selector": "#menu-configuración > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-configuración > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-configuración > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_1",
+        "type": "window",
+        "name": "Configuración - Item 3 - Item 2",
+        "selector": "#menu-configuración > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-configuración > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-configuración > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_2",
+        "type": "window",
+        "name": "Configuración - Item 3 - Item 3",
+        "selector": "#menu-configuración > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_7_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-configuración > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_7_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Configuración - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-configuración > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_7_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246213"
+      },
+      {
+        "id": "main_8_child_0",
+        "type": "subscreen",
+        "name": "Ayuda - Item 1",
+        "selector": "#menu-ayuda > .child-0",
+        "xpath": null,
+        "parent_id": "main_8",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_0",
+        "type": "window",
+        "name": "Ayuda - Item 1 - Item 1",
+        "selector": "#menu-ayuda > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_0_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 1 - Item 1",
+        "selector": "#menu-ayuda > .child-0 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_0_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 1 - Item 2",
+        "selector": "#menu-ayuda > .child-0 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_1",
+        "type": "window",
+        "name": "Ayuda - Item 1 - Item 2",
+        "selector": "#menu-ayuda > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_1_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 2 - Item 1",
+        "selector": "#menu-ayuda > .child-0 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_1_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 2 - Item 2",
+        "selector": "#menu-ayuda > .child-0 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_2",
+        "type": "window",
+        "name": "Ayuda - Item 1 - Item 3",
+        "selector": "#menu-ayuda > .child-0 > .child-2",
+        "xpath": null,
+        "parent_id": "main_8_child_0",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_2_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 3 - Item 1",
+        "selector": "#menu-ayuda > .child-0 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_0_child_2_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 1 - Item 3 - Item 2",
+        "selector": "#menu-ayuda > .child-0 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_0_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1",
+        "type": "subscreen",
+        "name": "Ayuda - Item 2",
+        "selector": "#menu-ayuda > .child-1",
+        "xpath": null,
+        "parent_id": "main_8",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_0",
+        "type": "window",
+        "name": "Ayuda - Item 2 - Item 1",
+        "selector": "#menu-ayuda > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_0_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 1 - Item 1",
+        "selector": "#menu-ayuda > .child-1 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_0_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 1 - Item 2",
+        "selector": "#menu-ayuda > .child-1 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_1",
+        "type": "window",
+        "name": "Ayuda - Item 2 - Item 2",
+        "selector": "#menu-ayuda > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_1_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 2 - Item 1",
+        "selector": "#menu-ayuda > .child-1 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_1_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 2 - Item 2",
+        "selector": "#menu-ayuda > .child-1 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_2",
+        "type": "window",
+        "name": "Ayuda - Item 2 - Item 3",
+        "selector": "#menu-ayuda > .child-1 > .child-2",
+        "xpath": null,
+        "parent_id": "main_8_child_1",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_2_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 3 - Item 1",
+        "selector": "#menu-ayuda > .child-1 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_1_child_2_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 2 - Item 3 - Item 2",
+        "selector": "#menu-ayuda > .child-1 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_1_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2",
+        "type": "subscreen",
+        "name": "Ayuda - Item 3",
+        "selector": "#menu-ayuda > .child-2",
+        "xpath": null,
+        "parent_id": "main_8",
+        "level": 1,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_0",
+        "type": "window",
+        "name": "Ayuda - Item 3 - Item 1",
+        "selector": "#menu-ayuda > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_0_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 1 - Item 1",
+        "selector": "#menu-ayuda > .child-2 > .child-0 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_0_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 1 - Item 2",
+        "selector": "#menu-ayuda > .child-2 > .child-0 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_0",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_1",
+        "type": "window",
+        "name": "Ayuda - Item 3 - Item 2",
+        "selector": "#menu-ayuda > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_1_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 2 - Item 1",
+        "selector": "#menu-ayuda > .child-2 > .child-1 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_1_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 2 - Item 2",
+        "selector": "#menu-ayuda > .child-2 > .child-1 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_1",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_2",
+        "type": "window",
+        "name": "Ayuda - Item 3 - Item 3",
+        "selector": "#menu-ayuda > .child-2 > .child-2",
+        "xpath": null,
+        "parent_id": "main_8_child_2",
+        "level": 2,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_2_child_0",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 3 - Item 1",
+        "selector": "#menu-ayuda > .child-2 > .child-2 > .child-0",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      },
+      {
+        "id": "main_8_child_2_child_2_child_1",
+        "type": "subwindow",
+        "name": "Ayuda - Item 3 - Item 3 - Item 2",
+        "selector": "#menu-ayuda > .child-2 > .child-2 > .child-1",
+        "xpath": null,
+        "parent_id": "main_8_child_2_child_2",
+        "level": 3,
+        "attributes": {
+          "visible": true,
+          "enabled": true
+        },
+        "metadata": {},
+        "discovered_at": "2026-01-28T17:43:54.246703"
+      }
+    ],
+    "hierarchy": {
+      "main_0": [
+        "main_0_child_0",
+        "main_0_child_1",
+        "main_0_child_2"
+      ],
+      "main_0_child_0": [
+        "main_0_child_0_child_0",
+        "main_0_child_0_child_1",
+        "main_0_child_0_child_2"
+      ],
+      "main_0_child_0_child_0": [
+        "main_0_child_0_child_0_child_0",
+        "main_0_child_0_child_0_child_1"
+      ],
+      "main_0_child_0_child_1": [
+        "main_0_child_0_child_1_child_0",
+        "main_0_child_0_child_1_child_1"
+      ],
+      "main_0_child_0_child_2": [
+        "main_0_child_0_child_2_child_0",
+        "main_0_child_0_child_2_child_1"
+      ],
+      "main_0_child_1": [
+        "main_0_child_1_child_0",
+        "main_0_child_1_child_1",
+        "main_0_child_1_child_2"
+      ],
+      "main_0_child_1_child_0": [
+        "main_0_child_1_child_0_child_0",
+        "main_0_child_1_child_0_child_1"
+      ],
+      "main_0_child_1_child_1": [
+        "main_0_child_1_child_1_child_0",
+        "main_0_child_1_child_1_child_1"
+      ],
+      "main_0_child_1_child_2": [
+        "main_0_child_1_child_2_child_0",
+        "main_0_child_1_child_2_child_1"
+      ],
+      "main_0_child_2": [
+        "main_0_child_2_child_0",
+        "main_0_child_2_child_1",
+        "main_0_child_2_child_2"
+      ],
+      "main_0_child_2_child_0": [
+        "main_0_child_2_child_0_child_0",
+        "main_0_child_2_child_0_child_1"
+      ],
+      "main_0_child_2_child_1": [
+        "main_0_child_2_child_1_child_0",
+        "main_0_child_2_child_1_child_1"
+      ],
+      "main_0_child_2_child_2": [
+        "main_0_child_2_child_2_child_0",
+        "main_0_child_2_child_2_child_1"
+      ],
+      "main_1": [
+        "main_1_child_0",
+        "main_1_child_1",
+        "main_1_child_2"
+      ],
+      "main_1_child_0": [
+        "main_1_child_0_child_0",
+        "main_1_child_0_child_1",
+        "main_1_child_0_child_2"
+      ],
+      "main_1_child_0_child_0": [
+        "main_1_child_0_child_0_child_0",
+        "main_1_child_0_child_0_child_1"
+      ],
+      "main_1_child_0_child_1": [
+        "main_1_child_0_child_1_child_0",
+        "main_1_child_0_child_1_child_1"
+      ],
+      "main_1_child_0_child_2": [
+        "main_1_child_0_child_2_child_0",
+        "main_1_child_0_child_2_child_1"
+      ],
+      "main_1_child_1": [
+        "main_1_child_1_child_0",
+        "main_1_child_1_child_1",
+        "main_1_child_1_child_2"
+      ],
+      "main_1_child_1_child_0": [
+        "main_1_child_1_child_0_child_0",
+        "main_1_child_1_child_0_child_1"
+      ],
+      "main_1_child_1_child_1": [
+        "main_1_child_1_child_1_child_0",
+        "main_1_child_1_child_1_child_1"
+      ],
+      "main_1_child_1_child_2": [
+        "main_1_child_1_child_2_child_0",
+        "main_1_child_1_child_2_child_1"
+      ],
+      "main_1_child_2": [
+        "main_1_child_2_child_0",
+        "main_1_child_2_child_1",
+        "main_1_child_2_child_2"
+      ],
+      "main_1_child_2_child_0": [
+        "main_1_child_2_child_0_child_0",
+        "main_1_child_2_child_0_child_1"
+      ],
+      "main_1_child_2_child_1": [
+        "main_1_child_2_child_1_child_0",
+        "main_1_child_2_child_1_child_1"
+      ],
+      "main_1_child_2_child_2": [
+        "main_1_child_2_child_2_child_0",
+        "main_1_child_2_child_2_child_1"
+      ],
+      "main_2": [
+        "main_2_child_0",
+        "main_2_child_1",
+        "main_2_child_2"
+      ],
+      "main_2_child_0": [
+        "main_2_child_0_child_0",
+        "main_2_child_0_child_1",
+        "main_2_child_0_child_2"
+      ],
+      "main_2_child_0_child_0": [
+        "main_2_child_0_child_0_child_0",
+        "main_2_child_0_child_0_child_1"
+      ],
+      "main_2_child_0_child_1": [
+        "main_2_child_0_child_1_child_0",
+        "main_2_child_0_child_1_child_1"
+      ],
+      "main_2_child_0_child_2": [
+        "main_2_child_0_child_2_child_0",
+        "main_2_child_0_child_2_child_1"
+      ],
+      "main_2_child_1": [
+        "main_2_child_1_child_0",
+        "main_2_child_1_child_1",
+        "main_2_child_1_child_2"
+      ],
+      "main_2_child_1_child_0": [
+        "main_2_child_1_child_0_child_0",
+        "main_2_child_1_child_0_child_1"
+      ],
+      "main_2_child_1_child_1": [
+        "main_2_child_1_child_1_child_0",
+        "main_2_child_1_child_1_child_1"
+      ],
+      "main_2_child_1_child_2": [
+        "main_2_child_1_child_2_child_0",
+        "main_2_child_1_child_2_child_1"
+      ],
+      "main_2_child_2": [
+        "main_2_child_2_child_0",
+        "main_2_child_2_child_1",
+        "main_2_child_2_child_2"
+      ],
+      "main_2_child_2_child_0": [
+        "main_2_child_2_child_0_child_0",
+        "main_2_child_2_child_0_child_1"
+      ],
+      "main_2_child_2_child_1": [
+        "main_2_child_2_child_1_child_0",
+        "main_2_child_2_child_1_child_1"
+      ],
+      "main_2_child_2_child_2": [
+        "main_2_child_2_child_2_child_0",
+        "main_2_child_2_child_2_child_1"
+      ],
+      "main_3": [
+        "main_3_child_0",
+        "main_3_child_1",
+        "main_3_child_2"
+      ],
+      "main_3_child_0": [
+        "main_3_child_0_child_0",
+        "main_3_child_0_child_1",
+        "main_3_child_0_child_2"
+      ],
+      "main_3_child_0_child_0": [
+        "main_3_child_0_child_0_child_0",
+        "main_3_child_0_child_0_child_1"
+      ],
+      "main_3_child_0_child_1": [
+        "main_3_child_0_child_1_child_0",
+        "main_3_child_0_child_1_child_1"
+      ],
+      "main_3_child_0_child_2": [
+        "main_3_child_0_child_2_child_0",
+        "main_3_child_0_child_2_child_1"
+      ],
+      "main_3_child_1": [
+        "main_3_child_1_child_0",
+        "main_3_child_1_child_1",
+        "main_3_child_1_child_2"
+      ],
+      "main_3_child_1_child_0": [
+        "main_3_child_1_child_0_child_0",
+        "main_3_child_1_child_0_child_1"
+      ],
+      "main_3_child_1_child_1": [
+        "main_3_child_1_child_1_child_0",
+        "main_3_child_1_child_1_child_1"
+      ],
+      "main_3_child_1_child_2": [
+        "main_3_child_1_child_2_child_0",
+        "main_3_child_1_child_2_child_1"
+      ],
+      "main_3_child_2": [
+        "main_3_child_2_child_0",
+        "main_3_child_2_child_1",
+        "main_3_child_2_child_2"
+      ],
+      "main_3_child_2_child_0": [
+        "main_3_child_2_child_0_child_0",
+        "main_3_child_2_child_0_child_1"
+      ],
+      "main_3_child_2_child_1": [
+        "main_3_child_2_child_1_child_0",
+        "main_3_child_2_child_1_child_1"
+      ],
+      "main_3_child_2_child_2": [
+        "main_3_child_2_child_2_child_0",
+        "main_3_child_2_child_2_child_1"
+      ],
+      "main_4": [
+        "main_4_child_0",
+        "main_4_child_1",
+        "main_4_child_2"
+      ],
+      "main_4_child_0": [
+        "main_4_child_0_child_0",
+        "main_4_child_0_child_1",
+        "main_4_child_0_child_2"
+      ],
+      "main_4_child_0_child_0": [
+        "main_4_child_0_child_0_child_0",
+        "main_4_child_0_child_0_child_1"
+      ],
+      "main_4_child_0_child_1": [
+        "main_4_child_0_child_1_child_0",
+        "main_4_child_0_child_1_child_1"
+      ],
+      "main_4_child_0_child_2": [
+        "main_4_child_0_child_2_child_0",
+        "main_4_child_0_child_2_child_1"
+      ],
+      "main_4_child_1": [
+        "main_4_child_1_child_0",
+        "main_4_child_1_child_1",
+        "main_4_child_1_child_2"
+      ],
+      "main_4_child_1_child_0": [
+        "main_4_child_1_child_0_child_0",
+        "main_4_child_1_child_0_child_1"
+      ],
+      "main_4_child_1_child_1": [
+        "main_4_child_1_child_1_child_0",
+        "main_4_child_1_child_1_child_1"
+      ],
+      "main_4_child_1_child_2": [
+        "main_4_child_1_child_2_child_0",
+        "main_4_child_1_child_2_child_1"
+      ],
+      "main_4_child_2": [
+        "main_4_child_2_child_0",
+        "main_4_child_2_child_1",
+        "main_4_child_2_child_2"
+      ],
+      "main_4_child_2_child_0": [
+        "main_4_child_2_child_0_child_0",
+        "main_4_child_2_child_0_child_1"
+      ],
+      "main_4_child_2_child_1": [
+        "main_4_child_2_child_1_child_0",
+        "main_4_child_2_child_1_child_1"
+      ],
+      "main_4_child_2_child_2": [
+        "main_4_child_2_child_2_child_0",
+        "main_4_child_2_child_2_child_1"
+      ],
+      "main_5": [
+        "main_5_child_0",
+        "main_5_child_1",
+        "main_5_child_2"
+      ],
+      "main_5_child_0": [
+        "main_5_child_0_child_0",
+        "main_5_child_0_child_1",
+        "main_5_child_0_child_2"
+      ],
+      "main_5_child_0_child_0": [
+        "main_5_child_0_child_0_child_0",
+        "main_5_child_0_child_0_child_1"
+      ],
+      "main_5_child_0_child_1": [
+        "main_5_child_0_child_1_child_0",
+        "main_5_child_0_child_1_child_1"
+      ],
+      "main_5_child_0_child_2": [
+        "main_5_child_0_child_2_child_0",
+        "main_5_child_0_child_2_child_1"
+      ],
+      "main_5_child_1": [
+        "main_5_child_1_child_0",
+        "main_5_child_1_child_1",
+        "main_5_child_1_child_2"
+      ],
+      "main_5_child_1_child_0": [
+        "main_5_child_1_child_0_child_0",
+        "main_5_child_1_child_0_child_1"
+      ],
+      "main_5_child_1_child_1": [
+        "main_5_child_1_child_1_child_0",
+        "main_5_child_1_child_1_child_1"
+      ],
+      "main_5_child_1_child_2": [
+        "main_5_child_1_child_2_child_0",
+        "main_5_child_1_child_2_child_1"
+      ],
+      "main_5_child_2": [
+        "main_5_child_2_child_0",
+        "main_5_child_2_child_1",
+        "main_5_child_2_child_2"
+      ],
+      "main_5_child_2_child_0": [
+        "main_5_child_2_child_0_child_0",
+        "main_5_child_2_child_0_child_1"
+      ],
+      "main_5_child_2_child_1": [
+        "main_5_child_2_child_1_child_0",
+        "main_5_child_2_child_1_child_1"
+      ],
+      "main_5_child_2_child_2": [
+        "main_5_child_2_child_2_child_0",
+        "main_5_child_2_child_2_child_1"
+      ],
+      "main_6": [
+        "main_6_child_0",
+        "main_6_child_1",
+        "main_6_child_2"
+      ],
+      "main_6_child_0": [
+        "main_6_child_0_child_0",
+        "main_6_child_0_child_1",
+        "main_6_child_0_child_2"
+      ],
+      "main_6_child_0_child_0": [
+        "main_6_child_0_child_0_child_0",
+        "main_6_child_0_child_0_child_1"
+      ],
+      "main_6_child_0_child_1": [
+        "main_6_child_0_child_1_child_0",
+        "main_6_child_0_child_1_child_1"
+      ],
+      "main_6_child_0_child_2": [
+        "main_6_child_0_child_2_child_0",
+        "main_6_child_0_child_2_child_1"
+      ],
+      "main_6_child_1": [
+        "main_6_child_1_child_0",
+        "main_6_child_1_child_1",
+        "main_6_child_1_child_2"
+      ],
+      "main_6_child_1_child_0": [
+        "main_6_child_1_child_0_child_0",
+        "main_6_child_1_child_0_child_1"
+      ],
+      "main_6_child_1_child_1": [
+        "main_6_child_1_child_1_child_0",
+        "main_6_child_1_child_1_child_1"
+      ],
+      "main_6_child_1_child_2": [
+        "main_6_child_1_child_2_child_0",
+        "main_6_child_1_child_2_child_1"
+      ],
+      "main_6_child_2": [
+        "main_6_child_2_child_0",
+        "main_6_child_2_child_1",
+        "main_6_child_2_child_2"
+      ],
+      "main_6_child_2_child_0": [
+        "main_6_child_2_child_0_child_0",
+        "main_6_child_2_child_0_child_1"
+      ],
+      "main_6_child_2_child_1": [
+        "main_6_child_2_child_1_child_0",
+        "main_6_child_2_child_1_child_1"
+      ],
+      "main_6_child_2_child_2": [
+        "main_6_child_2_child_2_child_0",
+        "main_6_child_2_child_2_child_1"
+      ],
+      "main_7": [
+        "main_7_child_0",
+        "main_7_child_1",
+        "main_7_child_2"
+      ],
+      "main_7_child_0": [
+        "main_7_child_0_child_0",
+        "main_7_child_0_child_1",
+        "main_7_child_0_child_2"
+      ],
+      "main_7_child_0_child_0": [
+        "main_7_child_0_child_0_child_0",
+        "main_7_child_0_child_0_child_1"
+      ],
+      "main_7_child_0_child_1": [
+        "main_7_child_0_child_1_child_0",
+        "main_7_child_0_child_1_child_1"
+      ],
+      "main_7_child_0_child_2": [
+        "main_7_child_0_child_2_child_0",
+        "main_7_child_0_child_2_child_1"
+      ],
+      "main_7_child_1": [
+        "main_7_child_1_child_0",
+        "main_7_child_1_child_1",
+        "main_7_child_1_child_2"
+      ],
+      "main_7_child_1_child_0": [
+        "main_7_child_1_child_0_child_0",
+        "main_7_child_1_child_0_child_1"
+      ],
+      "main_7_child_1_child_1": [
+        "main_7_child_1_child_1_child_0",
+        "main_7_child_1_child_1_child_1"
+      ],
+      "main_7_child_1_child_2": [
+        "main_7_child_1_child_2_child_0",
+        "main_7_child_1_child_2_child_1"
+      ],
+      "main_7_child_2": [
+        "main_7_child_2_child_0",
+        "main_7_child_2_child_1",
+        "main_7_child_2_child_2"
+      ],
+      "main_7_child_2_child_0": [
+        "main_7_child_2_child_0_child_0",
+        "main_7_child_2_child_0_child_1"
+      ],
+      "main_7_child_2_child_1": [
+        "main_7_child_2_child_1_child_0",
+        "main_7_child_2_child_1_child_1"
+      ],
+      "main_7_child_2_child_2": [
+        "main_7_child_2_child_2_child_0",
+        "main_7_child_2_child_2_child_1"
+      ],
+      "main_8": [
+        "main_8_child_0",
+        "main_8_child_1",
+        "main_8_child_2"
+      ],
+      "main_8_child_0": [
+        "main_8_child_0_child_0",
+        "main_8_child_0_child_1",
+        "main_8_child_0_child_2"
+      ],
+      "main_8_child_0_child_0": [
+        "main_8_child_0_child_0_child_0",
+        "main_8_child_0_child_0_child_1"
+      ],
+      "main_8_child_0_child_1": [
+        "main_8_child_0_child_1_child_0",
+        "main_8_child_0_child_1_child_1"
+      ],
+      "main_8_child_0_child_2": [
+        "main_8_child_0_child_2_child_0",
+        "main_8_child_0_child_2_child_1"
+      ],
+      "main_8_child_1": [
+        "main_8_child_1_child_0",
+        "main_8_child_1_child_1",
+        "main_8_child_1_child_2"
+      ],
+      "main_8_child_1_child_0": [
+        "main_8_child_1_child_0_child_0",
+        "main_8_child_1_child_0_child_1"
+      ],
+      "main_8_child_1_child_1": [
+        "main_8_child_1_child_1_child_0",
+        "main_8_child_1_child_1_child_1"
+      ],
+      "main_8_child_1_child_2": [
+        "main_8_child_1_child_2_child_0",
+        "main_8_child_1_child_2_child_1"
+      ],
+      "main_8_child_2": [
+        "main_8_child_2_child_0",
+        "main_8_child_2_child_1",
+        "main_8_child_2_child_2"
+      ],
+      "main_8_child_2_child_0": [
+        "main_8_child_2_child_0_child_0",
+        "main_8_child_2_child_0_child_1"
+      ],
+      "main_8_child_2_child_1": [
+        "main_8_child_2_child_1_child_0",
+        "main_8_child_2_child_1_child_1"
+      ],
+      "main_8_child_2_child_2": [
+        "main_8_child_2_child_2_child_0",
+        "main_8_child_2_child_2_child_1"
+      ]
+    }
+  },
+  "interactions": [],
+  "workflows": [
+    {
+      "id": "wf_0",
+      "name": "Alta de Cliente",
+      "description": "Proceso completo de alta de un nuevo cliente",
+      "steps": [
+        {
+          "order": 0,
+          "name": "Buscar cliente"
+        },
+        {
+          "order": 1,
+          "name": "Validar datos"
+        },
+        {
+          "order": 2,
+          "name": "Ingresar información"
+        },
+        {
+          "order": 3,
+          "name": "Confirmar"
+        },
+        {
+          "order": 4,
+          "name": "Guardar"
+        }
+      ],
+      "triggers": [
+        "click_nuevo_cliente"
+      ],
+      "rules": [
+        "validar_nif",
+        "campos_obligatorios"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "wf_1",
+      "name": "Emisión de Póliza",
+      "description": "Proceso de emisión de una nueva póliza",
+      "steps": [
+        {
+          "order": 0,
+          "name": "Seleccionar cliente"
+        },
+        {
+          "order": 1,
+          "name": "Elegir producto"
+        },
+        {
+          "order": 2,
+          "name": "Configurar coberturas"
+        },
+        {
+          "order": 3,
+          "name": "Calcular prima"
+        },
+        {
+          "order": 4,
+          "name": "Emitir"
+        }
+      ],
+      "triggers": [
+        "click_nueva_poliza"
+      ],
+      "rules": [
+        "cliente_activo",
+        "producto_disponible",
+        "prima_calculada"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "wf_2",
+      "name": "Gestión de Siniestro",
+      "description": "Proceso de gestión de un siniestro",
+      "steps": [
+        {
+          "order": 0,
+          "name": "Registrar siniestro"
+        },
+        {
+          "order": 1,
+          "name": "Asignar perito"
+        },
+        {
+          "order": 2,
+          "name": "Evaluar daños"
+        },
+        {
+          "order": 3,
+          "name": "Aprobar indemnización"
+        },
+        {
+          "order": 4,
+          "name": "Pagar"
+        }
+      ],
+      "triggers": [
+        "click_nuevo_siniestro"
+      ],
+      "rules": [
+        "poliza_vigente",
+        "cobertura_aplicable"
+      ],
+      "metadata": {}
+    }
+  ],
+  "routes": [
+    {
+      "id": "route_main_0",
+      "path": [
+        "https://portal.occident.es",
+        "Dashboard"
+      ],
+      "url_pattern": "https://portal.occident.es/dashboard",
+      "entry_point": "main_0",
+      "exit_points": [
+        "main_0_child_0",
+        "main_0_child_1",
+        "main_0_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_0"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_1",
+      "path": [
+        "https://portal.occident.es",
+        "Clientes"
+      ],
+      "url_pattern": "https://portal.occident.es/clientes",
+      "entry_point": "main_1",
+      "exit_points": [
+        "main_1_child_0",
+        "main_1_child_1",
+        "main_1_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_1"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_2",
+      "path": [
+        "https://portal.occident.es",
+        "Pólizas"
+      ],
+      "url_pattern": "https://portal.occident.es/pólizas",
+      "entry_point": "main_2",
+      "exit_points": [
+        "main_2_child_0",
+        "main_2_child_1",
+        "main_2_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_2"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_3",
+      "path": [
+        "https://portal.occident.es",
+        "Recibos"
+      ],
+      "url_pattern": "https://portal.occident.es/recibos",
+      "entry_point": "main_3",
+      "exit_points": [
+        "main_3_child_0",
+        "main_3_child_1",
+        "main_3_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_3"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_4",
+      "path": [
+        "https://portal.occident.es",
+        "Siniestros"
+      ],
+      "url_pattern": "https://portal.occident.es/siniestros",
+      "entry_point": "main_4",
+      "exit_points": [
+        "main_4_child_0",
+        "main_4_child_1",
+        "main_4_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_4"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_5",
+      "path": [
+        "https://portal.occident.es",
+        "Documentos"
+      ],
+      "url_pattern": "https://portal.occident.es/documentos",
+      "entry_point": "main_5",
+      "exit_points": [
+        "main_5_child_0",
+        "main_5_child_1",
+        "main_5_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_5"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_6",
+      "path": [
+        "https://portal.occident.es",
+        "Informes"
+      ],
+      "url_pattern": "https://portal.occident.es/informes",
+      "entry_point": "main_6",
+      "exit_points": [
+        "main_6_child_0",
+        "main_6_child_1",
+        "main_6_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_6"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_7",
+      "path": [
+        "https://portal.occident.es",
+        "Configuración"
+      ],
+      "url_pattern": "https://portal.occident.es/configuración",
+      "entry_point": "main_7",
+      "exit_points": [
+        "main_7_child_0",
+        "main_7_child_1",
+        "main_7_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_7"
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "route_main_8",
+      "path": [
+        "https://portal.occident.es",
+        "Ayuda"
+      ],
+      "url_pattern": "https://portal.occident.es/ayuda",
+      "entry_point": "main_8",
+      "exit_points": [
+        "main_8_child_0",
+        "main_8_child_1",
+        "main_8_child_2"
+      ],
+      "required_actions": [
+        "login",
+        "click_main_8"
+      ],
+      "metadata": {}
+    }
+  ],
+  "statistics": {
+    "elements_by_type": {
+      "screen": 9,
+      "subscreen": 27,
+      "window": 81,
+      "subwindow": 162
+    },
+    "interactions_by_type": {},
+    "average_depth": 2.4193548387096775
+  }
+}
