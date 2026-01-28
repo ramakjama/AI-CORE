@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Scraper Quantum - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #10b981;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-title {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-subtitle {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        .big-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .big-card h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .button.primary {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .button.primary:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 15px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Scraper Quantum Dashboard</h1>
+            <p class="subtitle">Sistema de Extracción Ultra-Avanzado v5.0.0</p>
+            <div class="status-badge" id="status">
+                ✅ Sistema Operacional
+            </div>
+        </header>
+
+        <div class="connection-status" id="connection-status">
+            <span class="emoji">🔗</span>
+            <span id="connection-text">Conectando a la API...</span>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="card-title">⚡ Velocidad Actual</div>
+                <div class="card-value" id="velocidad">0</div>
+                <div class="card-subtitle">clientes/hora</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">✅ Clientes Exitosos</div>
+                <div class="card-value" id="exitosos">0</div>
+                <div class="card-subtitle">procesados correctamente</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Total Procesados</div>
+                <div class="card-value" id="procesados">0</div>
+                <div class="card-subtitle">clientes completados</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔧 Workers Activos</div>
+                <div class="card-value" id="workers">0</div>
+                <div class="card-subtitle">navegadores paralelos</div>
+            </div>
+        </div>
+
+        <div class="big-card">
+            <h2>📈 Información del Sistema</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Versión</div>
+                    <div class="info-value" id="version">5.0.0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Uptime</div>
+                    <div class="info-value" id="uptime">0s</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Estado</div>
+                    <div class="info-value" id="health-status">Verificando...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Última Actualización</div>
+                    <div class="info-value" id="last-update">--:--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="big-card">
+            <h2>💾 Estado de Bases de Datos</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">PostgreSQL</div>
+                    <div class="info-value" id="db-postgres">🔴 Desconectado</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Redis</div>
+                    <div class="info-value" id="db-redis">🔴 Desconectado</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Elasticsearch</div>
+                    <div class="info-value" id="db-elastic">🔴 Desconectado</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Neo4j</div>
+                    <div class="info-value" id="db-neo4j">🔴 Desconectado</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <h2 style="margin-bottom: 20px;">🔗 Accesos Rápidos</h2>
+            <div class="links">
+                <a href="http://localhost:8000/docs" target="_blank" class="button primary">
+                    📚 Documentación API (Swagger)
+                </a>
+                <a href="http://localhost:8000/redoc" target="_blank" class="button">
+                    📖 ReDoc
+                </a>
+                <a href="http://localhost:8000/api/system/health" target="_blank" class="button">
+                    ❤️ Health Check
+                </a>
+                <a href="http://localhost:8000/metrics" target="_blank" class="button">
+                    📊 Métricas Prometheus
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>🌟🌟🌟🌟🌟 Sistema de 5 Estrellas - v5.0.0 QUANTUM</p>
+            <p>© 2026 Soriano Mediadores - AIT-CORE Team</p>
+            <p>Dashboard actualizado en tiempo real cada 5 segundos</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let isConnected = false;
+
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const statusEl = document.getElementById('connection-status');
+            const textEl = document.getElementById('connection-text');
+
+            if (connected) {
+                statusEl.className = 'connection-status';
+                textEl.innerHTML = '<span class="emoji">✅</span> Conectado a la API';
+            } else {
+                statusEl.className = 'connection-status disconnected';
+                textEl.innerHTML = '<span class="emoji">⚠️</span> No se puede conectar a la API';
+            }
+        }
+
+        async function fetchHealth() {
+            try {
+                const response = await fetch(`${API_URL}/api/system/health`);
+                const data = await response.json();
+
+                updateConnectionStatus(true);
+
+                // Actualizar versión y uptime
+                document.getElementById('version').textContent = data.version;
+                document.getElementById('uptime').textContent = formatUptime(data.uptime_seconds);
+                document.getElementById('health-status').textContent = data.status === 'healthy' ? '✅ Saludable' : '⚠️ Degradado';
+
+                // Actualizar última actualización
+                const now = new Date();
+                document.getElementById('last-update').textContent = now.toLocaleTimeString();
+
+                // Actualizar bases de datos
+                document.getElementById('db-postgres').textContent =
+                    data.database.status === 'connected' ? '✅ Conectado' : '🔴 Desconectado';
+
+                document.getElementById('db-redis').textContent =
+                    data.redis.status === 'connected' ? '✅ Conectado' : '🔴 Desconectado';
+
+                document.getElementById('db-elastic').textContent =
+                    data.elasticsearch.status === 'connected' ? '✅ Conectado' : '🔴 Desconectado';
+
+                document.getElementById('db-neo4j').textContent =
+                    data.neo4j.status === 'connected' ? '✅ Conectado' : '🔴 Desconectado';
+
+                // Actualizar métricas
+                if (data.metricas) {
+                    document.getElementById('velocidad').textContent =
+                        Math.round(data.metricas.velocidad_actual);
+                    document.getElementById('exitosos').textContent =
+                        data.metricas.clientes_exitosos;
+                    document.getElementById('procesados').textContent =
+                        data.metricas.clientes_procesados;
+                    document.getElementById('workers').textContent =
+                        data.metricas.workers_activos;
+                }
+
+            } catch (error) {
+                console.error('Error fetching health:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+
+        // Actualizar cada 5 segundos
+        setInterval(fetchHealth, 5000);
+
+        // Primera carga inmediata
+        fetchHealth();
+
+        // Animación de bienvenida
+        console.log('%c🚀 Scraper Quantum Dashboard', 'font-size: 24px; color: #667eea; font-weight: bold;');
+        console.log('%cSistema de 5 Estrellas v5.0.0', 'font-size: 14px; color: #764ba2;');
+        console.log('%cAPI URL: ' + API_URL, 'font-size: 12px; color: #10b981;');
+    </script>
+</body>
+</html>

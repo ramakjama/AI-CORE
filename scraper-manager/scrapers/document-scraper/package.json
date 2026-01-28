@@ -1,0 +1,13 @@
+{
+  "name": "@scraper-manager/document-scraper",
+  "version": "1.0.0",
+  "description": "Document downloader and OneDrive organizer",
+  "main": "index.ts",
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "playwright": "^1.44.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5"
+  }
+}

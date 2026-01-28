@@ -1,0 +1,727 @@
+// Scraper Manager - Complete Database Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== SCRAPER MANAGEMENT ====================
+
+model Scraper {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String
+  version     String
+  status      ScraperStatus @default(STOPPED)
+  category    ScraperCategory
+  techStack   String[]
+  features    String[]
+  icon        String?
+  color       String?
+  priority    Int      @default(0)
+
+  config      ScraperConfig?
+  executions  ScraperExecution[]
+  logs        ScraperLog[]
+  metrics     ScraperMetric[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([category])
+}
+
+model ScraperConfig {
+  id         String   @id @default(cuid())
+  scraperId  String   @unique
+  scraper    Scraper  @relation(fields: [scraperId], references: [id], onDelete: Cascade)
+
+  // General Config
+  enabled    Boolean  @default(true)
+  schedule   String?  // Cron expression
+  maxRetries Int      @default(3)
+  timeout    Int      @default(300000) // milliseconds
+
+  // Portal Credentials
+  portalUrl      String?
+  portalUsername String?
+  portalPassword String? // Encrypted
+
+  // Database Config
+  useDatabase    Boolean @default(true)
+  databaseName   String?
+
+  // OneDrive Config
+  oneDriveEnabled Boolean @default(false)
+  oneDrivePath    String?
+
+  // AI Config
+  aiEnabled      Boolean @default(false)
+  aiModel        String?
+  aiTemperature  Float?
+
+  // Advanced Settings
+  settings       Json    @default("{}")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ScraperExecution {
+  id          String   @id @default(cuid())
+  scraperId   String
+  scraper     Scraper  @relation(fields: [scraperId], references: [id], onDelete: Cascade)
+
+  status      ExecutionStatus @default(RUNNING)
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+  duration    Int?     // milliseconds
+
+  // Progress
+  progress    Float    @default(0) // 0-100
+  currentStep String?
+  totalSteps  Int?
+
+  // Results
+  itemsProcessed   Int @default(0)
+  itemsSucceeded   Int @default(0)
+  itemsFailed      Int @default(0)
+  itemsSkipped     Int @default(0)
+
+  // Error handling
+  error       String?
+  errorStack  String?
+  retryCount  Int      @default(0)
+
+  // Metadata
+  metadata    Json     @default("{}")
+
+  logs        ScraperLog[]
+
+  @@index([scraperId, startedAt])
+  @@index([status])
+}
+
+model ScraperLog {
+  id          String   @id @default(cuid())
+  scraperId   String
+  scraper     Scraper  @relation(fields: [scraperId], references: [id], onDelete: Cascade)
+  executionId String?
+  execution   ScraperExecution? @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  level       LogLevel
+  message     String
+  details     Json?
+  timestamp   DateTime @default(now())
+
+  @@index([scraperId, timestamp])
+  @@index([executionId, timestamp])
+  @@index([level])
+}
+
+model ScraperMetric {
+  id         String   @id @default(cuid())
+  scraperId  String
+  scraper    Scraper  @relation(fields: [scraperId], references: [id], onDelete: Cascade)
+
+  metricName  String
+  metricValue Float
+  unit        String?
+  timestamp   DateTime @default(now())
+
+  metadata    Json     @default("{}")
+
+  @@index([scraperId, timestamp])
+  @@index([metricName])
+}
+
+// ==================== CLIENT DATA ====================
+
+model Client {
+  id              String   @id @default(cuid())
+  nif             String   @unique
+
+  // Basic Info
+  firstName       String?
+  lastName        String?
+  fullName        String?
+  email           String?
+  phone           String?
+  mobile          String?
+
+  // Address
+  address         String?
+  city            String?
+  province        String?
+  postalCode      String?
+  country         String   @default("España")
+
+  // Business Info
+  company         String?
+  businessType    String?
+  sector          String?
+
+  // Client Status
+  status          ClientStatus @default(ACTIVE)
+  clientType      String?
+  segment         String?
+
+  // Risk Assessment
+  riskScore       Float?
+  churnRisk       Float?
+  lifetimeValue   Float?
+
+  // Dates
+  birthDate       DateTime?
+  registeredAt    DateTime?
+  lastContactAt   DateTime?
+
+  // Relationships
+  policies        Policy[]
+  receipts        Receipt[]
+  claims          Claim[]
+  documents       Document[]
+  variants        ClientVariant[]
+  enrichments     AIEnrichment[]
+
+  // Metadata
+  source          String?  // Which scraper created this
+  portalId        String?  // ID in the original portal
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([nif])
+  @@index([status])
+  @@index([email])
+}
+
+model ClientVariant {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  variantType String   // e.g., "ALTERNATE_ADDRESS", "BUSINESS_INFO", etc.
+  data        Json
+  source      String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clientId])
+}
+
+model Policy {
+  id              String   @id @default(cuid())
+  policyNumber    String   @unique
+
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+
+  // Policy Details
+  insuranceType   String
+  insurer         String?
+  product         String?
+
+  // Coverage
+  coverageAmount  Float?
+  premium         Float?
+  premiumFrequency String?
+
+  // Status
+  status          PolicyStatus @default(ACTIVE)
+
+  // Dates
+  startDate       DateTime?
+  endDate         DateTime?
+  renewalDate     DateTime?
+
+  // Relationships
+  receipts        Receipt[]
+  claims          Claim[]
+  documents       Document[]
+
+  // Metadata
+  source          String?
+  portalId        String?
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([policyNumber])
+  @@index([status])
+}
+
+model Receipt {
+  id              String   @id @default(cuid())
+  receiptNumber   String   @unique
+
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+
+  policyId        String?
+  policy          Policy?  @relation(fields: [policyId], references: [id])
+
+  // Receipt Details
+  amount          Float
+  currency        String   @default("EUR")
+  status          ReceiptStatus @default(PENDING)
+
+  // Dates
+  issueDate       DateTime
+  dueDate         DateTime?
+  paidDate        DateTime?
+
+  // Payment
+  paymentMethod   String?
+  transactionId   String?
+
+  // Relationships
+  documents       Document[]
+
+  // Metadata
+  source          String?
+  portalId        String?
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([policyId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Claim {
+  id              String   @id @default(cuid())
+  claimNumber     String   @unique
+
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+
+  policyId        String?
+  policy          Policy?  @relation(fields: [policyId], references: [id])
+
+  // Claim Details
+  claimType       String
+  description     String?
+  amount          Float?
+  status          ClaimStatus @default(OPEN)
+
+  // Dates
+  incidentDate    DateTime?
+  reportedDate    DateTime
+  closedDate      DateTime?
+
+  // Resolution
+  approvedAmount  Float?
+  rejectionReason String?
+
+  // Relationships
+  documents       Document[]
+
+  // Metadata
+  source          String?
+  portalId        String?
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([policyId])
+  @@index([status])
+}
+
+model Document {
+  id              String   @id @default(cuid())
+
+  // Relationships
+  clientId        String?
+  client          Client?  @relation(fields: [clientId], references: [id])
+
+  policyId        String?
+  policy          Policy?  @relation(fields: [policyId], references: [id])
+
+  receiptId       String?
+  receipt         Receipt? @relation(fields: [receiptId], references: [id])
+
+  claimId         String?
+  claim           Claim?   @relation(fields: [claimId], references: [id])
+
+  // Document Details
+  documentType    String
+  fileName        String
+  fileSize        Int?
+  mimeType        String?
+
+  // Storage
+  localPath       String?
+  oneDrivePath    String?
+  oneDriveId      String?
+  url             String?
+
+  // Content
+  extractedText   String?
+  ocrText         String?
+  thumbnail       String?
+
+  // Metadata
+  uploadedAt      DateTime @default(now())
+  source          String?
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([policyId])
+  @@index([documentType])
+}
+
+// ==================== PORTFOLIO MANAGEMENT ====================
+
+model PortfolioSurveillance {
+  id              String   @id @default(cuid())
+
+  clientNif       String
+  policyNumber    String?
+
+  alertType       String
+  alertSeverity   AlertSeverity
+  alertMessage    String
+
+  status          String   @default("PENDING")
+  assignedTo      String?
+  resolvedAt      DateTime?
+  resolution      String?
+
+  data            Json
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientNif])
+  @@index([alertSeverity])
+  @@index([status])
+}
+
+model PortfolioDefense {
+  id              String   @id @default(cuid())
+
+  clientNif       String
+  policyNumber    String
+
+  defenseType     String
+  reason          String
+  status          String   @default("PENDING")
+
+  originalInsurer String?
+  targetInsurer   String?
+
+  actionTaken     String?
+  outcome         String?
+
+  data            Json
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientNif])
+  @@index([status])
+}
+
+// ==================== ONEDRIVE & M365 ====================
+
+model OneDriveFile {
+  id              String   @id @default(cuid())
+
+  driveId         String
+  itemId          String   @unique
+  name            String
+  path            String
+
+  size            BigInt
+  mimeType        String?
+
+  parentId        String?
+  isFolder        Boolean  @default(false)
+
+  // Analysis
+  isDuplicate     Boolean  @default(false)
+  duplicateOf     String?
+  isLargeFile     Boolean  @default(false)
+  isUnused        Boolean  @default(false)
+  lastAccessedAt  DateTime?
+
+  // Optimization
+  optimizationSuggestion String?
+  proposedAction  String?
+
+  // Metadata
+  createdBy       String?
+  modifiedBy      String?
+  webUrl          String?
+
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([driveId])
+  @@index([parentId])
+  @@index([isDuplicate])
+  @@index([isLargeFile])
+}
+
+model M365Config {
+  id              String   @id @default(cuid())
+
+  orgId           String   @unique
+  orgName         String
+
+  // Configuration
+  configType      String   // e.g., "Exchange", "SharePoint", "Teams", etc.
+  configName      String
+  configValue     Json
+
+  appliedAt       DateTime?
+  appliedBy       String?
+  status          String   @default("PENDING")
+
+  // Recommendations
+  isRecommended   Boolean  @default(false)
+  recommendationReason String?
+
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([configType])
+}
+
+// ==================== AI & ENRICHMENT ====================
+
+model AIEnrichment {
+  id              String   @id @default(cuid())
+
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+
+  enrichmentType  String   // e.g., "PATTERN_ANALYSIS", "CHURN_PREDICTION", etc.
+
+  // AI Results
+  insights        Json
+  confidence      Float?
+
+  // Predictions
+  churnRisk       Float?
+  crossSellOpportunities Json?
+  clientCategory  String?
+
+  // Summary
+  summary         String?
+
+  // Model Info
+  modelUsed       String
+  modelVersion    String?
+
+  processedAt     DateTime @default(now())
+
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([enrichmentType])
+}
+
+model CompetitorData {
+  id              String   @id @default(cuid())
+
+  competitorName  String
+  competitorUrl   String?
+
+  dataType        String   // e.g., "PRICING", "PRODUCT", "FEATURE", etc.
+
+  // Data
+  data            Json
+
+  // Analysis
+  changeDetected  Boolean  @default(false)
+  previousValue   Json?
+  currentValue    Json?
+
+  // Alerts
+  alertTriggered  Boolean  @default(false)
+  alertMessage    String?
+
+  scrapedAt       DateTime @default(now())
+
+  metadata        Json     @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([competitorName])
+  @@index([dataType])
+  @@index([changeDetected])
+}
+
+// ==================== CONNECTOR & MODULES ====================
+
+model Module {
+  id              String   @id @default(cuid())
+
+  name            String   @unique
+  slug            String   @unique
+  type            ModuleType
+  category        String?
+
+  isVital         Boolean  @default(false)
+  isEnabled       Boolean  @default(true)
+
+  version         String
+  description     String?
+
+  // Connectivity
+  apiEndpoint     String?
+  webhookUrl      String?
+
+  dependencies    String[] // Module slugs this depends on
+
+  // Health
+  status          String   @default("INACTIVE")
+  lastHealthCheck DateTime?
+  healthStatus    String?
+
+  config          Json     @default("{}")
+  metadata        Json     @default("{}")
+
+  events          ModuleEvent[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type])
+  @@index([isVital])
+}
+
+model ModuleEvent {
+  id              String   @id @default(cuid())
+
+  moduleId        String
+  module          Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  eventType       String
+  eventName       String
+  payload         Json
+
+  status          String   @default("PENDING")
+  processedAt     DateTime?
+
+  error           String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([moduleId])
+  @@index([eventType])
+  @@index([status])
+}
+
+// ==================== ENUMS ====================
+
+enum ScraperStatus {
+  RUNNING
+  STOPPED
+  ERROR
+  PAUSED
+  MAINTENANCE
+}
+
+enum ScraperCategory {
+  CLIENT_DATA
+  DOCUMENTS
+  PORTFOLIO
+  DATABASE
+  CLOUD
+  AI_ML
+  INTELLIGENCE
+  SYSTEM
+}
+
+enum ExecutionStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PAUSED
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CANCELLED
+  PROSPECT
+}
+
+enum PolicyStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+  PENDING
+}
+
+enum ReceiptStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum ClaimStatus {
+  OPEN
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  CLOSED
+  APPEALED
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ModuleType {
+  CORE
+  VITAL
+  EXTERNAL
+  INTERNAL
+}
