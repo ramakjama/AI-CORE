@@ -1,0 +1,61 @@
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { TicketsService } from './tickets.service';
+import { Prisma } from '@prisma/client';
+
+@Resolver('Ticket')
+export class TicketsResolver {
+  constructor(private readonly ticketsService: TicketsService) {}
+
+  @Query('tickets')
+  async findAll(
+    @Args('skip') skip?: number,
+    @Args('take') take?: number,
+    @Args('status') status?: string,
+    @Args('priority') priority?: string,
+    @Args('companyId') companyId?: string,
+  ) {
+    const where: Prisma.TicketWhereInput = {};
+
+    if (status) where.status = status;
+    if (priority) where.priority = priority;
+    if (companyId) where.companyId = companyId;
+
+    return this.ticketsService.findAll({
+      skip,
+      take: take || 50,
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  @Query('ticket')
+  async findOne(@Args('id') id: string) {
+    return this.ticketsService.findOne(id);
+  }
+
+  @Mutation('createTicket')
+  async create(@Args('data') data: Prisma.TicketCreateInput) {
+    return this.ticketsService.create(data);
+  }
+
+  @Mutation('updateTicket')
+  async update(
+    @Args('id') id: string,
+    @Args('data') data: Prisma.TicketUpdateInput,
+  ) {
+    return this.ticketsService.update(id, data);
+  }
+
+  @Mutation('deleteTicket')
+  async delete(@Args('id') id: string) {
+    return this.ticketsService.delete(id);
+  }
+
+  @Mutation('addTicketMessage')
+  async addMessage(
+    @Args('ticketId') ticketId: string,
+    @Args('data') data: Prisma.TicketMessageCreateInput,
+  ) {
+    return this.ticketsService.addMessage(ticketId, data);
+  }
+}

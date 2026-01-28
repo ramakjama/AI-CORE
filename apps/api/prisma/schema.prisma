@@ -1,0 +1,3914 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SM_GLOBAL_DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  status       String   @default("ACTIVE")
+  tenantId     String   @default("default")
+
+  // Multi-empresa
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Campos adicionales
+  avatar       String?
+  preferences  Json?
+  settings     Json?
+
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sessions     Session[]
+
+  // Relaciones con Centralita
+  callsAsAgent     Call[]            @relation("CallAgent")
+  agentStatus      AgentStatus?      @relation("AgentStatus")
+  voicemails       Voicemail[]       @relation("VoicemailUser")
+  recordings       CallRecording[]   @relation("RecordingAgent")
+
+  // Relaciones con Chat AI
+  chatConversations ChatConversation[] @relation("ChatUser")
+  chatFeedbacks    ChatFeedback[]     @relation("FeedbackUser")
+
+  @@index([companyId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String
+  refreshToken String   @unique
+  expiresAt    DateTime
+
+  // Seguridad mejorada
+  ipAddress    String?
+  userAgent    String?
+  deviceInfo   Json?
+
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model Party {
+  id             String   @id @default(uuid())
+  tenantId       String   @default("default")
+  partyType      String
+  displayName    String
+  firstName      String?
+  lastName       String?
+  legalName      String?
+  documentType   String?
+  documentNumber String?
+  isVip          Boolean  @default(false)
+  isBlacklisted  Boolean  @default(false)
+
+  // Multi-empresa
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Contacto
+  primaryPhone   String?
+  primaryEmail   String?
+  primaryAddress String?
+
+  // Demográficos
+  birthDate      DateTime?
+  gender         String?
+  maritalStatus  String?
+  nationality    String?
+  educationLevel String?
+  profession     String?
+
+  // Económicos
+  monthlyIncome  Float?
+  incomeLevel    String?
+  employmentStatus String?
+
+  // Scoring
+  healthScore    Int?     // 0-100
+  riskScore      Int?     // 0-100
+  loyaltyScore   Int?     // 0-100
+  segment        String?  // "VIP", "ORO", "PLATA", "BRONCE"
+
+  // IA Analysis
+  aiPsychographicProfile Json?
+  aiPaymentCapacity      Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  // Relaciones con Centralita
+  calls          Call[]
+
+  @@index([companyId])
+  @@index([documentNumber])
+  @@index([primaryEmail])
+  @@index([segment])
+}
+
+model Policy {
+  id           String   @id @default(uuid())
+  tenantId     String   @default("default")
+  policyNumber String?
+  status       String   @default("DRAFT")
+  type         String
+  holderName   String
+  startDate    DateTime?
+  endDate      DateTime?
+  premium      Float?
+
+  // Multi-empresa
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Campos adicionales para expansión futura
+  holderPartyId String?
+  insurer       String?
+  riskLevel     String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  claims       Claim[]
+
+  // Relaciones con activos asegurados
+  vehicles     Vehicle[]
+  properties   Property[]
+  valuables    Valuable[]
+
+  @@index([companyId])
+  @@index([policyNumber])
+  @@index([status])
+}
+
+model Claim {
+  id          String   @id @default(uuid())
+  policyId    String?
+  status      String   @default("OPEN")
+  title       String
+  description String?
+  amount      Float?
+
+  // Multi-empresa
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Campos adicionales para fraude y IA
+  fraudScore  Int?     // 0-100
+  aiAnalysis  Json?    // Análisis de IA del siniestro
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  policy      Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([status])
+  @@index([fraudScore])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  tenantId  String   @default("default")
+  channel   String
+  status    String   @default("PENDING")
+  to        String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentRun {
+  id        String   @id @default(uuid())
+  tenantId  String   @default("default")
+  agentName String
+  status    String   @default("COMPLETED")
+  input     String
+  output    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  tenantId  String   @default("default")
+  eventType String
+  source    String?
+  payload   String?
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// MULTI-EMPRESA SYSTEM
+// ==========================================
+
+model Company {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  code            String   @unique
+  name            String
+  legalName       String
+  taxId           String   @unique  // CIF/NIF
+  type            String   // "HOLDING" | "SUBSIDIARY" | "BRANCH" | "INDEPENDENT"
+
+  // Jerarquía
+  parentId        String?
+  parent          Company? @relation("CompanyHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  subsidiaries    Company[] @relation("CompanyHierarchy")
+  participationPct Float?   // % de participación si es filial
+
+  // Datos de contacto
+  address         String?
+  city            String?
+  postalCode      String?
+  country         String   @default("ES")
+  phone           String?
+  email           String?
+  website         String?
+
+  // Contabilidad
+  fiscalYearStart String   @default("01-01")  // MM-DD
+  currency        String   @default("EUR")
+  accountingPlan  String   @default("PGC_2007")
+  taxRegime       String?
+
+  // Branding
+  logo            String?
+  primaryColor    String?
+  secondaryColor  String?
+  theme           Json?
+
+  // Configuración
+  settings        Json?    // Settings específicos de la empresa
+  features        String[] // Features activas
+
+  // Multi-tenant
+  tenantId        String   @unique
+
+  // Estado
+  active          Boolean  @default(true)
+
+  // Relaciones
+  users           User[]
+  parties         Party[]
+  policies        Policy[]
+  claims          Claim[]
+  sourceTransactions IntercompanyTransaction[] @relation("SourceCompany")
+  targetTransactions IntercompanyTransaction[] @relation("TargetCompany")
+
+  // Relaciones con Centralita
+  calls           Call[]
+  callQueues      CallQueue[]
+  agentStatuses   AgentStatus[]
+  campaigns       Campaign[]
+  ivrMenus        IVRMenu[]
+  voicemails      Voicemail[]
+  callRecordings  CallRecording[]
+  callTranscriptions CallTranscription[]
+  callMetrics     CallMetrics[]
+  dialerConfigurations DialerConfiguration[]
+
+  // Relaciones con Chat AI
+  chatConversations ChatConversation[] @relation("ChatCompany")
+  knowledgeArticles KnowledgeBaseArticle[] @relation("KnowledgeCompany")
+  chatAnalytics   ChatAnalytics[]    @relation("AnalyticsCompany")
+
+  // Relaciones con Gamificación
+  wallets         Wallet[]           @relation("WalletCompany")
+
+  // Relaciones con Tax
+  invoices        Invoice[]
+  payrolls        Payroll[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("companies")
+  @@index([parentId])
+  @@index([tenantId])
+  @@index([taxId])
+}
+
+model ConsolidationRule {
+  id              String   @id @default(uuid())
+
+  name            String
+  description     String?
+  type            String   // "ELIMINATION" | "ADJUSTMENT" | "RECLASSIFICATION"
+
+  // Aplicable a
+  sourceCompanyId String?
+  targetCompanyId String?
+
+  // Regla
+  condition       Json     // Condición para aplicar la regla
+  action          Json     // Acción a realizar
+
+  // Automatización
+  automatic       Boolean  @default(false)
+  priority        Int      @default(0)
+
+  active          Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("consolidation_rules")
+  @@index([sourceCompanyId])
+  @@index([targetCompanyId])
+}
+
+model IntercompanyTransaction {
+  id                String   @id @default(uuid())
+
+  // Empresas involucradas
+  sourceCompanyId   String
+  sourceCompany     Company  @relation("SourceCompany", fields: [sourceCompanyId], references: [id], onDelete: Restrict)
+  targetCompanyId   String
+  targetCompany     Company  @relation("TargetCompany", fields: [targetCompanyId], references: [id], onDelete: Restrict)
+
+  // Transacción
+  type              String   // "SALE" | "PURCHASE" | "LOAN" | "DIVIDEND" | "SERVICE"
+  amount            Float
+  currency          String   @default("EUR")
+  date              DateTime
+
+  // Contabilidad
+  sourceAccountId   String?  // Cuenta en empresa origen
+  targetAccountId   String?  // Cuenta en empresa destino
+
+  // Eliminación
+  eliminated        Boolean  @default(false)
+  eliminationDate   DateTime?
+  eliminationNote   String?
+
+  // Referencia
+  referenceType     String?  // "INVOICE" | "RECEIPT" | "CONTRACT"
+  referenceId       String?
+
+  description       String?
+
+  createdAt         DateTime @default(now())
+
+  @@map("intercompany_transactions")
+  @@index([sourceCompanyId])
+  @@index([targetCompanyId])
+  @@index([date])
+  @@index([eliminated])
+}
+
+model ConsolidationReport {
+  id              String   @id @default(uuid())
+
+  name            String
+  period          String   // "2024-Q1", "2024-12", etc.
+  type            String   // "REAL" | "SIMULATED" | "PROPORTIONAL" | "GLOBAL"
+
+  // Empresas consolidadas
+  companies       Json     // Array de companyIds con % participación
+
+  // Resultados
+  consolidatedBalance     Json
+  consolidatedPL          Json
+  eliminations            Json
+  adjustments             Json
+
+  // Estado
+  status          String   // "DRAFT" | "IN_PROGRESS" | "COMPLETED" | "AUDITED"
+
+  // Auditoría
+  auditedBy       String?
+  auditDate       DateTime?
+  auditReport     String?  // URL
+
+  // Exportaciones
+  pdfUrl          String?
+  xlsxUrl         String?
+  xbrlUrl         String?
+
+  createdAt       DateTime @default(now())
+  createdBy       String?
+
+  @@map("consolidation_reports")
+  @@index([period])
+  @@index([status])
+}
+
+// ==========================================
+// CLIENTE 360° SYSTEM
+// ==========================================
+
+// Información de contacto extendida
+model ContactInformation {
+  id           String   @id @default(uuid())
+  partyId      String
+
+  // Tipo de contacto
+  type         String   // "PHONE" | "EMAIL" | "ADDRESS" | "SOCIAL_MEDIA"
+  category     String   // "PRIMARY" | "SECONDARY" | "WORK" | "PERSONAL"
+
+  // Datos
+  value        String
+  label        String?
+  verified     Boolean  @default(false)
+
+  // Preferencias
+  isPrimary    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+
+  // Metadata
+  metadata     Json?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([type])
+  @@index([isPrimary])
+}
+
+// Situación económica
+model EconomicSituation {
+  id                String   @id @default(uuid())
+  partyId           String   @unique
+
+  // Ingresos
+  monthlyIncome     Float?
+  annualIncome      Float?
+  incomeSource      String?  // "SALARY" | "BUSINESS" | "INVESTMENTS" | "PENSION" | "OTHER"
+  incomeLevel       String?  // "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH"
+
+  // Capacidad económica
+  economicCapacity  String?  // Análisis general
+
+  // Desglose de ingresos
+  incomeBreakdown   Json?
+
+  // Gastos estimados
+  estimatedExpenses Json?
+
+  // Deudas
+  debts             Json?
+
+  // Scoring
+  creditScore       Int?
+  creditRiskLevel   String?
+  paymentBehavior   String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([incomeLevel])
+  @@index([creditRiskLevel])
+}
+
+// Situación laboral
+model LaborSituation {
+  id                String   @id @default(uuid())
+  partyId           String   @unique
+
+  // Empleo actual
+  employmentStatus  String?  // "EMPLOYED" | "SELF_EMPLOYED" | "UNEMPLOYED" | "RETIRED" | "STUDENT"
+  profession        String?
+  company           String?
+  position          String?
+  sector            String?
+
+  // Antigüedad
+  startDate         DateTime?
+  seniority         Int?     // Años
+
+  // Tipo de contrato
+  contractType      String?  // "PERMANENT" | "TEMPORARY" | "FREELANCE" | "INTERN"
+
+  // Datos adicionales
+  workSchedule      String?
+  workLocation      String?
+  previousJobs      Json?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([employmentStatus])
+  @@index([profession])
+}
+
+// Datos financieros
+model FinancialData {
+  id                    String   @id @default(uuid())
+  partyId               String   @unique
+
+  // Cuentas bancarias
+  bankAccounts          Json?
+
+  // Tarjetas
+  creditCards           Json?
+
+  // Método de pago preferido
+  preferredPaymentMethod String?
+
+  // Historial de pagos
+  paymentHistory        Json?
+
+  // Límites y saldos
+  creditLimit           Float?
+  currentBalance        Float?
+  sorisBalance          Float?   // Puntos SORIS
+
+  // Comportamiento
+  averagePaymentDelay   Int?     // Días
+  defaultRate           Float?   // %
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([partyId])
+}
+
+// Miembros de familia
+model FamilyMember {
+  id            String   @id @default(uuid())
+  partyId       String
+
+  // Datos del familiar
+  fullName      String
+  relationshipType String  // "SPOUSE" | "CHILD" | "PARENT" | "SIBLING" | "OTHER"
+  birthDate     DateTime?
+  age           Int?
+  gender        String?
+
+  // Documentación
+  documentType  String?
+  documentNumber String?
+
+  // Dependencia
+  isDependant   Boolean  @default(false)
+  dependencyLevel String? // "FULL" | "PARTIAL" | "NONE"
+
+  // Relación con pólizas
+  sharedPolicies Json?
+
+  // Contacto
+  phone         String?
+  email         String?
+
+  // Metadata
+  notes         String?
+  metadata      Json?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([relationshipType])
+}
+
+// Preferencias del cliente
+model Preference {
+  id            String   @id @default(uuid())
+  partyId       String
+
+  // Tipo de preferencia
+  category      String   // "CONTACT" | "COMMUNICATION" | "PRODUCT" | "SERVICE" | "MARKETING"
+  key           String
+  value         String
+
+  // Metadata
+  description   String?
+  metadata      Json?
+
+  isActive      Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([category])
+  @@index([key])
+}
+
+// Aficiones e intereses
+model Hobby {
+  id            String   @id @default(uuid())
+  partyId       String
+
+  // Afición
+  name          String
+  category      String   // "SPORTS" | "ARTS" | "TRAVEL" | "TECHNOLOGY" | "READING" | "OTHER"
+  description   String?
+
+  // Nivel de interés
+  interestLevel String?  // "LOW" | "MEDIUM" | "HIGH"
+  frequency     String?  // "DAILY" | "WEEKLY" | "MONTHLY" | "OCCASIONAL"
+
+  // Práctica
+  practicing    Boolean  @default(true)
+  since         DateTime?
+
+  // Metadata
+  metadata      Json?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([category])
+}
+
+// Vehículos del cliente
+model Vehicle {
+  id                  String   @id @default(uuid())
+  partyId             String
+
+  // Relación con póliza de seguro
+  policyId            String?
+  policy              Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  // Datos básicos
+  brand               String
+  model               String
+  year                Int
+  type                String   // "CAR" | "MOTORCYCLE" | "TRUCK" | "VAN" | "OTHER"
+
+  // Identificación
+  licensePlate        String?
+  vin                 String?  // Vehicle Identification Number
+
+  // Características técnicas
+  fuelType            String?  // "GASOLINE" | "DIESEL" | "ELECTRIC" | "HYBRID"
+  color               String?
+  kilometers          Int?
+  transmission        String?  // "MANUAL" | "AUTOMATIC"
+
+  // Adquisición
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+
+  // Valoración
+  estimatedValue      Float?
+  lastValuationDate   DateTime?
+
+  // Financiación
+  financedBy          String?
+  remainingDebt       Float?
+  monthlyPayment      Float?
+
+  // Uso
+  usage               String?  // "PERSONAL" | "PROFESSIONAL" | "MIXED"
+  parkingLocation     String?
+
+  // Documentos y fotos
+  photos              String[] // URLs
+  documents           Json?    // ITV, permisos, etc.
+
+  // Mantenimiento
+  maintenanceHistory  Json?
+  nextMaintenanceDate DateTime?
+  nextItvDate         DateTime?
+
+  // Estado
+  status              String   @default("ACTIVE") // "ACTIVE" | "SOLD" | "SCRAPPED"
+
+  // Metadata
+  notes               String?
+  metadata            Json?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([policyId])
+  @@index([licensePlate])
+  @@index([status])
+}
+
+// Viviendas (propiedades inmobiliarias)
+model Property {
+  id                  String   @id @default(uuid())
+  partyId             String
+
+  // Relación con póliza de seguro
+  policyId            String?
+  policy              Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  // Tipo
+  type                String   // "APARTMENT" | "HOUSE" | "OFFICE" | "COMMERCIAL" | "LAND" | "GARAGE" | "STORAGE"
+
+  // Ubicación
+  address             String
+  city                String?
+  postalCode          String?
+  province            String?
+  country             String   @default("ES")
+
+  // Ubicación geográfica
+  latitude            Float?
+  longitude           Float?
+
+  // Identificación
+  cadastralReference  String?
+  registryNumber      String?
+
+  // Características
+  surface             Float?   // m²
+  rooms               Int?
+  bathrooms           Int?
+  floor               String?
+
+  // Comodidades
+  hasElevator         Boolean  @default(false)
+  hasGarage           Boolean  @default(false)
+  hasTerrace          Boolean  @default(false)
+  hasGarden           Boolean  @default(false)
+  hasPool             Boolean  @default(false)
+  hasHeating          Boolean  @default(false)
+  hasAirConditioning  Boolean  @default(false)
+
+  // Eficiencia energética
+  energyCertificate   String?  // A, B, C, D, E, F, G
+
+  // Adquisición
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+
+  // Valoración
+  estimatedValue      Float?
+  cadastralValue      Float?
+  lastValuationDate   DateTime?
+
+  // Impuestos
+  ibiValue            Float?
+
+  // Propiedad
+  ownershipType       String?  // "FULL_OWNERSHIP" | "SHARED" | "USUFRUCT" | "RENTAL"
+  ownershipPercentage Float?
+
+  // Hipoteca
+  isMortgaged         Boolean  @default(false)
+  mortgageDetails     Json?
+
+  // Uso
+  usage               String?  // "PRIMARY_RESIDENCE" | "SECONDARY_RESIDENCE" | "RENTAL" | "VACANT"
+
+  // Alquiler
+  isRented            Boolean  @default(false)
+  rentalIncome        Float?
+  tenants             Json?
+
+  // Documentos y fotos
+  photos              String[] // URLs
+  documents           Json?
+
+  // Estado
+  status              String   @default("ACTIVE") // "ACTIVE" | "SOLD" | "DEMOLISHED"
+
+  // Metadata
+  notes               String?
+  metadata            Json?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([policyId])
+  @@index([cadastralReference])
+  @@index([type])
+  @@index([status])
+}
+
+// Objetos de valor (joyas, arte, relojes, antigüedades)
+model Valuable {
+  id                  String   @id @default(uuid())
+  partyId             String
+
+  // Relación con póliza de seguro
+  policyId            String?
+  policy              Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  // Tipo
+  type                String   // "JEWELRY" | "ART" | "WATCH" | "ANTIQUE" | "COLLECTIBLE" | "OTHER"
+
+  // Descripción
+  name                String
+  description         String?
+  brand               String?
+  model               String?
+
+  // Identificación
+  serialNumber        String?
+  certificateNumber   String?
+
+  // Origen
+  origin              String?
+  manufacturer        String?
+  year                Int?
+
+  // Adquisición
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+  purchaseLocation    String?
+
+  // Valoración
+  estimatedValue      Float?
+  lastAppraisalDate   DateTime?
+  appraisedBy         String?
+  appraisalDocument   String?  // URL
+
+  // Ubicación
+  location            String?  // Dónde se guarda
+
+  // Características
+  material            String?
+  weight              Float?
+  dimensions          String?
+
+  // Estado
+  condition           String?  // "EXCELLENT" | "GOOD" | "FAIR" | "POOR"
+
+  // Documentos y fotos
+  photos              String[] // URLs
+  certificates        String[] // URLs de certificados de autenticidad
+  documents           Json?
+
+  // Metadata
+  notes               String?
+  metadata            Json?
+
+  status              String   @default("ACTIVE") // "ACTIVE" | "SOLD" | "LOST" | "STOLEN"
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([policyId])
+  @@index([type])
+  @@index([status])
+}
+
+// Inversiones (acciones, fondos, depósitos)
+model Investment {
+  id                  String   @id @default(uuid())
+  partyId             String
+
+  // Tipo
+  type                String   // "STOCKS" | "BONDS" | "FUNDS" | "DEPOSITS" | "CRYPTO" | "REAL_ESTATE_FUND" | "OTHER"
+
+  // Identificación
+  name                String
+  isin                String?  // International Securities Identification Number
+  ticker              String?
+
+  // Entidad
+  entity              String?  // Banco, broker, etc.
+  accountNumber       String?
+
+  // Inversión
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+  quantity            Float?   // Número de acciones, participaciones, etc.
+
+  // Valoración actual
+  currentValue        Float?
+  lastUpdateDate      DateTime?
+
+  // Rendimiento
+  performance         Float?   // % de rendimiento
+  annualReturn        Float?
+  dividends           Float?
+
+  // Riesgo
+  riskLevel           String?  // "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH"
+  riskCategory        String?
+
+  // Vencimiento
+  maturityDate        DateTime?
+
+  // Liquidez
+  liquidity           String?  // "IMMEDIATE" | "SHORT_TERM" | "MEDIUM_TERM" | "LONG_TERM"
+
+  // Documentos
+  documents           Json?
+
+  // Estado
+  status              String   @default("ACTIVE") // "ACTIVE" | "SOLD" | "MATURED"
+
+  // Metadata
+  notes               String?
+  metadata            Json?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([type])
+  @@index([status])
+}
+
+// Otros activos
+model OtherAsset {
+  id                  String   @id @default(uuid())
+  partyId             String
+
+  // Tipo
+  type                String
+  name                String
+  description         String?
+
+  // Valoración
+  estimatedValue      Float?
+
+  // Documentos y fotos
+  photos              String[]
+  documents           Json?
+
+  // Metadata
+  metadata            Json?
+
+  status              String   @default("ACTIVE")
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([type])
+}
+
+// Tipos de relación (catálogo)
+model RelationshipType {
+  id          String   @id @default(uuid())
+
+  code        String   @unique
+  name        String
+  category    String   // "FAMILY" | "PROFESSIONAL" | "COMMERCIAL" | "SOCIAL"
+  description String?
+
+  // Configuración
+  isSymmetric Boolean  @default(false) // Si A->B implica B->A
+  color       String?  // Para visualización en grafos
+
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+}
+
+// Relaciones entre clientes (grafo social)
+model Relationship {
+  id                  String   @id @default(uuid())
+
+  // Partes de la relación
+  fromPartyId         String
+  toPartyId           String
+
+  // Tipo de relación
+  relationshipTypeId  String
+
+  // Fuerza de la relación (0-1)
+  strength            Float    @default(0.5)
+
+  // Grado de relación
+  degree              Int?     // 1 = directo, 2 = segundo grado, etc.
+
+  // Productos compartidos
+  sharedPolicies      Json?
+  sharedProducts      Json?
+
+  // Influencia
+  influenceScore      Float?
+
+  // Metadata
+  description         String?
+  metadata            Json?
+
+  // Estado
+  isActive            Boolean  @default(true)
+
+  // Fechas
+  since               DateTime?
+  until               DateTime?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([fromPartyId])
+  @@index([toPartyId])
+  @@index([relationshipTypeId])
+  @@index([strength])
+  @@unique([fromPartyId, toPartyId, relationshipTypeId])
+}
+
+// Documentos del cliente
+model ClientDocument {
+  id          String   @id @default(uuid())
+  partyId     String
+
+  // Documento
+  name        String
+  description String?
+  type        String   // "ID" | "CONTRACT" | "CERTIFICATE" | "INVOICE" | "OTHER"
+  category    String?
+
+  // Archivo
+  fileUrl     String
+  fileName    String
+  fileSize    Int?     // bytes
+  mimeType    String?
+
+  // Clasificación (IA)
+  aiClassification Json?
+
+  // Metadata
+  metadata    Json?
+  tags        String[]
+
+  // Fechas
+  documentDate DateTime?
+  expiryDate   DateTime?
+
+  // Estado
+  status      String   @default("ACTIVE") // "ACTIVE" | "ARCHIVED" | "DELETED"
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([partyId])
+  @@index([type])
+  @@index([status])
+}
+
+// ==========================================
+// CENTRALITA VIRTUAL SYSTEM
+// ==========================================
+
+model Call {
+  id              String   @id @default(uuid())
+
+  // Identificadores
+  callId          String   @unique  // UUID de Asterisk/FreeSWITCH
+  sessionId       String?
+
+  // Participantes
+  callerNumber    String
+  callerId        String?
+  callerName      String?
+  calledNumber    String
+  partyId         String?
+  party           Party?   @relation(fields: [partyId], references: [id], onDelete: SetNull)
+
+  // Agente
+  agentId         String?
+  agent           User?    @relation("CallAgent", fields: [agentId], references: [id], onDelete: SetNull)
+  queueId         String?
+  queue           CallQueue? @relation(fields: [queueId], references: [id], onDelete: SetNull)
+
+  // Campaña
+  campaignId      String?
+  campaign        Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  // Dirección
+  direction       String   // "INBOUND" | "OUTBOUND"
+  callType        String?  // "NORMAL" | "TRANSFER" | "CONFERENCE" | "CALLBACK"
+
+  // Timing
+  startTime       DateTime
+  answerTime      DateTime?
+  endTime         DateTime?
+  duration        Int?     // segundos totales
+  talkTime        Int?     // segundos de conversación
+  holdTime        Int?     // segundos en espera
+  ringTime        Int?     // segundos de timbre
+  waitTime        Int?     // tiempo en cola
+
+  // Estado
+  status          String   // "RINGING" | "ANSWERED" | "COMPLETED" | "MISSED" | "BUSY" | "FAILED"
+  disposition     String?  // "ANSWERED" | "NO_ANSWER" | "BUSY" | "FAILED"
+  hangupCause     String?
+
+  // Grabación
+  recordingUrl    String?
+  recordingId     String?
+  recording       CallRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+
+  // Transcripción y IA
+  transcriptionId String?
+  transcription   CallTranscription? @relation(fields: [transcriptionId], references: [id], onDelete: SetNull)
+  summary         String?
+  sentimentScore  Float?   // -1.0 (negativo) a 1.0 (positivo)
+  sentiment       String?  // "POSITIVE" | "NEUTRAL" | "NEGATIVE"
+  aiTags          String[] // Tags generados por IA
+  aiInsights      Json?    // Insights de IA
+
+  // IVR
+  ivrPath         Json?    // Camino tomado en el IVR
+
+  // Transferencia
+  transferredFrom String?
+  transferredTo   String?
+  transferType    String?  // "BLIND" | "ATTENDED"
+
+  // Calidad
+  qualityScore    Int?     // 1-5
+  qualityNotes    String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("calls")
+  @@index([partyId])
+  @@index([agentId])
+  @@index([queueId])
+  @@index([campaignId])
+  @@index([companyId])
+  @@index([startTime])
+  @@index([status])
+  @@index([direction])
+  @@index([callType])
+  @@index([recordingId])
+  @@index([transcriptionId])
+}
+
+model CallQueue {
+  id              String   @id @default(uuid())
+
+  name            String
+  description     String?
+  extension       String   @unique
+
+  // Strategy
+  strategy        String   // "RINGALL" | "ROUNDROBIN" | "LEASTRECENT" | "RANDOM" | "RRMEMORY"
+
+  // Agents
+  agents          Json     // Array de agentIds con prioridad
+  maxAgents       Int      @default(0)  // 0 = sin límite
+
+  // Límites
+  maxWaitTime     Int      @default(300)  // segundos
+  maxCallers      Int      @default(50)
+
+  // Timing
+  memberTimeout   Int      @default(15)   // segundos de ring por agente
+  retryDelay      Int      @default(5)    // segundos entre reintentos
+
+  // Audio
+  musicOnHold     String?
+  announceFreq    Int      @default(30)   // segundos
+  announceMessage String?
+
+  // Callback
+  callbackEnabled Boolean  @default(true)
+  callbackThreshold Int    @default(180)  // ofrecer callback si espera > 3min
+
+  // Prioridad
+  weight          Int      @default(0)
+
+  // Horarios
+  schedule        Json?    // Horarios de atención
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  calls           Call[]
+
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("call_queues")
+  @@index([companyId])
+  @@index([extension])
+  @@index([active])
+}
+
+model AgentStatus {
+  id              String   @id @default(uuid())
+
+  agentId         String   @unique
+  agent           User     @relation("AgentStatus", fields: [agentId], references: [id], onDelete: Cascade)
+
+  status          String   // "AVAILABLE" | "ON_CALL" | "WRAP_UP" | "BREAK" | "LUNCH" | "MEETING" | "OFFLINE"
+  statusSince     DateTime @default(now())
+
+  currentCallId   String?
+  extension       String?
+  device          String?  // SIP URI
+
+  // Stats hoy
+  callsToday      Int      @default(0)
+  talkTimeToday   Int      @default(0)  // segundos
+
+  lastCallAt      DateTime?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  updatedAt       DateTime @updatedAt
+
+  @@map("agent_statuses")
+  @@index([agentId])
+  @@index([status])
+  @@index([companyId])
+}
+
+model Campaign {
+  id              String   @id @default(uuid())
+
+  name            String
+  description     String?
+  type            String   // "PREVIEW" | "POWER" | "PREDICTIVE"
+
+  // Lista de contactos
+  contactListId   String?
+  contacts        Json     // Array de contactos a llamar
+
+  // Timing
+  startDate       DateTime
+  endDate         DateTime
+  startTime       String   @default("09:00")  // HH:mm
+  endTime         String   @default("20:00")
+
+  // Configuración
+  maxAttempts     Int      @default(3)
+  retryInterval   Int      @default(60)  // minutos entre reintentos
+
+  // Agentes asignados
+  agents          String[]
+
+  // Script
+  script          String?
+
+  // Estado
+  status          String   // "DRAFT" | "SCHEDULED" | "ACTIVE" | "PAUSED" | "COMPLETED"
+
+  // Métricas
+  contactsTotal   Int      @default(0)
+  contactsCalled  Int      @default(0)
+  contactsReached Int      @default(0)
+  conversions     Int      @default(0)
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  calls           Call[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+
+  @@map("campaigns")
+  @@index([status])
+  @@index([companyId])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model IVRMenu {
+  id              String   @id @default(uuid())
+
+  name            String
+  description     String?
+
+  // Configuración
+  greeting        String   // Audio o texto TTS
+  timeout         Int      @default(5)  // segundos
+  maxRetries      Int      @default(3)
+
+  // Opciones (JSON)
+  // Ejemplo: [{ digit: "1", action: "queue", target: "sales" }, { digit: "2", action: "voicemail", target: "support" }]
+  options         Json
+
+  // Audio
+  audioUrl        String?
+  ttsText         String?
+  ttsVoice        String?  // "es-ES-Standard-A"
+
+  // Default action
+  defaultAction   String?  // "queue" | "voicemail" | "hangup"
+  defaultTarget   String?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  active          Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ivr_menus")
+  @@index([companyId])
+  @@index([active])
+}
+
+model Voicemail {
+  id              String   @id @default(uuid())
+
+  mailbox         String
+  callerNumber    String
+  callerName      String?
+
+  duration        Int      // segundos
+  audioUrl        String
+
+  // Transcripción
+  transcription   String?
+
+  // Destinatario
+  userId          String?
+  user            User?    @relation("VoicemailUser", fields: [userId], references: [id], onDelete: SetNull)
+  read            Boolean  @default(false)
+  readAt          DateTime?
+
+  // Notificado
+  emailSent       Boolean  @default(false)
+  smsSent         Boolean  @default(false)
+  whatsappSent    Boolean  @default(false)
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+
+  @@map("voicemails")
+  @@index([mailbox])
+  @@index([userId])
+  @@index([read])
+  @@index([companyId])
+  @@index([createdAt])
+}
+
+model CallRecording {
+  id              String   @id @default(uuid())
+
+  // Identificador
+  callId          String?  // Referencia al Call si existe
+  externalCallId  String?  // UUID de Asterisk/FreeSWITCH
+
+  // Archivo
+  fileName        String
+  fileUrl         String
+  fileSize        Int?     // bytes
+  duration        Int      // segundos
+
+  // Formato
+  format          String   @default("wav")  // "wav" | "mp3" | "ogg"
+  codec           String?  // "pcm" | "gsm" | "g729"
+  channels        Int      @default(1)      // 1=mono, 2=stereo
+  sampleRate      Int      @default(8000)   // Hz
+
+  // Participantes
+  callerNumber    String?
+  calledNumber    String?
+  agentId         String?
+  agent           User?    @relation("RecordingAgent", fields: [agentId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  startTime       DateTime
+  endTime         DateTime?
+
+  // Almacenamiento
+  storageProvider String   @default("local")  // "local" | "s3" | "azure" | "gcs"
+  storagePath     String?
+  encrypted       Boolean  @default(false)
+
+  // Acceso
+  downloadCount   Int      @default(0)
+  lastAccessedAt  DateTime?
+
+  // Retención
+  retentionDays   Int      @default(365)
+  expiresAt       DateTime?
+  archived        Boolean  @default(false)
+  archivedAt      DateTime?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  calls           Call[]
+  transcriptions  CallTranscription[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("call_recordings")
+  @@index([callId])
+  @@index([externalCallId])
+  @@index([agentId])
+  @@index([companyId])
+  @@index([startTime])
+  @@index([expiresAt])
+  @@index([archived])
+}
+
+model CallTranscription {
+  id              String   @id @default(uuid())
+
+  // Identificador
+  callId          String?  // Referencia al Call si existe
+  recordingId     String?
+  recording       CallRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+
+  // Transcripción
+  text            String   // Texto completo
+  segments        Json?    // Segmentos con timestamps
+  language        String   @default("es-ES")
+  confidence      Float?   // 0.0 a 1.0
+
+  // Proveedor
+  provider        String   // "whisper" | "google" | "azure" | "aws"
+  model           String?  // Modelo usado
+
+  // Procesamiento
+  status          String   @default("PENDING")  // "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
+  processingTime  Int?     // milisegundos
+  errorMessage    String?
+
+  // Análisis de sentimiento
+  sentimentScore  Float?   // -1.0 (negativo) a 1.0 (positivo)
+  sentiment       String?  // "POSITIVE" | "NEUTRAL" | "NEGATIVE"
+  emotions        Json?    // Detección de emociones
+
+  // Palabras clave
+  keywords        String[]
+  topics          String[]
+
+  // Participantes (speaker diarization)
+  speakers        Json?    // [{ speaker: "agent", text: "...", start: 0, end: 10 }, ...]
+
+  // Resumen generado por IA
+  summary         String?
+  actionItems     String[]
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  calls           Call[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("call_transcriptions")
+  @@index([callId])
+  @@index([recordingId])
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CallMetrics {
+  id              String   @id @default(uuid())
+
+  // Período
+  date            DateTime // Fecha del período
+  period          String   // "HOUR" | "DAY" | "WEEK" | "MONTH"
+
+  // Scope
+  scope           String   // "GLOBAL" | "QUEUE" | "AGENT" | "CAMPAIGN"
+  scopeId         String?  // ID del queue/agent/campaign
+
+  // Métricas de volumen
+  totalCalls      Int      @default(0)
+  inboundCalls    Int      @default(0)
+  outboundCalls   Int      @default(0)
+  answeredCalls   Int      @default(0)
+  missedCalls     Int      @default(0)
+  abandonedCalls  Int      @default(0)
+
+  // Métricas de tiempo (en segundos)
+  totalTalkTime   Int      @default(0)
+  avgTalkTime     Float    @default(0)
+  totalWaitTime   Int      @default(0)
+  avgWaitTime     Float    @default(0)
+  totalHoldTime   Int      @default(0)
+  avgHoldTime     Float    @default(0)
+
+  // KPIs
+  serviceLevel    Float?   // % de llamadas respondidas en X segundos
+  firstCallResolution Float? // % de llamadas resueltas en el primer contacto
+  avgSpeedAnswer  Float?   // ASA - Average Speed of Answer
+  avgHandleTime   Float?   // AHT - Average Handle Time
+  abandonRate     Float?   // % de llamadas abandonadas
+
+  // Calidad
+  avgQualityScore Float?   // Promedio de calidad (1-5)
+  avgSentiment    Float?   // Promedio de sentimiento (-1.0 a 1.0)
+
+  // Agentes (solo si scope=GLOBAL o QUEUE)
+  activeAgents    Int?     @default(0)
+  avgOccupancy    Float?   // % de tiempo ocupado de agentes
+
+  // Satisfacción
+  csat            Float?   // Customer Satisfaction Score
+  nps             Float?   // Net Promoter Score
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("call_metrics")
+  @@unique([date, period, scope, scopeId, companyId])
+  @@index([date])
+  @@index([period])
+  @@index([scope])
+  @@index([scopeId])
+  @@index([companyId])
+}
+
+model DialerConfiguration {
+  id              String   @id @default(uuid())
+
+  name            String
+  description     String?
+  type            String   // "PREVIEW" | "POWER" | "PREDICTIVE"
+
+  // Configuración general
+  enabled         Boolean  @default(true)
+  priority        Int      @default(0)
+
+  // Horarios
+  schedule        Json?    // Horarios permitidos para llamar
+  timezone        String   @default("Europe/Madrid")
+
+  // Intentos
+  maxAttempts     Int      @default(3)
+  retryInterval   Int      @default(60)  // minutos entre reintentos
+  retryOnBusy     Boolean  @default(true)
+  retryOnNoAnswer Boolean  @default(true)
+
+  // Pacing (solo POWER y PREDICTIVE)
+  callsPerAgent   Float    @default(1.0)  // Ratio de llamadas por agente
+  minCallGap      Int      @default(1)    // segundos entre llamadas
+  maxCallGap      Int      @default(10)
+
+  // Detección de contestador
+  amdEnabled      Boolean  @default(true)  // Answering Machine Detection
+  amdSensitivity  String   @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
+  amdAction       String   @default("HANGUP")  // "HANGUP" | "VOICEMAIL" | "CONTINUE"
+
+  // Abandonos
+  maxAbandonRate  Float    @default(0.05)  // 5% máximo de abandonos
+  autoAdjust      Boolean  @default(true)  // Ajustar automáticamente pacing
+
+  // Callback
+  callbackEnabled Boolean  @default(true)
+  callbackOnNoAnswer Boolean @default(false)
+  callbackOnBusy  Boolean  @default(false)
+
+  // Filtros
+  excludeNumbers  String[] // Números a excluir (lista Robinson, etc.)
+  excludePrefixes String[] // Prefijos a excluir
+  onlyPrefixes    String[] // Solo llamar a estos prefijos
+
+  // Compliance
+  dnc             Boolean  @default(true)   // Do Not Call list check
+  tcpaCompliant   Boolean  @default(true)   // TCPA compliance
+  gdprCompliant   Boolean  @default(true)   // GDPR compliance
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+
+  @@map("dialer_configurations")
+  @@index([type])
+  @@index([enabled])
+  @@index([companyId])
+}
+
+// ==========================================
+// ASISTENTE AI INTERNO PARA EMPLEADOS
+// Chat ultra especializado en Seguros, Occident y ERP
+// ==========================================
+
+model ChatConversation {
+  id              String   @id @default(uuid())
+
+  // Usuario
+  userId          String
+  user            User     @relation("ChatUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Información de la conversación
+  title           String?  // Título auto-generado del primer mensaje
+  topic           String?  // Tema principal detectado por IA
+  intent          String?  // "INSURANCE_QUERY" | "OCCIDENT_PRODUCT" | "ERP_HELP" | "GENERAL"
+
+  // Especialización
+  expertDomain    String?  // "SEGUROS" | "OCCIDENT" | "ERP" | "MIXED"
+  productType     String?  // Si es sobre producto: "AUTO" | "HOGAR" | "VIDA" | "SALUD" | etc.
+  occidentProduct String?  // Nombre específico de producto Occident
+
+  // Estado
+  status          String   @default("ACTIVE")  // "ACTIVE" | "RESOLVED" | "ARCHIVED"
+  resolved        Boolean  @default(false)
+  resolvedAt      DateTime?
+
+  // Contexto persistente
+  contextData     Json?    // Datos de contexto (cliente mencionado, póliza, etc.)
+
+  // Satisfacción
+  satisfactionScore Int?   // 1-5
+  wasHelpful      Boolean?
+
+  // Metadata
+  messageCount    Int      @default(0)
+  lastMessageAt   DateTime @default(now())
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation("ChatCompany", fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Relaciones
+  messages        ChatMessage[]
+  feedbacks       ChatFeedback[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("chat_conversations")
+  @@index([userId])
+  @@index([companyId])
+  @@index([status])
+  @@index([intent])
+  @@index([expertDomain])
+  @@index([lastMessageAt])
+}
+
+model ChatMessage {
+  id              String   @id @default(uuid())
+
+  conversationId  String
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // Mensaje
+  role            String   // "USER" | "ASSISTANT" | "SYSTEM"
+  content         String   // Contenido del mensaje
+  contentType     String   @default("text")  // "text" | "markdown" | "html"
+
+  // Metadata del mensaje
+  tokenCount      Int?     // Tokens usados
+  model           String?  // Modelo de IA usado ("claude-opus-4", "claude-haiku-3", etc.)
+
+  // Análisis de IA
+  detectedIntent  String?  // Intención detectada
+  entities        Json?    // Entidades extraídas (cliente, póliza, producto, etc.)
+  sentiment       String?  // "POSITIVE" | "NEUTRAL" | "NEGATIVE"
+  confidence      Float?   // 0.0 a 1.0
+
+  // Fuentes de conocimiento usadas
+  knowledgeSources Json?   // Array de IDs de KnowledgeBaseArticle usados
+  citationCount   Int      @default(0)
+
+  // Contexto usado para generar respuesta
+  contextUsed     Json?    // Contexto específico usado
+
+  // Feedback del mensaje específico
+  wasAccurate     Boolean?
+  needsClarification Boolean @default(false)
+
+  // Relaciones
+  feedbacks       ChatFeedback[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("chat_messages")
+  @@index([conversationId])
+  @@index([role])
+  @@index([detectedIntent])
+  @@index([createdAt])
+}
+
+model KnowledgeBaseArticle {
+  id              String   @id @default(uuid())
+
+  // Categorización
+  category        String   // "SEGUROS" | "OCCIDENT_PRODUCT" | "ERP" | "POLICY" | "REGULATION"
+  subcategory     String?
+  domain          String   // "INSURANCE" | "OCCIDENT" | "ERP"
+
+  // Contenido
+  title           String
+  slug            String   @unique
+  content         String   // Contenido completo (markdown)
+  summary         String?  // Resumen breve
+
+  // Productos Occident específicos
+  occidentProducts String[] // Array de códigos de producto
+
+  // Tipos de seguro
+  insuranceTypes  String[] // "AUTO" | "HOGAR" | "VIDA" | "SALUD" | etc.
+
+  // Características ERP
+  erpModules      String[] // Módulos del ERP relacionados
+  erpFeatures     String[] // Features específicas del ERP
+
+  // Metadata para búsqueda
+  keywords        String[] // Palabras clave
+  tags            String[]
+
+  // Embeddings para búsqueda semántica
+  embedding       Json?    // Vector embedding del contenido
+  embeddingModel  String?  // Modelo usado para generar embedding
+
+  // Información regulatoria
+  isRegulatory    Boolean  @default(false)
+  regulationRef   String?  // Referencia a ley/normativa
+  effectiveDate   DateTime?
+  expiryDate      DateTime?
+
+  // Versioning
+  version         Int      @default(1)
+  previousVersionId String?
+
+  // Estadísticas de uso
+  viewCount       Int      @default(0)
+  useCount        Int      @default(0)  // Veces usado en respuestas
+  helpfulCount    Int      @default(0)  // Veces marcado como útil
+  lastUsedAt      DateTime?
+
+  // Autor y revisión
+  authorId        String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+
+  // Estado
+  status          String   @default("DRAFT")  // "DRAFT" | "PUBLISHED" | "ARCHIVED"
+  publishedAt     DateTime?
+
+  // Multi-empresa (algunos artículos pueden ser empresa-específicos)
+  companyId       String?
+  company         Company? @relation("KnowledgeCompany", fields: [companyId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("knowledge_base_articles")
+  @@index([category])
+  @@index([domain])
+  @@index([status])
+  @@index([companyId])
+  @@index([slug])
+  @@index([occidentProducts])
+  @@index([insuranceTypes])
+  @@index([erpModules])
+  @@index([keywords])
+}
+
+model ChatFeedback {
+  id              String   @id @default(uuid())
+
+  conversationId  String
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  messageId       String?
+  message         ChatMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  // Usuario que da feedback
+  userId          String
+  user            User     @relation("FeedbackUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Tipo de feedback
+  type            String   // "HELPFUL" | "NOT_HELPFUL" | "INCORRECT" | "INCOMPLETE" | "EXCELLENT"
+
+  // Rating
+  rating          Int?     // 1-5
+
+  // Detalles
+  comment         String?
+  category        String?  // Categoría del problema si no fue útil
+
+  // ¿Qué estaba buscando?
+  expectedAnswer  String?
+  actuallyNeeded  String?
+
+  // Mejora sugerida
+  suggestion      String?
+
+  createdAt       DateTime @default(now())
+
+  @@map("chat_feedbacks")
+  @@index([conversationId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([type])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+model ChatIntent {
+  id              String   @id @default(uuid())
+
+  // Intent
+  name            String   @unique  // "check_policy_status" | "explain_coverage" | "occident_product_info" | etc.
+  displayName     String
+  description     String?
+
+  // Categoría
+  category        String   // "INSURANCE_QUERY" | "OCCIDENT_PRODUCT" | "ERP_HELP" | "GENERAL"
+  domain          String   // "SEGUROS" | "OCCIDENT" | "ERP"
+
+  // Patrones de reconocimiento
+  patterns        String[] // Frases ejemplo que indican este intent
+  keywords        String[] // Keywords asociados
+
+  // Entidades esperadas
+  requiredEntities String[] // Entidades necesarias: ["policyNumber", "clientId", etc.]
+  optionalEntities String[] // Entidades opcionales
+
+  // Respuesta automática (si aplica)
+  hasAutoResponse Boolean  @default(false)
+  responseTemplate String?
+
+  // Acciones a ejecutar
+  actions         Json?    // Acciones automatizadas a ejecutar
+
+  // Conocimiento relacionado
+  knowledgeArticles String[] // IDs de artículos relacionados
+
+  // Métricas
+  detectCount     Int      @default(0)  // Veces detectado
+  successRate     Float?   // % de veces que fue útil
+  avgConfidence   Float?   // Confianza promedio de detección
+
+  // Estado
+  active          Boolean  @default(true)
+  priority        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("chat_intents")
+  @@index([category])
+  @@index([domain])
+  @@index([active])
+  @@index([name])
+}
+
+model ChatAnalytics {
+  id              String   @id @default(uuid())
+
+  // Período
+  date            DateTime
+  period          String   // "HOUR" | "DAY" | "WEEK" | "MONTH"
+
+  // Scope
+  scope           String   // "GLOBAL" | "USER" | "COMPANY" | "DOMAIN"
+  scopeId         String?
+
+  // Métricas de uso
+  totalConversations Int   @default(0)
+  totalMessages   Int      @default(0)
+  activeUsers     Int      @default(0)
+
+  // Por dominio
+  segurosQueries  Int      @default(0)
+  occidentQueries Int      @default(0)
+  erpQueries      Int      @default(0)
+  generalQueries  Int      @default(0)
+
+  // Intents más comunes
+  topIntents      Json?    // Array de {intent, count}
+
+  // Satisfacción
+  avgSatisfaction Float?   // Promedio de ratings
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+
+  // Performance
+  avgResponseTime Float?   // milisegundos
+  avgTokensUsed   Float?
+
+  // Tasa de resolución
+  resolvedCount   Int      @default(0)
+  unresolvedCount Int      @default(0)
+  resolutionRate  Float?   // %
+
+  // Knowledge base
+  articlesUsed    Int      @default(0)
+  avgArticlesPerResponse Float?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation("AnalyticsCompany", fields: [companyId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("chat_analytics")
+  @@unique([date, period, scope, scopeId, companyId])
+  @@index([date])
+  @@index([period])
+  @@index([scope])
+  @@index([companyId])
+}
+
+// ==========================================
+// GAMIFICACIÓN "SORIS" - MONEDA VIRTUAL
+// Sistema completo de puntos, descuentos y recompensas
+// ==========================================
+
+model Wallet {
+  id              String   @id @default(uuid())
+
+  // Propietario
+  ownerType       String   // "CLIENT" | "AGENCY" | "OCCIDENT"
+  ownerId         String   // partyId, companyId, o "OCCIDENT"
+  ownerName       String?  // Nombre del propietario (denormalizado)
+
+  // Tipo de wallet
+  type            String   @default("SORIS")  // "SORIS" | "POINTS" | "CASHBACK"
+
+  // Balances
+  balance         Float    @default(0)        // Balance actual en Soris
+  availableBalance Float   @default(0)        // Balance disponible (no congelado)
+  frozenBalance   Float    @default(0)        // Balance congelado/reservado
+
+  // Límites
+  maxBalance      Float?                      // Balance máximo permitido
+  minBalance      Float    @default(0)        // Balance mínimo (puede ser negativo para crédito)
+
+  // Conversión a EUR
+  conversionRate  Float    @default(1.0)      // 1 Sori = X EUR
+  lastConversionUpdate DateTime?
+
+  // Expiración
+  pointsExpire    Boolean  @default(false)    // Si los puntos expiran
+  expirationDays  Int?                        // Días hasta expiración
+
+  // Estadísticas
+  totalEarned     Float    @default(0)        // Total ganado histórico
+  totalSpent      Float    @default(0)        // Total gastado histórico
+  totalExpired    Float    @default(0)        // Total expirado
+
+  // Estado
+  status          String   @default("ACTIVE") // "ACTIVE" | "SUSPENDED" | "CLOSED"
+  suspendedReason String?
+  suspendedAt     DateTime?
+
+  // Multi-empresa
+  companyId       String?
+  company         Company? @relation("WalletCompany", fields: [companyId], references: [id], onDelete: SetNull)
+
+  // Relaciones
+  transactions    Transaction[]
+  discountsApplied Discount[] @relation("DiscountWallet")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("wallets")
+  @@unique([ownerType, ownerId, type])
+  @@index([ownerType])
+  @@index([ownerId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+
+  // Wallet
+  walletId        String
+  wallet          Wallet   @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  // Transacción
+  type            String   // "EARN" | "SPEND" | "TRANSFER" | "EXPIRE" | "ADJUSTMENT" | "REFUND"
+  amount          Float    // Positivo para earn, negativo para spend
+
+  // Balance después de transacción
+  balanceBefore   Float
+  balanceAfter    Float
+
+  // Origen/Destino
+  sourceType      String?  // "COMMISSION" | "RECEIPT_PAYMENT" | "PURCHASE" | "ACHIEVEMENT" | "MANUAL" | "TRANSFER"
+  sourceId        String?  // ID del origen (commissionId, receiptId, etc.)
+
+  // Si es transferencia
+  transferToWalletId String?
+  transferFromWalletId String?
+
+  // Descripción
+  description     String
+  notes           String?
+
+  // Metadata
+  metadata        Json?
+
+  // Expiración (si aplica)
+  expiresAt       DateTime?
+  expired         Boolean  @default(false)
+  expiredAt       DateTime?
+
+  // Auditoría
+  executedBy      String?  // userId de quién ejecutó
+  isAutomatic     Boolean  @default(true)
+
+  // Reversa
+  isReversed      Boolean  @default(false)
+  reversedAt      DateTime?
+  reversalTransactionId String?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+
+  @@map("transactions")
+  @@index([walletId])
+  @@index([type])
+  @@index([sourceType])
+  @@index([sourceId])
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+model ConversionRate {
+  id              String   @id @default(uuid())
+
+  // Conversión
+  fromCurrency    String   @default("SORIS")
+  toCurrency      String   @default("EUR")
+  rate            Float    // 1 fromCurrency = X toCurrency
+
+  // Ámbito
+  scope           String   @default("GLOBAL")  // "GLOBAL" | "COMPANY" | "CLIENT"
+  scopeId         String?
+
+  // Vigencia
+  effectiveFrom   DateTime @default(now())
+  effectiveTo     DateTime?
+  isActive        Boolean  @default(true)
+
+  // Metadata
+  notes           String?
+  setBy           String?  // userId
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("conversion_rates")
+  @@index([fromCurrency, toCurrency])
+  @@index([scope, scopeId])
+  @@index([effectiveFrom])
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model Discount {
+  id              String   @id @default(uuid())
+
+  // Referencia
+  referenceType   String   // "RECEIPT" | "POLICY" | "INVOICE" | "PURCHASE"
+  referenceId     String   // receiptId, policyId, etc.
+
+  // Cliente
+  partyId         String?
+
+  // Wallets usadas (orden: CLIENTE → AGENCIA → OCCIDENT)
+  clientWalletId  String?
+  clientWallet    Wallet?  @relation("DiscountWallet", fields: [clientWalletId], references: [id], onDelete: SetNull)
+  clientAmount    Float    @default(0)  // Soris del cliente
+
+  agencyWalletId  String?
+  agencyAmount    Float    @default(0)  // Soris de la agencia
+
+  occidentWalletId String?
+  occidentAmount  Float    @default(0)  // Soris de Occident
+
+  // Total
+  totalSoris      Float    // Total Soris usados
+  totalEuros      Float    // Total EUR de descuento
+  conversionRate  Float    // Tasa de conversión usada
+
+  // Descuento aplicado
+  originalAmount  Float    // Monto original
+  discountedAmount Float   // Monto después de descuento
+  discountPercent Float    // % de descuento
+
+  // Estado
+  status          String   @default("PENDING")  // "PENDING" | "APPLIED" | "CANCELLED" | "REFUNDED"
+  appliedAt       DateTime?
+  cancelledAt     DateTime?
+  refundedAt      DateTime?
+
+  // Auditoría
+  appliedBy       String?  // userId
+  cancelledBy     String?
+  refundedBy      String?
+
+  // Motivo de cancelación/refund
+  cancellationReason String?
+  refundReason    String?
+
+  // Transacciones generadas
+  transactionIds  String[] // IDs de transacciones creadas
+
+  // Metadata
+  metadata        Json?
+  notes           String?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("discounts")
+  @@index([referenceType, referenceId])
+  @@index([partyId])
+  @@index([clientWalletId])
+  @@index([status])
+  @@index([companyId])
+  @@index([createdAt])
+}
+
+model Achievement {
+  id              String   @id @default(uuid())
+
+  // Logro
+  code            String   @unique
+  name            String
+  description     String
+
+  // Categoría
+  category        String   // "SALES" | "RETENTION" | "REFERRAL" | "ENGAGEMENT" | "QUALITY" | "OTHER"
+
+  // Tipo
+  type            String   // "ONCE" | "REPEATABLE" | "PROGRESSIVE"
+
+  // Iconografía
+  icon            String?  // URL o nombre de icono
+  color           String?
+  badge           String?  // URL de badge
+
+  // Recompensa
+  rewardType      String   @default("SORIS")  // "SORIS" | "BADGE" | "UNLOCK" | "DISCOUNT"
+  rewardAmount    Float?   // Cantidad de Soris o descuento
+
+  // Condiciones
+  conditions      Json     // Condiciones para desbloquear
+  difficulty      String   @default("MEDIUM")  // "EASY" | "MEDIUM" | "HARD" | "LEGENDARY"
+
+  // Niveles (si es progressive)
+  tiers           AchievementTier[]
+
+  // Orden y prioridad
+  displayOrder    Int      @default(0)
+  priority        Int      @default(0)
+
+  // Visibilidad
+  isHidden        Boolean  @default(false)  // Logro secreto
+  requiresPrevious String?                 // ID de logro previo requerido
+
+  // Estado
+  active          Boolean  @default(true)
+
+  // Estadísticas
+  unlockedCount   Int      @default(0)
+
+  // Relaciones
+  userAchievements UserAchievement[]
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("achievements")
+  @@index([category])
+  @@index([type])
+  @@index([active])
+  @@index([companyId])
+}
+
+model AchievementTier {
+  id              String   @id @default(uuid())
+
+  achievementId   String
+  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  // Tier
+  tier            Int      // 1, 2, 3, etc.
+  name            String   // "Bronze", "Silver", "Gold", etc.
+
+  // Recompensa de este tier
+  rewardAmount    Float
+
+  // Condiciones para este tier
+  conditions      Json
+  threshold       Float?   // Umbral numérico si aplica
+
+  // Iconografía
+  icon            String?
+  badge           String?
+  color           String?
+
+  createdAt       DateTime @default(now())
+
+  @@map("achievement_tiers")
+  @@index([achievementId])
+  @@unique([achievementId, tier])
+}
+
+model UserAchievement {
+  id              String   @id @default(uuid())
+
+  // Usuario
+  userId          String
+  partyId         String?  // Si es un cliente
+
+  // Logro
+  achievementId   String
+  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  // Tier actual (si es progressive)
+  currentTier     Int      @default(1)
+
+  // Progreso
+  progress        Float    @default(0)
+  maxProgress     Float?
+  progressPercent Float?   // %
+
+  // Estado
+  status          String   @default("IN_PROGRESS")  // "IN_PROGRESS" | "COMPLETED"
+  unlockedAt      DateTime?
+
+  // Recompensa
+  rewardClaimed   Boolean  @default(false)
+  rewardClaimedAt DateTime?
+  rewardAmount    Float?
+
+  // Metadata
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("user_achievements")
+  @@index([userId])
+  @@index([partyId])
+  @@index([achievementId])
+  @@index([status])
+  @@index([companyId])
+  @@unique([userId, achievementId])
+}
+
+model Mission {
+  id              String   @id @default(uuid())
+
+  // Misión
+  code            String   @unique
+  name            String
+  description     String
+
+  // Tipo
+  type            String   // "DAILY" | "WEEKLY" | "MONTHLY" | "SPECIAL" | "EVENT"
+  category        String   // "SALES" | "ENGAGEMENT" | "REFERRAL" | "OTHER"
+
+  // Objetivo
+  objective       String   // Descripción del objetivo
+  conditions      Json     // Condiciones para completar
+  targetValue     Float?   // Valor objetivo (ej: 5 ventas)
+
+  // Recompensa
+  rewardType      String   @default("SORIS")
+  rewardAmount    Float
+  bonusReward     Float?   // Recompensa bonus si se completa antes de X
+
+  // Vigencia
+  startDate       DateTime
+  endDate         DateTime
+  duration        Int?     // Días de duración
+
+  // Recurrencia
+  isRecurring     Boolean  @default(false)
+  recurrenceRule  String?  // Regla de recurrencia (cron-like)
+
+  // Visibilidad
+  isPublic        Boolean  @default(true)
+  targetUserIds   String[] // Si está dirigida a usuarios específicos
+  targetRoles     String[] // Si está dirigida a roles específicos
+
+  // Iconografía
+  icon            String?
+  image           String?
+  color           String?
+
+  // Orden
+  displayOrder    Int      @default(0)
+
+  // Estado
+  status          String   @default("ACTIVE")  // "DRAFT" | "ACTIVE" | "COMPLETED" | "EXPIRED" | "CANCELLED"
+
+  // Estadísticas
+  participantsCount Int    @default(0)
+  completedCount  Int      @default(0)
+  completionRate  Float?   // %
+
+  // Relaciones
+  userMissions    UserMission[]
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+
+  @@map("missions")
+  @@index([type])
+  @@index([category])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([companyId])
+}
+
+model UserMission {
+  id              String   @id @default(uuid())
+
+  // Usuario
+  userId          String
+  partyId         String?
+
+  // Misión
+  missionId       String
+  mission         Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  // Progreso
+  progress        Float    @default(0)
+  targetProgress  Float
+  progressPercent Float    @default(0)  // %
+
+  // Estado
+  status          String   @default("ACTIVE")  // "ACTIVE" | "COMPLETED" | "FAILED" | "EXPIRED"
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  expiresAt       DateTime?
+
+  // Recompensa
+  rewardAmount    Float
+  rewardClaimed   Boolean  @default(false)
+  rewardClaimedAt DateTime?
+
+  // Tracking de eventos
+  events          Json?    // Eventos que contribuyen al progreso
+
+  // Metadata
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("user_missions")
+  @@index([userId])
+  @@index([partyId])
+  @@index([missionId])
+  @@index([status])
+  @@index([companyId])
+  @@index([expiresAt])
+  @@unique([userId, missionId])
+}
+
+model LeaderboardEntry {
+  id              String   @id @default(uuid())
+
+  // Período
+  period          String   // "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "ALL_TIME"
+  periodStart     DateTime
+  periodEnd       DateTime?
+
+  // Usuario
+  userId          String
+  partyId         String?
+  userName        String   // Denormalizado para performance
+
+  // Categoría
+  category        String   // "SALES" | "POINTS_EARNED" | "ACHIEVEMENTS" | "MISSIONS" | etc.
+
+  // Métricas
+  score           Float    // Puntuación principal
+  secondaryScore  Float?   // Puntuación secundaria
+
+  // Ranking
+  rank            Int
+  previousRank    Int?
+  rankChange      Int?     // Positivo = subió, Negativo = bajó
+
+  // Datos adicionales
+  metadata        Json?    // Datos adicionales específicos de la categoría
+
+  // Badges/Premios
+  badge           String?  // "GOLD", "SILVER", "BRONZE", "TOP_10"
+  reward          Float?   // Recompensa en Soris si aplica
+  rewardClaimed   Boolean  @default(false)
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("leaderboard_entries")
+  @@unique([period, periodStart, category, userId, companyId])
+  @@index([period])
+  @@index([category])
+  @@index([userId])
+  @@index([rank])
+  @@index([periodStart])
+  @@index([companyId])
+}
+
+model GamificationSettings {
+  id              String   @id @default(uuid())
+
+  // Configuración global
+  enabled         Boolean  @default(true)
+
+  // Conversión
+  defaultConversionRate Float @default(1.0)  // 1 Sori = X EUR
+
+  // Limits
+  maxDailyEarnings Float?
+  maxMonthlyEarnings Float?
+  maxWalletBalance Float?
+
+  // Expiración
+  pointsExpire    Boolean  @default(false)
+  expirationDays  Int      @default(365)
+
+  // Distribución de comisiones (%)
+  commissionToClientPercent Float @default(60)  // % que va al cliente
+  commissionToAgencyPercent Float @default(30)  // % que va a la agencia
+  commissionToOccidentPercent Float @default(10) // % que va a Occident
+
+  // Features
+  achievementsEnabled Boolean @default(true)
+  missionsEnabled Boolean @default(true)
+  leaderboardsEnabled Boolean @default(true)
+  discountsEnabled Boolean @default(true)
+
+  // Notificaciones
+  notifyOnEarn    Boolean  @default(true)
+  notifyOnSpend   Boolean  @default(true)
+  notifyOnExpire  Boolean  @default(true)
+  notifyOnAchievement Boolean @default(true)
+
+  // Multi-empresa
+  companyId       String?  @unique
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?
+
+  @@map("gamification_settings")
+  @@index([companyId])
+}
+
+// ==========================================
+// LEGAL EXPERT SYSTEM
+// Asesoría legal, contratos y gestión jurídica
+// ==========================================
+
+model LegalConsultation {
+  id              String   @id @default(uuid())
+
+  // Cliente/Asunto
+  partyId         String?
+  subject         String
+  description     String
+  consultationType String  // "LABOR" | "MERCANTILE" | "TAX" | "CIVIL" | "CONTRACTS" | "COMPLIANCE"
+
+  // Consulta
+  query           String   // Pregunta del usuario
+  context         Json?    // Contexto adicional
+
+  // Respuesta de IA
+  aiResponse      String   // Respuesta del LegalExpertAI
+  aiAnalysis      Json?    // Análisis estructurado
+  aiModel         String?  // claude-opus-4-5
+
+  // Referencias legales
+  legalBases      Json?    // Referencias a leyes, artículos, jurisprudencia
+  regulations     String[] // Normativas aplicables
+
+  // Riesgo legal
+  riskLevel       String?  // "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+  riskFactors     Json?    // Factores de riesgo identificados
+
+  // Recomendaciones
+  recommendations String[] // Recomendaciones del experto
+  nextSteps       Json?    // Pasos siguientes sugeridos
+
+  // Urgencia
+  urgency         String   @default("NORMAL") // "LOW" | "NORMAL" | "HIGH" | "URGENT"
+  deadline        DateTime?
+
+  // Seguimiento
+  status          String   @default("OPEN") // "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
+  resolution      String?
+  resolvedAt      DateTime?
+  resolvedBy      String?
+
+  // Caso asociado
+  caseId          String?
+  case            LegalCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+
+  // Asignación
+  assignedToId    String?  // Abogado asignado
+  assignedAt      DateTime?
+
+  // Auditoría
+  createdBy       String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("legal_consultations")
+  @@index([partyId])
+  @@index([consultationType])
+  @@index([status])
+  @@index([caseId])
+  @@index([companyId])
+  @@index([urgency])
+}
+
+model Contract {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  contractNumber  String?  @unique
+  title           String
+  type            String   // "EMPLOYMENT" | "SERVICE" | "SALE" | "LEASE" | "NDA" | "PARTNERSHIP" | etc.
+  category        String?  // Categoría adicional
+
+  // Partes del contrato
+  parties         Json     // Array de partes [{name, role, idType, idNumber}]
+  counterparty    String?  // Contraparte principal
+
+  // Contenido
+  content         String   // Texto completo del contrato
+  clauses         Json?    // Cláusulas estructuradas
+  annexes         Json?    // Anexos
+
+  // Revisión de IA
+  reviewed        Boolean  @default(false)
+  reviewedAt      DateTime?
+  reviews         ContractReview[]
+
+  // Análisis de riesgos
+  riskScore       Int?     // 0-100
+  riskLevel       String?  // "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+  riskFactors     Json?    // Riesgos identificados
+
+  // Cláusulas problemáticas
+  problematicClauses Json? // Cláusulas que requieren atención
+  suggestions     Json?    // Sugerencias de mejora
+
+  // Fechas
+  startDate       DateTime?
+  endDate         DateTime?
+  signedDate      DateTime?
+  effectiveDate   DateTime?
+
+  // Renovación
+  autoRenew       Boolean  @default(false)
+  renewalPeriod   Int?     // Días de periodo de renovación
+  renewalNotice   Int?     // Días de aviso previo
+  nextRenewalDate DateTime?
+
+  // Valor económico
+  amount          Float?
+  currency        String   @default("EUR")
+  paymentTerms    Json?    // Términos de pago
+
+  // Plazos y obligaciones
+  deadlines       Json?    // Plazos críticos
+  obligations     Json?    // Obligaciones de las partes
+
+  // Terminación
+  terminationClauses Json? // Cláusulas de terminación
+  canTerminate    Boolean  @default(true)
+  terminationNotice Int?   // Días de aviso
+
+  // Estado
+  status          String   @default("DRAFT") // "DRAFT" | "UNDER_REVIEW" | "APPROVED" | "SIGNED" | "ACTIVE" | "EXPIRED" | "TERMINATED"
+  statusReason    String?
+
+  // Aprobaciones
+  approvals       Json?    // Historial de aprobaciones
+  approvedBy      String?
+  approvedAt      DateTime?
+
+  // Firma
+  signedBy        Json?    // Firmantes
+  signatureMethod String?  // "PHYSICAL" | "DIGITAL" | "ELECTRONIC"
+
+  // Documentos
+  fileUrl         String?  // URL del documento original
+  signedFileUrl   String?  // URL del documento firmado
+  attachments     String[] // URLs de anexos
+
+  // Alertas
+  alertsEnabled   Boolean  @default(true)
+  alertDays       Int[]    @default([30, 15, 7, 1]) // Días antes para alertar
+
+  // Caso legal asociado
+  caseId          String?
+  case            LegalCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+
+  // Auditoría
+  createdBy       String?
+  modifiedBy      String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("contracts")
+  @@index([type])
+  @@index([status])
+  @@index([caseId])
+  @@index([companyId])
+  @@index([endDate])
+  @@index([nextRenewalDate])
+}
+
+model ContractReview {
+  id              String   @id @default(uuid())
+
+  // Contrato
+  contractId      String
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Tipo de revisión
+  reviewType      String   // "INITIAL" | "PERIODIC" | "PRE_SIGNING" | "COMPLIANCE" | "RISK_ASSESSMENT"
+
+  // Análisis de IA
+  aiAnalysis      Json     // Análisis completo del LegalExpertAI
+  aiModel         String?
+
+  // Evaluación general
+  overallScore    Int      // 0-100 score del contrato
+  recommendation  String   // "APPROVE" | "APPROVE_WITH_CHANGES" | "REJECT" | "NEEDS_LEGAL_REVIEW"
+
+  // Riesgos identificados
+  risks           Json     // Array de riesgos
+  riskScore       Int      // 0-100
+  criticalIssues  String[] // Issues críticos
+
+  // Cumplimiento
+  compliance      Json?    // Análisis de cumplimiento normativo
+  nonCompliant    String[] // Aspectos no conformes
+
+  // Cláusulas
+  missingClauses  String[] // Cláusulas que deberían estar
+  ambiguousClauses String[] // Cláusulas ambiguas
+  favorableClauses String[] // Cláusulas favorables
+  unfavorableClauses String[] // Cláusulas desfavorables
+
+  // Recomendaciones
+  recommendations Json     // Recomendaciones detalladas
+  suggestedChanges Json?   // Cambios sugeridos
+
+  // Comparativa
+  benchmarkScore  Float?   // Comparación con estándares del mercado
+  marketAnalysis  Json?    // Análisis de mercado
+
+  // Revisor
+  reviewedBy      String?  // Si fue revisado por humano
+  reviewedAt      DateTime @default(now())
+
+  // Notas
+  notes           String?
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+
+  @@map("contract_reviews")
+  @@index([contractId])
+  @@index([reviewType])
+  @@index([overallScore])
+}
+
+model LegalCase {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  caseNumber      String   @unique
+  title           String
+  description     String
+
+  // Tipo
+  caseType        String   // "LITIGATION" | "ARBITRATION" | "MEDIATION" | "ADMINISTRATIVE" | "REGULATORY"
+  legalArea       String   // "LABOR" | "MERCANTILE" | "TAX" | "CIVIL" | "CRIMINAL" | "ADMINISTRATIVE"
+
+  // Partes
+  plaintiff       Json?    // Demandante
+  defendant       Json?    // Demandado
+  otherParties    Json?    // Otras partes
+  ourRole         String?  // "PLAINTIFF" | "DEFENDANT" | "THIRD_PARTY"
+
+  // Abogados
+  internalLawyer  String?  // Abogado interno
+  externalLawyer  Json?    // Abogado externo
+  lawFirm         String?
+
+  // Tribunal/Instancia
+  court           String?
+  jurisdiction    String?
+  judge           String?
+
+  // Fechas importantes
+  filingDate      DateTime?
+  trialDate       DateTime?
+  closingDate     DateTime?
+
+  // Plazos críticos
+  deadlines       Json     // Plazos procesales críticos
+  nextDeadline    DateTime?
+
+  // Cuantía
+  claimAmount     Float?
+  estimatedCost   Float?
+  actualCost      Float?
+
+  // Probabilidad de éxito (IA)
+  successProbability Float? // 0-1
+  riskAssessment  Json?    // Evaluación de riesgos
+  aiAnalysis      Json?    // Análisis de IA
+
+  // Estado
+  status          String   @default("OPEN") // "OPEN" | "IN_PROGRESS" | "SUSPENDED" | "WON" | "LOST" | "SETTLED" | "WITHDRAWN"
+  phase           String?  // Fase procesal actual
+
+  // Resultado
+  outcome         String?  // Resultado final
+  settlement      Json?    // Acuerdo alcanzado
+  judgment        String?  // Sentencia
+
+  // Documentos
+  documents       String[] // URLs de documentos
+  evidence        Json?    // Evidencias
+
+  // Estrategia
+  strategy        String?  // Estrategia legal
+  keyArguments    String[] // Argumentos clave
+
+  // Relaciones
+  consultations   LegalConsultation[]
+  contracts       Contract[]
+
+  // Alertas
+  alertsEnabled   Boolean  @default(true)
+
+  // Auditoría
+  createdBy       String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  closedAt        DateTime?
+
+  @@map("legal_cases")
+  @@index([caseType])
+  @@index([legalArea])
+  @@index([status])
+  @@index([companyId])
+  @@index([nextDeadline])
+}
+
+model LegalAdvice {
+  id              String   @id @default(uuid())
+
+  // Tema
+  topic           String
+  category        String   // "LABOR" | "MERCANTILE" | "TAX" | "CONTRACTS" | "COMPLIANCE" | "DATA_PROTECTION"
+
+  // Contenido
+  question        String
+  answer          String   // Respuesta del LegalExpertAI
+  summary         String?  // Resumen breve
+
+  // Análisis
+  analysis        Json?    // Análisis detallado
+  legalBasis      Json?    // Base legal
+  references      String[] // Referencias normativas
+
+  // Casos relacionados
+  relatedCases    String[] // IDs de casos relacionados
+  jurisprudence   Json?    // Jurisprudencia aplicable
+
+  // IA
+  aiModel         String?
+  generatedAt     DateTime @default(now())
+
+  // Útil/Rating
+  helpful         Boolean?
+  rating          Int?     // 1-5
+  feedback        String?
+
+  // Público/Privado
+  isPublic        Boolean  @default(false) // Si está en KB pública
+
+  // Auditoría
+  createdBy       String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("legal_advices")
+  @@index([category])
+  @@index([isPublic])
+  @@index([companyId])
+}
+
+// ==========================================
+// TAX & HACIENDA SYSTEM
+// Modelos fiscales, presentaciones AEAT y SII
+// ==========================================
+
+model TaxModel {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  modelNumber     String   // "303" | "111" | "190" | "347" | "100" | "200" | etc.
+  modelType       String?  // TaxModelType enum as string
+  modelName       String   // "IVA Trimestral" | "IRPF Retenciones" | etc.
+
+  // Periodo
+  fiscalYear      Int
+  period          String   // "Q1" | "Q2" | "Q3" | "Q4" | "M01" | "M02" | etc. | "ANNUAL"
+  periodStart     DateTime?
+  periodEnd       DateTime?
+
+  // Declarante
+  taxId           String   // NIF/CIF del declarante
+  nif             String?  // Alias for taxId
+  declarantName   String
+  companyName     String?  // Alias for declarantName
+
+  // Datos del modelo
+  data            Json?     // Datos completos del modelo
+  modelData       Json?    // Alias for data
+  xmlContent      String?  @db.Text // XML generado
+
+  // Cálculos (para modelo 303 - IVA)
+  taxableBase     Float?   // Base imponible
+  taxRate         Float?   // Tipo impositivo
+  taxAmount       Float?   // Cuota tributaria
+  deductions      Float?   // Deducciones
+  result          Float?   // Resultado (a ingresar o devolver)
+
+  // Desglose (IVA)
+  outputVAT       Json?    // IVA repercutido
+  inputVAT        Json?    // IVA soportado
+
+  // Para otros modelos
+  retentions      Json?    // Retenciones (111, 190)
+  operations      Json?    // Operaciones con terceros (347)
+
+  // Estado
+  status          String   @default("DRAFT") // "DRAFT" | "CALCULATED" | "REVIEWED" | "READY" | "SUBMITTED" | "ACCEPTED" | "REJECTED"
+
+  // Presentación
+  submissionId    String?
+  submission      TaxSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  submittedAt     DateTime?
+
+  // Validación
+  validated       Boolean  @default(false)
+  validatedAt     DateTime?
+  validationErrors Json?   // Errores de validación
+
+  // Generación de IA
+  aiGenerated     Boolean  @default(false)
+  aiModel         String?
+  aiSuggestions   Json?    // Sugerencias del TaxExpertAI
+
+  // Archivos
+  xmlFile         String?  // XML generado
+  pdfFile         String?  // PDF del modelo
+
+  // Auditoría
+  createdBy       String?
+  reviewedBy      String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("tax_models")
+  @@unique([companyId, modelNumber, fiscalYear, period])
+  @@index([modelNumber])
+  @@index([fiscalYear])
+  @@index([status])
+  @@index([companyId])
+}
+
+model TaxSubmission {
+  id              String   @id @default(uuid())
+
+  // Modelo presentado
+  models          TaxModel[]
+  modelNumbers    String[] // Modelos incluidos en la presentación
+
+  // Periodo
+  fiscalYear      Int
+  period          String
+
+  // Certificado digital
+  certificateId   String?
+  certificate     DigitalCertificate? @relation(fields: [certificateId], references: [id], onDelete: SetNull)
+
+  // Presentación
+  submissionDate  DateTime @default(now())
+  submissionTime  DateTime @default(now())
+
+  // AEAT
+  csv             String?  // Código Seguro de Verificación
+  receiptNumber   String?  // Número de recibo/justificante
+  aeAtResponse    Json?    // Respuesta completa de AEAT
+
+  // Estado
+  status          String   @default("PENDING") // "PENDING" | "SENT" | "ACCEPTED" | "REJECTED" | "ERROR"
+  statusMessage   String?
+
+  // Errores
+  errors          Json?    // Errores devueltos por AEAT
+  warnings        Json?    // Warnings
+
+  // Archivos
+  signedXml       String?  // XML firmado enviado
+  receiptPdf      String?  // PDF del justificante
+
+  // Reintento
+  retryCount      Int      @default(0)
+  maxRetries      Int      @default(3)
+  lastRetryAt     DateTime?
+
+  // Resultado económico
+  totalAmount     Float?   // Total a ingresar/devolver
+  paymentReference String? // Referencia de pago
+  paymentDeadline DateTime?
+  paid            Boolean  @default(false)
+  paidAt          DateTime?
+
+  // Auditoría
+  submittedBy     String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("tax_submissions")
+  @@index([status])
+  @@index([fiscalYear])
+  @@index([certificateId])
+  @@index([companyId])
+  @@index([submissionDate])
+}
+
+model DigitalCertificate {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  commonName      String   // CN del certificado
+  serialNumber    String   @unique
+  issuer          String   // Emisor del certificado
+
+  // Propietario
+  ownerType       String   // "COMPANY" | "PERSON"
+  ownerId         String   // companyId o personId
+  ownerName       String
+  ownerTaxId      String   // NIF/CIF
+
+  // Certificado
+  type            String   @default("FNMT") // "FNMT" | "CAMERFIRMA" | "ANF" | "OTHER"
+  usage           String   @default("SIGNATURE") // "SIGNATURE" | "AUTHENTICATION" | "ENCRYPTION"
+
+  // Archivo PKCS#12
+  p12File         String?  // Ruta al archivo .p12/.pfx (encriptado)
+  p12FileSize     Int?
+  p12Hash         String?  // Hash del archivo
+
+  // Contraseña (encriptada)
+  passwordHash    String   // Contraseña del .p12 encriptada
+  passwordSalt    String
+
+  // Certificado PEM
+  pemCertificate  String?  // Certificado en formato PEM
+  pemPrivateKey   String?  // Clave privada en formato PEM (encriptada)
+
+  // Validez
+  validFrom       DateTime
+  validTo         DateTime
+  isExpired       Boolean  @default(false)
+  daysToExpire    Int?
+
+  // Alertas de expiración
+  alertDays       Int[]    @default([60, 30, 15, 7, 1])
+  lastAlertSent   DateTime?
+
+  // Verificación
+  verified        Boolean  @default(false)
+  verifiedAt      DateTime?
+  verificationMethod String? // Cómo se verificó
+
+  // Uso
+  lastUsedAt      DateTime?
+  usageCount      Int      @default(0)
+
+  // Relaciones
+  submissions     TaxSubmission[]
+  siiSubmissions  SiiSubmission[]
+
+  // Estado
+  status          String   @default("ACTIVE") // "ACTIVE" | "EXPIRED" | "REVOKED" | "SUSPENDED"
+  revokedAt       DateTime?
+  revocationReason String?
+
+  // Metadata de seguridad
+  fingerprint     String?  // Huella digital del certificado
+  algorithm       String?  // Algoritmo de firma
+  keySize         Int?     // Tamaño de la clave
+
+  // Auditoría
+  uploadedBy      String?
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("digital_certificates")
+  @@index([ownerTaxId])
+  @@index([status])
+  @@index([validTo])
+  @@index([companyId])
+}
+
+model VATReport {
+  id              String   @id @default(uuid())
+
+  // Periodo
+  fiscalYear      Int
+  quarter         String   // "Q1" | "Q2" | "Q3" | "Q4"
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  // IVA Repercutido (Ventas)
+  outputVATBase   Float    @default(0) // Base imponible
+  outputVATAmount Float    @default(0) // Cuota IVA
+
+  // IVA Soportado (Compras)
+  inputVATBase    Float    @default(0)
+  inputVATAmount  Float    @default(0)
+
+  // Desglose por tipo
+  vat21Base       Float    @default(0)
+  vat21Amount     Float    @default(0)
+  vat10Base       Float    @default(0)
+  vat10Amount     Float    @default(0)
+  vat4Base        Float    @default(0)
+  vat4Amount      Float    @default(0)
+
+  // Resultado
+  result          Float    // Positivo = a ingresar, Negativo = a compensar
+  toPayOrRefund   Float    // A pagar o solicitar devolución
+
+  // Detalle de operaciones
+  operations      Json     // Detalle de operaciones
+
+  // Modelo 303 asociado
+  model303Id      String?
+
+  // Estado
+  status          String   @default("DRAFT") // "DRAFT" | "FINAL" | "SUBMITTED"
+
+  // Auditoría
+  generatedBy     String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("vat_reports")
+  @@unique([companyId, fiscalYear, quarter])
+  @@index([fiscalYear])
+  @@index([status])
+  @@index([companyId])
+}
+
+model SIIRecord {
+  id              String   @id @default(uuid())
+
+  // Tipo de registro
+  recordType      String   // "ISSUED_INVOICE" | "RECEIVED_INVOICE" | "INVESTMENT_GOODS" | "INTRA_COMMUNITY"
+
+  // Factura
+  invoiceNumber   String
+  invoiceDate     DateTime
+  operationDate   DateTime?
+
+  // Contraparte
+  counterpartyTaxId String
+  counterpartyName String
+  counterpartyCountry String @default("ES")
+
+  // Importes
+  baseAmount      Float
+  vatRate         Float
+  vatAmount       Float
+  totalAmount     Float
+
+  // Tipo de operación
+  operationType   String   // Clave de régimen especial
+  description     String?
+
+  // Estado SII
+  siiStatus       String   @default("PENDING") // "PENDING" | "SENT" | "ACCEPTED" | "REJECTED" | "MODIFIED"
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+
+  // Respuesta AEAT
+  csv             String?
+  aeAtResponse    Json?
+  errors          Json?
+
+  // Modificación
+  isModification  Boolean  @default(false)
+  modifiesRecordId String?
+
+  // Auditoría
+  createdBy       String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("sii_records")
+  @@index([recordType])
+  @@index([siiStatus])
+  @@index([invoiceDate])
+  @@index([companyId])
+}
+
+model CommissionRecord {
+  id              String   @id @default(uuid())
+
+  // Referencia
+  policyId        String?
+  receiptId       String?
+
+  // Beneficiario
+  agentId         String?
+  partyId         String?  // Cliente
+
+  // Comisión
+  amount          Float
+  percentage      Float?
+
+  // Estado
+  status          String   @default("PENDING")  // "PENDING" | "PAID" | "CANCELLED"
+  paidAt          DateTime?
+
+  // Conversión a Soris
+  sorisGenerated  Boolean  @default(false)
+  sorisAmount     Float?
+  sorisDistributed Json?   // {client: X, agency: Y, occident: Z}
+
+  // Metadata
+  metadata        Json?
+  notes           String?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("commission_records")
+  @@index([policyId])
+  @@index([receiptId])
+  @@index([agentId])
+  @@index([partyId])
+  @@index([status])
+  @@index([companyId])
+  @@index([paidAt])
+}
+
+// ==========================================
+// SALES INTELLIGENCE SYSTEM
+// Análisis de clientes, oportunidades y predicción de churn
+// ==========================================
+
+model ClientAnalysis {
+  id              String   @id @default(uuid())
+
+  // Cliente
+  partyId         String   @unique
+
+  // Health Score (0-100)
+  healthScore     Int      // Score general de salud del cliente
+  healthTrend     String?  // "UP" | "STABLE" | "DOWN"
+  healthFactors   Json?    // Factores que influyen en el score
+
+  // Segmentación
+  segment         String   // "VIP" | "HIGH_VALUE" | "MEDIUM_VALUE" | "LOW_VALUE" | "AT_RISK"
+  segmentReason   String?  // Razón de la segmentación
+  previousSegment String?
+
+  // Lifetime Value
+  ltv             Float?   // Lifetime Value total
+  predictedLtv    Float?   // LTV predicho
+  avgPolicyValue  Float?   // Valor promedio de pólizas
+
+  // Comportamiento
+  engagementScore Int?     // 0-100 score de engagement
+  loyaltyIndex    Float?   // Índice de lealtad
+  lastInteraction DateTime?
+  interactionFrequency String? // "DAILY" | "WEEKLY" | "MONTHLY" | "RARE"
+
+  // Análisis de IA (Claude Opus)
+  aiInsights      Json     // Insights generados por IA
+  aiRecommendations Json?  // Recomendaciones de la IA
+  aiSummary       String?  // Resumen del análisis
+  aiModel         String?  // Modelo usado
+
+  // Riesgos identificados
+  riskFactors     String[] // Factores de riesgo detectados
+  riskScore       Int?     // 0-100 score de riesgo
+
+  // Oportunidades detectadas
+  opportunityCount Int     @default(0)
+  crossSellPotential Float? // Potencial de venta cruzada (0-1)
+  upsellPotential Float?   // Potencial de upselling (0-1)
+
+  // Última actualización
+  lastAnalyzedAt  DateTime @default(now())
+  analysisVersion Int      @default(1)
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("client_analyses")
+  @@index([partyId])
+  @@index([healthScore])
+  @@index([segment])
+  @@index([companyId])
+  @@index([lastAnalyzedAt])
+}
+
+model OpportunityRecommendation {
+  id              String   @id @default(uuid())
+
+  // Cliente
+  partyId         String
+
+  // Tipo de oportunidad
+  type            String   // "CROSS_SELL" | "UPSELL" | "RENEWAL" | "COVERAGE_GAP" | "NEW_PRODUCT"
+  category        String   // "AUTO" | "HOGAR" | "VIDA" | "SALUD" | "AHORRO" | etc.
+
+  // Producto recomendado
+  productCode     String?  // Código de producto Occident
+  productName     String
+  productType     String
+
+  // Prioridad y scoring
+  priority        String   // "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
+  priorityScore   Int      // 0-100
+  confidenceScore Float    // 0-1 confianza de la IA
+  expectedValue   Float?   // Valor esperado de la oportunidad
+
+  // Probabilidad de cierre
+  closeProbability Float   // 0-1 probabilidad de cierre
+  closeReason     String?  // Razón de la probabilidad
+
+  // Análisis de IA
+  reasoning       String   // Razón de la recomendación
+  insights        Json?    // Insights adicionales
+  aiModel         String?
+
+  // Timing
+  bestContactTime String?  // Mejor momento para contactar
+  urgency         String   // "IMMEDIATE" | "THIS_WEEK" | "THIS_MONTH" | "FLEXIBLE"
+  expiresAt       DateTime? // Cuándo expira la oportunidad
+
+  // Asignación
+  assignedToId    String?  // ID del agente asignado
+  assignedAt      DateTime?
+  assignedBy      String?
+
+  // Estado
+  status          String   @default("NEW") // "NEW" | "ASSIGNED" | "IN_PROGRESS" | "WON" | "LOST" | "EXPIRED"
+  statusReason    String?
+  closedAt        DateTime?
+  closedBy        String?
+
+  // Resultado
+  actualValue     Float?   // Valor real si se cerró
+  conversionRate  Float?   // Tasa de conversión
+
+  // Contacto
+  contactAttempts Int      @default(0)
+  lastContactedAt DateTime?
+  nextFollowUpAt  DateTime?
+
+  // Notas
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("opportunity_recommendations")
+  @@index([partyId])
+  @@index([type])
+  @@index([priority])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([companyId])
+  @@index([closeProbability])
+  @@index([createdAt])
+}
+
+model CoverageGap {
+  id              String   @id @default(uuid())
+
+  // Cliente
+  partyId         String
+
+  // Gap detectado
+  gapType         String   // "MISSING_COVERAGE" | "INSUFFICIENT_COVERAGE" | "OUTDATED_COVERAGE"
+  coverageType    String   // "AUTO" | "HOGAR" | "VIDA" | "SALUD" | "RESPONSABILIDAD" | etc.
+
+  // Descripción
+  description     String
+  riskLevel       String   // "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
+  riskScore       Int      // 0-100
+
+  // Análisis
+  currentCoverage Json?    // Cobertura actual
+  recommendedCoverage Json // Cobertura recomendada
+  gap             Json     // Detalle del gap
+
+  // Impacto
+  potentialLoss   Float?   // Pérdida potencial sin cobertura
+  recommendedValue Float?  // Valor de la cobertura recomendada
+
+  // Prioridad
+  priority        Int      // 1-10
+  urgency         String   // "IMMEDIATE" | "SHORT_TERM" | "MEDIUM_TERM"
+
+  // IA
+  aiAnalysis      Json?    // Análisis de IA
+  aiModel         String?
+
+  // Estado
+  status          String   @default("IDENTIFIED") // "IDENTIFIED" | "ADDRESSED" | "DISMISSED" | "RESOLVED"
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolutionNotes String?
+
+  // Oportunidad asociada
+  opportunityId   String?  // ID de OpportunityRecommendation creada
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("coverage_gaps")
+  @@index([partyId])
+  @@index([gapType])
+  @@index([riskLevel])
+  @@index([status])
+  @@index([companyId])
+  @@index([priority])
+}
+
+model ChurnPrediction {
+  id              String   @id @default(uuid())
+
+  // Cliente
+  partyId         String
+
+  // Score de riesgo de abandono (0-100)
+  churnScore      Int      // 0 = no riesgo, 100 = alto riesgo
+  churnRisk       String   // "VERY_LOW" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+  churnProbability Float   // 0-1 probabilidad de abandono
+
+  // Tendencia
+  trend           String   // "INCREASING" | "STABLE" | "DECREASING"
+  previousScore   Int?
+
+  // Señales de abandono detectadas
+  signals         Json     // Señales detectadas
+  signalCount     Int      @default(0)
+
+  // Factores principales
+  topFactors      String[] // Factores principales de riesgo
+  factorsAnalysis Json?    // Análisis detallado de factores
+
+  // Timing
+  predictedChurnDate DateTime? // Cuándo podría abandonar
+  timeToChurn     Int?     // Días hasta potencial abandono
+  confidenceLevel Float?   // Confianza de la predicción
+
+  // Estrategia de retención
+  retentionStrategy Json?  // Estrategia generada por IA
+  recommendedActions String[] // Acciones recomendadas
+  retentionPriority String // "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
+
+  // IA
+  aiAnalysis      Json     // Análisis completo de IA
+  aiModel         String?
+
+  // Acciones tomadas
+  actionsStatus   String   @default("PENDING") // "PENDING" | "IN_PROGRESS" | "COMPLETED" | "DISMISSED"
+  actionsTaken    Json?    // Acciones que se tomaron
+  actionsResult   String?  // Resultado de las acciones
+
+  // Resultado
+  wasRetained     Boolean? // Si se retuvo al cliente
+  retainedAt      DateTime?
+  churned         Boolean  @default(false)
+  churnedAt       DateTime?
+
+  // Alertas
+  alertSent       Boolean  @default(false)
+  alertSentAt     DateTime?
+  alertRecipients String[] // IDs de usuarios alertados
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("churn_predictions")
+  @@index([partyId])
+  @@index([churnRisk])
+  @@index([churnScore])
+  @@index([companyId])
+  @@index([actionsStatus])
+  @@index([createdAt])
+}
+
+model AIProposal {
+  id              String   @id @default(uuid())
+
+  // Oportunidad asociada
+  opportunityId   String?  @unique
+
+  // Cliente
+  partyId         String
+  clientName      String
+
+  // Producto
+  productCode     String?
+  productName     String
+  productType     String
+
+  // Contenido de la propuesta
+  title           String
+  introduction    String   // Introducción personalizada
+  currentSituation String  // Situación actual del cliente
+  proposedSolution String  // Solución propuesta
+  valueProposition String  // Propuesta de valor
+
+  // Pricing
+  premium         Float?   // Prima
+  coverage        Json?    // Coberturas incluidas
+  pricing         Json     // Desglose de pricing
+  discounts       Json?    // Descuentos aplicables
+
+  // Comparativa
+  comparison      Json?    // Comparativa con competencia
+  benefits        String[] // Beneficios clave
+  differentiators String[] // Diferenciadores
+
+  // Términos
+  terms           Json?    // Términos y condiciones
+  validity        DateTime? // Validez de la propuesta
+
+  // Personalización
+  personalization Json?    // Datos de personalización
+  tone            String?  // Tono usado: "FORMAL" | "CASUAL" | "TECHNICAL"
+
+  // IA
+  aiGenerated     Boolean  @default(true)
+  aiModel         String?  // Modelo de IA usado
+  aiPrompt        String?  // Prompt usado
+  generationTime  Int?     // Tiempo de generación (ms)
+
+  // Versiones
+  version         Int      @default(1)
+  previousVersionId String?
+
+  // PDF
+  pdfUrl          String?  // URL del PDF generado
+  pdfGeneratedAt  DateTime?
+
+  // Estado
+  status          String   @default("DRAFT") // "DRAFT" | "READY" | "SENT" | "VIEWED" | "ACCEPTED" | "REJECTED"
+  sentAt          DateTime?
+  sentBy          String?
+  viewedAt        DateTime?
+  viewCount       Int      @default(0)
+
+  // Resultado
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  feedback        String?
+
+  // Asignación
+  assignedToId    String?  // Agente responsable
+  createdBy       String?  // Quién la creó
+
+  // Notas
+  notes           String?
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ai_proposals")
+  @@index([opportunityId])
+  @@index([partyId])
+  @@index([status])
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([assignedToId])
+}
+
+model SalesIntelligenceMetrics {
+  id              String   @id @default(uuid())
+
+  // Período
+  date            DateTime
+  period          String   // "HOUR" | "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR"
+
+  // Scope
+  scope           String   // "GLOBAL" | "AGENT" | "TEAM" | "COMPANY"
+  scopeId         String?
+
+  // Análisis de clientes
+  clientsAnalyzed Int      @default(0)
+  avgHealthScore  Float?
+  clientsBySegment Json?   // {VIP: X, HIGH: Y, etc.}
+
+  // Oportunidades
+  opportunitiesGenerated Int @default(0)
+  opportunitiesWon Int     @default(0)
+  opportunitiesLost Int    @default(0)
+  conversionRate  Float?   // %
+  avgCloseProbability Float?
+  totalOpportunityValue Float? // Valor total de oportunidades
+  actualRevenue   Float?   // Revenue real generado
+
+  // Coverage gaps
+  gapsIdentified  Int      @default(0)
+  gapsResolved    Int      @default(0)
+  criticalGaps    Int      @default(0)
+
+  // Churn
+  clientsAtRisk   Int      @default(0)
+  criticalChurnRisk Int    @default(0)
+  clientsRetained Int      @default(0)
+  clientsChurned  Int      @default(0)
+  retentionRate   Float?   // %
+
+  // Propuestas
+  proposalsGenerated Int   @default(0)
+  proposalsSent   Int      @default(0)
+  proposalsAccepted Int    @default(0)
+  proposalAcceptanceRate Float? // %
+
+  // Performance de IA
+  avgAiResponseTime Float? // ms
+  aiApiCalls      Int      @default(0)
+  aiTokensUsed    Int      @default(0)
+  aiCost          Float?   // Costo total de IA
+
+  // KPIs
+  crossSellRate   Float?   // % de cross-sell exitoso
+  upsellRate      Float?   // % de upsell exitoso
+  avgDealSize     Float?   // Tamaño promedio de deal
+  avgSalesCycle   Int?     // Días promedio de ciclo de venta
+
+  // Multi-empresa
+  companyId       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("sales_intelligence_metrics")
+  @@unique([date, period, scope, scopeId, companyId])
+  @@index([date])
+  @@index([period])
+  @@index([scope])
+  @@index([companyId])
+}
+
+// ==========================================
+// ADDITIONAL TAX MODELS
+// ==========================================
+
+model Invoice {
+  id                String   @id @default(uuid())
+  companyId         String
+  company           Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  invoiceNumber     String
+  invoiceDate       DateTime
+  type              String   // "ISSUED" | "RECEIVED"
+  taxBase           Float
+  taxRate           Float
+  taxAmount         Float
+  totalAmount       Float
+  siiSent           Boolean  @default(false)
+  siiStatus         String?
+  siiCsv            String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("invoices")
+  @@index([companyId])
+  @@index([invoiceDate])
+  @@index([type])
+}
+
+model Payroll {
+  id                String   @id @default(uuid())
+  companyId         String
+  company           Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  employeeId        String
+  payrollMonth      DateTime
+  grossSalary       Float
+  retentionAmount   Float
+  retentionRate     Float
+  netSalary         Float
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("payrolls")
+  @@index([companyId])
+  @@index([payrollMonth])
+  @@index([employeeId])
+}
+
+model SiiSubmission {
+  id                String   @id @default(uuid())
+  certificateId     String
+  certificate       DigitalCertificate @relation(fields: [certificateId], references: [id])
+
+  submissionType    String   // "FACTURA_EMITIDA" | "FACTURA_RECIBIDA"
+  invoiceIds        String[]
+  status            String   @default("PENDING") // "PENDING" | "SUBMITTED" | "ACCEPTED" | "REJECTED"
+  csv               String?
+  responseData      Json?
+  errorMessage      String?
+  submittedBy       String
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("sii_submissions")
+  @@index([certificateId])
+  @@index([status])
+  @@index([submissionType])
+}
+
+// ==========================================
+// TICKETS SYSTEM
+// Sistema de tickets multi-canal con IA
+// ==========================================
+
+model Ticket {
+  id              String   @id @default(uuid())
+
+  // Identificación
+  ticketNumber    String   @unique  // TKT-2024-00001
+  title           String
+  description     String?
+
+  // Cliente/Contacto
+  partyId         String?
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+
+  // Canal de origen
+  channel         String   // "EMAIL" | "PHONE" | "WEB" | "WHATSAPP" | "SMS" | "CHAT"
+  sourceId        String?  // ID del mensaje/llamada original
+
+  // Categorización
+  category        String?  // "TECHNICAL" | "BILLING" | "SALES" | "COMPLAINT" | "OTHER"
+  subcategory     String?
+  type            String?  // "INCIDENT" | "REQUEST" | "QUESTION"
+
+  // Prioridad
+  priority        String   @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH" | "URGENT"
+  severity        String?  // "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+
+  // Asignación
+  assignedToId    String?
+  assignedToTeam  String?
+  routingReason   String?  // Razón del routing (IA)
+
+  // Estado
+  status          String   @default("OPEN")  // "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CLOSED"
+  resolution      String?  // Descripción de la resolución
+  resolutionType  String?  // "SOLVED" | "WORKAROUND" | "DUPLICATE" | "WONT_FIX"
+
+  // SLA
+  slaLevel        String?  // "STANDARD" | "PREMIUM" | "VIP"
+  dueDate         DateTime?
+  firstResponseAt DateTime?
+  firstResolutionAt DateTime?
+  closedAt        DateTime?
+
+  // IA Analysis
+  aiSentiment     String?  // "POSITIVE" | "NEUTRAL" | "NEGATIVE"
+  aiSentimentScore Float?  // -1.0 a 1.0
+  aiSuggestions   Json?    // Sugerencias de IA
+  aiAutoResolved  Boolean  @default(false)
+  aiConfidence    Float?   // Confianza en auto-resolución
+
+  // Tags
+  tags            String[]
+
+  // Relaciones
+  relatedTickets  String[] // IDs de tickets relacionados
+
+  // Escalación
+  escalated       Boolean  @default(false)
+  escalatedAt     DateTime?
+  escalatedTo     String?
+  escalationReason String?
+
+  // Satisfacción
+  satisfactionScore Int?   // 1-5
+  satisfactionComment String?
+
+  // Metadata
+  metadata        Json?
+
+  // Multi-empresa
+  companyId       String?
+
+  // Relaciones
+  messages        TicketMessage[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("tickets")
+  @@index([ticketNumber])
+  @@index([partyId])
+  @@index([channel])
+  @@index([category])
+  @@index([priority])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([companyId])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id              String   @id @default(uuid())
+
+  ticketId        String
+  ticket          Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  // Mensaje
+  content         String
+  contentType     String   @default("text")  // "text" | "html" | "markdown"
+  isInternal      Boolean  @default(false)   // Nota interna vs mensaje al cliente
+
+  // Autor
+  authorType      String   // "USER" | "CLIENT" | "SYSTEM" | "AI"
+  authorId        String?
+  authorName      String?
+  authorEmail     String?
+
+  // Canal
+  channel         String?  // "EMAIL" | "PHONE" | "WEB" | "WHATSAPP" | "SMS" | "CHAT"
+  messageId       String?  // ID del mensaje original (email-id, sms-id, etc.)
+
+  // Adjuntos
+  attachments     Json?    // Array de URLs
+
+  // IA
+  aiGenerated     Boolean  @default(false)
+  aiSuggested     Boolean  @default(false)
+
+  // Metadata
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ticket_messages")
+  @@index([ticketId])
+  @@index([authorType])
+  @@index([authorId])
+  @@index([createdAt])
+}

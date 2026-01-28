@@ -1,0 +1,137 @@
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { SalesIntelligenceService } from './sales-intelligence.service';
+import { Prisma } from '@prisma/client';
+
+@Resolver('SalesIntelligence')
+export class SalesIntelligenceResolver {
+  constructor(
+    private readonly salesIntelligenceService: SalesIntelligenceService,
+  ) {}
+
+  // ==========================================
+  // CLIENT ANALYSIS
+  // ==========================================
+
+  @Query('clientAnalysis')
+  async getClientAnalysis(@Args('partyId') partyId: string) {
+    return this.salesIntelligenceService.getClientAnalysis(partyId);
+  }
+
+  @Mutation('createClientAnalysis')
+  async createClientAnalysis(@Args('data') data: Prisma.ClientAnalysisCreateInput) {
+    return this.salesIntelligenceService.createClientAnalysis(data);
+  }
+
+  @Mutation('updateClientAnalysis')
+  async updateClientAnalysis(
+    @Args('partyId') partyId: string,
+    @Args('data') data: Prisma.ClientAnalysisUpdateInput,
+  ) {
+    return this.salesIntelligenceService.updateClientAnalysis(partyId, data);
+  }
+
+  // ==========================================
+  // OPPORTUNITIES
+  // ==========================================
+
+  @Query('opportunities')
+  async getOpportunities(
+    @Args('skip') skip?: number,
+    @Args('take') take?: number,
+    @Args('status') status?: string,
+    @Args('priority') priority?: string,
+    @Args('partyId') partyId?: string,
+  ) {
+    const where: Prisma.OpportunityRecommendationWhereInput = {};
+
+    if (status) where.status = status;
+    if (priority) where.priority = priority;
+    if (partyId) where.partyId = partyId;
+
+    return this.salesIntelligenceService.getOpportunities({
+      skip,
+      take: take || 50,
+      where,
+      orderBy: { confidence: 'desc' },
+    });
+  }
+
+  @Query('opportunity')
+  async getOpportunityById(@Args('id') id: string) {
+    return this.salesIntelligenceService.getOpportunityById(id);
+  }
+
+  @Mutation('createOpportunity')
+  async createOpportunity(
+    @Args('data') data: Prisma.OpportunityRecommendationCreateInput,
+  ) {
+    return this.salesIntelligenceService.createOpportunity(data);
+  }
+
+  @Mutation('updateOpportunity')
+  async updateOpportunity(
+    @Args('id') id: string,
+    @Args('data') data: Prisma.OpportunityRecommendationUpdateInput,
+  ) {
+    return this.salesIntelligenceService.updateOpportunity(id, data);
+  }
+
+  // ==========================================
+  // COVERAGE GAPS
+  // ==========================================
+
+  @Query('coverageGaps')
+  async getCoverageGaps(
+    @Args('skip') skip?: number,
+    @Args('take') take?: number,
+    @Args('status') status?: string,
+    @Args('partyId') partyId?: string,
+  ) {
+    const where: Prisma.CoverageGapWhereInput = {};
+
+    if (status) where.status = status;
+    if (partyId) where.partyId = partyId;
+
+    return this.salesIntelligenceService.getCoverageGaps({
+      skip,
+      take: take || 50,
+      where,
+      orderBy: { severity: 'desc' },
+    });
+  }
+
+  // ==========================================
+  // CHURN PREDICTIONS
+  // ==========================================
+
+  @Query('churnPredictions')
+  async getChurnPredictions(
+    @Args('skip') skip?: number,
+    @Args('take') take?: number,
+    @Args('status') status?: string,
+    @Args('riskLevel') riskLevel?: string,
+    @Args('partyId') partyId?: string,
+  ) {
+    const where: Prisma.ChurnPredictionWhereInput = {};
+
+    if (status) where.status = status;
+    if (riskLevel) where.riskLevel = riskLevel;
+    if (partyId) where.partyId = partyId;
+
+    return this.salesIntelligenceService.getChurnPredictions({
+      skip,
+      take: take || 50,
+      where,
+      orderBy: { churnProbability: 'desc' },
+    });
+  }
+
+  // ==========================================
+  // INSIGHTS
+  // ==========================================
+
+  @Query('clientInsights')
+  async getInsightsByParty(@Args('partyId') partyId: string) {
+    return this.salesIntelligenceService.getInsightsByParty(partyId);
+  }
+}

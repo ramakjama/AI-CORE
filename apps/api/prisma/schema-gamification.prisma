@@ -1,0 +1,346 @@
+// ============================================================================
+// GAMIFICATION SCHEMA - Sistema SORIS
+// ============================================================================
+// Este esquema debe agregarse al schema.prisma principal de ss_insurance
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum WalletType {
+  CLIENT
+  AGENCY
+  OCCIDENT
+}
+
+enum TransactionType {
+  CREDIT        // Ingreso de Soris
+  DEBIT         // Gasto de Soris
+  TRANSFER      // Transferencia entre wallets
+  REWARD        // Recompensa
+  DISCOUNT      // Descuento aplicado
+  REFUND        // Devolución
+  ADJUSTMENT    // Ajuste manual
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REVERSED
+}
+
+enum DiscountStatus {
+  PENDING
+  APPLIED
+  CANCELLED
+  REFUNDED
+}
+
+// =============================================================================
+// WALLET (Billetera SORIS)
+// =============================================================================
+
+model Wallet {
+  id          String      @id @default(cuid())
+  type        WalletType
+  ownerId     String      // clientId, agencyId, or 'OCCIDENT'
+  ownerName   String
+
+  // Balances
+  balance     Int         @default(0)  // Soris disponibles
+  totalEarned Int         @default(0)  // Total Soris ganados (histórico)
+  totalSpent  Int         @default(0)  // Total Soris gastados (histórico)
+
+  // Metadata
+  isActive    Boolean     @default(true)
+  isFrozen    Boolean     @default(false)
+  frozenReason String?
+  frozenAt    DateTime?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relaciones
+  transactions Transaction[]
+
+  @@unique([ownerId, type])
+  @@index([type])
+  @@index([ownerId])
+  @@index([balance])
+}
+
+// =============================================================================
+// TRANSACTION (Transacción de Soris)
+// =============================================================================
+
+model Transaction {
+  id            String            @id @default(cuid())
+  walletId      String
+  type          TransactionType
+  amount        Int               // Cantidad en Soris
+  amountEur     Decimal?          @db.Decimal(18,2)  // Equivalente en EUR
+  status        TransactionStatus @default(PENDING)
+  description   String
+
+  // Referencias (a recibo, póliza, descuento, etc.)
+  referenceType String?           // 'RECEIPT', 'POLICY', 'DISCOUNT', etc.
+  referenceId   String?
+
+  // Metadata
+  metadata      Json?
+
+  // Auditoría
+  createdAt     DateTime          @default(now())
+  createdBy     String?           // userId
+  completedAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?
+
+  // Relaciones
+  wallet        Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([referenceType, referenceId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// DISCOUNT (Descuento aplicado con Soris)
+// =============================================================================
+
+model Discount {
+  id                  String         @id @default(cuid())
+
+  // Referencia al recibo o póliza
+  receiptId           String?
+  policyId            String?
+
+  // Cliente
+  clientId            String
+  clientName          String
+
+  // Montos
+  originalAmount      Decimal        @db.Decimal(18,2)  // Importe original en EUR
+  discountAmount      Decimal        @db.Decimal(18,2)  // Descuento en EUR
+  finalAmount         Decimal        @db.Decimal(18,2)  // Importe final en EUR
+
+  // Soris utilizados
+  totalSorisUsed      Int
+  sorisFromClient     Int            @default(0)
+  sorisFromAgency     Int            @default(0)
+  sorisFromOccident   Int            @default(0)
+
+  // Tasa de conversión usada
+  conversionRate      Decimal        @db.Decimal(10,4)  // 1 Soris = X EUR
+
+  // Estado
+  status              DiscountStatus @default(PENDING)
+
+  // Transacciones asociadas
+  transactionIds      String[]       // IDs de las 3 transacciones (cliente, agencia, occident)
+
+  // Auditoría
+  appliedAt           DateTime       @default(now())
+  appliedBy           String?        // userId
+  cancelledAt         DateTime?
+  cancelledBy         String?        // userId
+  cancellationReason  String?
+
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([clientId])
+  @@index([receiptId])
+  @@index([policyId])
+  @@index([status])
+  @@index([appliedAt])
+}
+
+// =============================================================================
+// CONVERSION RATE (Tasa de conversión Soris a EUR)
+// =============================================================================
+
+model ConversionRate {
+  id            String    @id @default(cuid())
+  sorisToEur    Decimal   @db.Decimal(10,4)  // 1 Soris = X EUR (ej: 0.10)
+
+  // Vigencia
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  isActive      Boolean   @default(true)
+
+  // Metadata
+  notes         String?
+  createdBy     String?
+
+  createdAt     DateTime  @default(now())
+
+  @@index([effectiveFrom])
+  @@index([isActive])
+}
+
+// =============================================================================
+// EARNING RULE (Regla para ganar Soris)
+// =============================================================================
+
+model EarningRule {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+
+  // Trigger
+  triggerType     String   // 'RECEIPT_PAID', 'POLICY_RENEWED', 'REFERRAL', etc.
+  triggerConditions Json?  // Condiciones adicionales
+
+  // Recompensa
+  sorisAmount     Int?     // Cantidad fija de Soris
+  sorisFormula    String?  // Fórmula dinámica (ej: "premium * 0.01")
+
+  // Límites
+  minAmount       Decimal? @db.Decimal(18,2)
+  maxAmount       Decimal? @db.Decimal(18,2)
+  maxTimesPerMonth Int?
+  maxTimesPerYear  Int?
+
+  // Estado
+  isActive        Boolean  @default(true)
+  validFrom       DateTime
+  validTo         DateTime?
+
+  // Prioridad
+  priority        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([priority])
+}
+
+// =============================================================================
+// EARNING EVENT (Evento de ganancia de Soris)
+// =============================================================================
+
+model EarningEvent {
+  id              String   @id @default(cuid())
+
+  // Cliente y wallet
+  clientId        String
+  walletId        String
+
+  // Regla aplicada
+  ruleId          String?
+  ruleName        String?
+
+  // Soris ganados
+  sorisEarned     Int
+
+  // Trigger
+  triggerType     String
+  triggerRef      String?  // ID del recibo, póliza, etc.
+
+  // Transacción creada
+  transactionId   String?
+
+  // Metadata
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+
+  @@index([clientId])
+  @@index([walletId])
+  @@index([ruleId])
+  @@index([triggerType])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// LEADERBOARD (Ranking de clientes)
+// =============================================================================
+
+model Leaderboard {
+  id              String   @id @default(cuid())
+
+  // Período
+  yearMonth       String   // "2026-01"
+
+  // Cliente
+  clientId        String
+  clientName      String
+
+  // Métricas
+  sorisEarned     Int      @default(0)
+  sorisSpent      Int      @default(0)
+  sorisBalance    Int      @default(0)
+
+  // Actividad
+  policiesCount   Int      @default(0)
+  premiumPaid     Decimal  @default(0) @db.Decimal(18,2)
+  referralsCount  Int      @default(0)
+
+  // Ranking
+  rank            Int?
+  rankChange      Int?     // +5, -2, 0
+
+  // Badges/Achievements
+  badges          String[]
+
+  calculatedAt    DateTime @default(now())
+
+  @@unique([clientId, yearMonth])
+  @@index([yearMonth, rank])
+  @@index([sorisBalance])
+}
+
+// =============================================================================
+// BADGE (Logro o insignia)
+// =============================================================================
+
+model Badge {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  description     String?
+  iconUrl         String?
+
+  // Requisitos
+  requirements    Json
+
+  // Recompensa
+  sorisReward     Int      @default(0)
+
+  // Metadata
+  isActive        Boolean  @default(true)
+  rarity          String?  // 'COMMON', 'RARE', 'EPIC', 'LEGENDARY'
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+// =============================================================================
+// CLIENT BADGE (Badges obtenidos por clientes)
+// =============================================================================
+
+model ClientBadge {
+  id              String   @id @default(cuid())
+  clientId        String
+  badgeId         String
+  badgeCode       String
+
+  // Metadata
+  earnedAt        DateTime @default(now())
+  transactionId   String?  // Transacción de recompensa
+
+  @@unique([clientId, badgeId])
+  @@index([clientId])
+  @@index([badgeCode])
+  @@index([earnedAt])
+}
