@@ -149,11 +149,10 @@ class PortalStructureMapper:
         self.pending_urls: List[str] = []
         self.element_hierarchy: Dict[str, List[str]] = {}
 
-        # Config - Límites seguros pero generosos
-        # NOTA: Profundidad máxima segura es ~500 para evitar problemas de memoria/recursión
-        self.max_depth = min(self.config.get("max_depth", 100), 500)  # Límite seguro
-        self.max_elements = min(self.config.get("max_elements", 50000), 100000)  # Límite razonable
-        self.timeout = self.config.get("timeout", 300)  # Timeout generoso
+        # Config - SIN LÍMITES: Explorar TODO sin restricciones
+        self.max_depth = self.config.get("max_depth", 999999)  # Prácticamente sin límite
+        self.max_elements = self.config.get("max_elements", 999999)  # Prácticamente sin límite
+        self.timeout = self.config.get("timeout", 7200)  # 2 horas máximo
         self.headless = self.config.get("headless", True)
         self.capture_screenshots = self.config.get("screenshots", True)
 

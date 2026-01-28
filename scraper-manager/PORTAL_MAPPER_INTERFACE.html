@@ -403,10 +403,10 @@
                     <select id="exploration-mode">
                         <option value="quick">⚡ Rápido - Estructura básica (5 min)</option>
                         <option value="normal" selected>🎯 Normal - Exploración completa (15 min)</option>
-                        <option value="deep">🔍 Profundo - Análisis exhaustivo (30 min)</option>
-                        <option value="unlimited">🚀 Ilimitado - Todo sin restricciones (1+ hora)</option>
+                        <option value="deep">🔍 Profundo - 50 niveles, 50K elementos (1 hora)</option>
+                        <option value="unlimited">🚀 ILIMITADO - TODO sin restricciones (2+ horas)</option>
                     </select>
-                    <p class="help-text">Selecciona qué tan profundo quieres explorar el portal</p>
+                    <p class="help-text">Selecciona el nivel de exploración (Ilimitado captura TODO)</p>
                 </div>
 
                 <div class="form-group">
@@ -486,11 +486,11 @@
                 </div>
                 <div class="mode-card">
                     <h4>🔍 Modo Profundo</h4>
-                    <p>Análisis exhaustivo hasta 20 niveles de profundidad. Descubre elementos ocultos y flujos complejos.</p>
+                    <p>Análisis exhaustivo hasta 50 niveles de profundidad con 50,000 elementos. Captura flujos complejos y elementos ocultos.</p>
                 </div>
                 <div class="mode-card">
                     <h4>🚀 Modo Ilimitado</h4>
-                    <p>Sin límites de profundidad ni elementos. Registra absolutamente todo lo que encuentre en el portal.</p>
+                    <p><strong>SIN LÍMITES.</strong> Explora TODAS las rutas, TODOS los niveles, registra y analiza ABSOLUTAMENTE TODO sin restricciones.</p>
                 </div>
             </div>
         </div>
@@ -553,14 +553,14 @@
                 timeout: 900
             },
             deep: {
-                max_depth: 20,
-                max_elements: 20000,
-                timeout: 1800
+                max_depth: 50,
+                max_elements: 50000,
+                timeout: 3600
             },
             unlimited: {
-                max_depth: 500,  // Límite máximo seguro
-                max_elements: 100000,
-                timeout: 7200
+                max_depth: 999999,  // SIN LÍMITE - Captura TODO
+                max_elements: 999999,  // SIN LÍMITE - Todos los elementos
+                timeout: 7200  // 2 horas máximo
             }
         };
 
