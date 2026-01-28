@@ -32,6 +32,12 @@ from enum import Enum
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Importar módulos del sistema
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from modules.portal_mapper import PortalStructureMapper
+
 # ============================================================================
 # APLICACIÓN FASTAPI
 # ============================================================================
@@ -606,6 +612,232 @@ async def get_execution_details(execution_id: str):
         "estadisticas": state.estadisticas.dict(),
         "inicio": state.inicio_sistema.isoformat()
     }
+
+
+# ============================================================================
+# ENDPOINTS - PORTAL STRUCTURE MAPPER (Módulo 2)
+# ============================================================================
+
+# Estado global del mapper
+portal_mapper_instance: Optional[PortalStructureMapper] = None
+portal_mapper_task: Optional[asyncio.Task] = None
+
+
+@app.post("/api/mapper/start", tags=["🗺️ Portal Mapper"], status_code=202)
+async def start_portal_mapping(
+    request: Dict[str, Any],
+    background_tasks: BackgroundTasks,
+    user: Dict = Depends(verify_token)
+):
+    """
+    Inicia el mapeo de la estructura del portal.
+
+    **Parámetros:**
+    - portal_url: URL del portal a mapear
+    - credentials: Credenciales de acceso {username, password}
+    - config: Configuración opcional {max_depth, max_elements, timeout, headless, screenshots}
+
+    **Returns:**
+    - 202: Mapeo iniciado exitosamente
+    - 409: Ya hay un mapeo en curso
+    """
+    global portal_mapper_instance, portal_mapper_task
+
+    # Verificar si ya hay un mapeo en curso
+    if portal_mapper_instance and portal_mapper_instance.state.status == "RUNNING":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya hay un mapeo en curso"
+        )
+
+    # Validar request
+    portal_url = request.get("portal_url")
+    credentials = request.get("credentials", {})
+    config = request.get("config", {})
+
+    if not portal_url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="portal_url es requerido"
+        )
+
+    # Crear instancia del mapper
+    portal_mapper_instance = PortalStructureMapper(
+        portal_url=portal_url,
+        credentials=credentials,
+        config=config
+    )
+
+    # Iniciar mapeo en background
+    async def run_mapper():
+        try:
+            await portal_mapper_instance.start_mapping()
+        except Exception as e:
+            logger.error(f"Error en mapeo: {e}", exc_info=True)
+
+    portal_mapper_task = asyncio.create_task(run_mapper())
+
+    logger.info(f"Mapeo iniciado para: {portal_url}")
+
+    return {
+        "message": "Mapeo del portal iniciado exitosamente",
+        "portal_url": portal_url,
+        "status": "RUNNING",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@app.get("/api/mapper/status", tags=["🗺️ Portal Mapper"])
+async def get_mapper_status(user: Dict = Depends(verify_token)):
+    """
+    Obtiene el estado actual del mapeo.
+
+    **Returns:**
+    - Estado completo del mapper
+    - Progreso (0-100%)
+    - Estadísticas de descubrimiento
+    """
+    global portal_mapper_instance
+
+    if not portal_mapper_instance:
+        return {
+            "status": "IDLE",
+            "message": "No hay ningún mapeo iniciado"
+        }
+
+    return portal_mapper_instance.get_state()
+
+
+@app.post("/api/mapper/stop", tags=["🗺️ Portal Mapper"])
+async def stop_portal_mapping(user: Dict = Depends(verify_token)):
+    """
+    Detiene el mapeo en curso.
+
+    **Returns:**
+    - 200: Mapeo detenido exitosamente
+    - 404: No hay mapeo en curso
+    """
+    global portal_mapper_instance, portal_mapper_task
+
+    if not portal_mapper_instance or portal_mapper_instance.state.status != "RUNNING":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay ningún mapeo en curso"
+        )
+
+    # Detener mapper
+    await portal_mapper_instance.stop_mapping()
+
+    # Cancelar tarea
+    if portal_mapper_task:
+        portal_mapper_task.cancel()
+
+    logger.info("Mapeo detenido por el usuario")
+
+    return {
+        "message": "Mapeo detenido exitosamente",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@app.get("/api/mapper/report", tags=["🗺️ Portal Mapper"])
+async def get_mapper_report(user: Dict = Depends(verify_token)):
+    """
+    Obtiene el reporte completo del último mapeo.
+
+    **Returns:**
+    - Reporte exhaustivo con toda la estructura descubierta
+    - 404: No hay reporte disponible
+    """
+    global portal_mapper_instance
+
+    if not portal_mapper_instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay reporte disponible"
+        )
+
+    if portal_mapper_instance.state.status == "RUNNING":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El mapeo aún está en curso"
+        )
+
+    # Generar reporte si está completado
+    if portal_mapper_instance.state.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El mapeo no se ha completado exitosamente"
+        )
+
+    return {
+        "metadata": {
+            "portal_url": portal_mapper_instance.portal_url,
+            "mapping_date": portal_mapper_instance.state.end_time,
+            "status": portal_mapper_instance.state.status
+        },
+        "summary": {
+            "elements": len(portal_mapper_instance.elements),
+            "interactions": len(portal_mapper_instance.interactions),
+            "workflows": len(portal_mapper_instance.workflows),
+            "routes": len(portal_mapper_instance.routes)
+        },
+        "elements": [asdict(e) for e in list(portal_mapper_instance.elements.values())[:100]],  # Primeros 100
+        "workflows": [asdict(w) for w in portal_mapper_instance.workflows.values()],
+        "routes": [asdict(r) for r in portal_mapper_instance.routes.values()]
+    }
+
+
+@app.get("/api/mapper/elements", tags=["🗺️ Portal Mapper"])
+async def get_mapper_elements(
+    element_type: Optional[str] = None,
+    level: Optional[int] = None,
+    limit: int = 100,
+    offset: int = 0,
+    user: Dict = Depends(verify_token)
+):
+    """
+    Obtiene los elementos descubiertos con filtros opcionales.
+
+    **Parámetros:**
+    - element_type: Filtrar por tipo (screen, subscreen, button, etc.)
+    - level: Filtrar por profundidad
+    - limit: Límite de resultados
+    - offset: Offset para paginación
+
+    **Returns:**
+    - Lista de elementos
+    """
+    global portal_mapper_instance
+
+    if not portal_mapper_instance:
+        return {"elements": [], "total": 0}
+
+    elements = list(portal_mapper_instance.elements.values())
+
+    # Filtros
+    if element_type:
+        elements = [e for e in elements if e.type == element_type]
+    if level is not None:
+        elements = [e for e in elements if e.level == level]
+
+    total = len(elements)
+    elements = elements[offset:offset+limit]
+
+    return {
+        "elements": [asdict(e) for e in elements],
+        "total": total,
+        "limit": limit,
+        "offset": offset
+    }
+
+
+# Helper para asdict si no existe
+try:
+    from dataclasses import asdict
+except ImportError:
+    def asdict(obj):
+        return obj.__dict__
 
 
 # ============================================================================
