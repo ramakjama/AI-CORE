@@ -149,9 +149,10 @@ class PortalStructureMapper:
         self.pending_urls: List[str] = []
         self.element_hierarchy: Dict[str, List[str]] = {}
 
-        # Config - Sin límites artificiales, exploración completa
-        self.max_depth = self.config.get("max_depth", 100)  # Sin límite de profundidad
-        self.max_elements = self.config.get("max_elements", 50000)  # Límite muy alto
+        # Config - Límites seguros pero generosos
+        # NOTA: Profundidad máxima segura es ~500 para evitar problemas de memoria/recursión
+        self.max_depth = min(self.config.get("max_depth", 100), 500)  # Límite seguro
+        self.max_elements = min(self.config.get("max_elements", 50000), 100000)  # Límite razonable
         self.timeout = self.config.get("timeout", 300)  # Timeout generoso
         self.headless = self.config.get("headless", True)
         self.capture_screenshots = self.config.get("screenshots", True)
@@ -249,67 +250,78 @@ class PortalStructureMapper:
         logger.info(f"Estructura principal descubierta: {len(main_sections)} secciones")
 
     async def _deep_exploration(self):
-        """Exploración profunda del portal"""
+        """Exploración profunda del portal usando sistema iterativo (no recursivo)"""
         logger.info("Iniciando exploración profunda...")
         self.state.progress = 30.0
 
-        # Explorar cada sección principal
+        # Usar cola para exploración iterativa (evita stack overflow)
+        from collections import deque
+
+        # Inicializar cola con elementos principales
         main_elements = [e for e in self.elements.values() if e.level == 0]
+        queue = deque([(elem, 1) for elem in main_elements])  # (elemento, profundidad)
 
         total_main = len(main_elements)
-        for idx, main_elem in enumerate(main_elements):
-            await self._explore_element(main_elem, depth=1)
-            # Actualizar progreso durante la exploración
-            progress = 30.0 + (30.0 * (idx + 1) / total_main)  # De 30% a 60%
-            self.state.progress = progress
-            logger.info(f"Exploración: {idx+1}/{total_main} secciones, Elementos: {len(self.elements)}")
+        processed_count = 0
+
+        while queue and len(self.elements) < self.max_elements:
+            element, depth = queue.popleft()
+
+            # Verificar límite de profundidad
+            if depth > self.max_depth:
+                continue
+
+            self.state.current_depth = max(self.state.current_depth, depth)
+
+            # Explorar hijos del elemento actual
+            num_children = 3
+            for i in range(num_children):
+                if len(self.elements) >= self.max_elements:
+                    break
+
+                child_type = self._determine_child_type(depth)
+                child = PortalElement(
+                    id=f"{element.id}_child_{i}",
+                    type=child_type,
+                    name=f"{element.name} - Item {i+1}",
+                    selector=f"{element.selector} > .child-{i}",
+                    parent_id=element.id,
+                    level=depth,
+                    attributes={
+                        "visible": True,
+                        "enabled": True
+                    }
+                )
+
+                self.elements[child.id] = child
+                self.state.elements_discovered += 1
+
+                if element.id not in self.element_hierarchy:
+                    self.element_hierarchy[element.id] = []
+                self.element_hierarchy[element.id].append(child.id)
+
+                # Añadir hijo a la cola para exploración posterior
+                if depth < self.max_depth:
+                    queue.append((child, depth + 1))
+
+            processed_count += 1
+
+            # Actualizar progreso
+            if element.level == 0:
+                main_idx = main_elements.index(element)
+                progress = 30.0 + (30.0 * (main_idx + 1) / total_main)
+                self.state.progress = progress
+                logger.info(f"Exploración: {main_idx+1}/{total_main} secciones, Elementos: {len(self.elements)}, Profundidad: {self.state.current_depth}")
 
         self.state.progress = 60.0
-        logger.info(f"Exploración completada: {self.state.elements_discovered} elementos")
+        logger.info(f"Exploración completada: {self.state.elements_discovered} elementos, Profundidad máxima: {self.state.current_depth}")
 
     async def _explore_element(self, element: PortalElement, depth: int):
-        """Explora un elemento y sus hijos recursivamente"""
-        if depth > self.max_depth:
-            return
-
-        if len(self.elements) >= self.max_elements:
-            logger.info(f"Alcanzado límite de elementos: {self.max_elements}")
-            return
-
-        self.state.current_depth = depth
-
-        # Explorar todos los elementos encontrados sin reducción artificial
-        # En un escenario real, esto detectaría elementos del DOM
-        num_children = 3  # Base constante de exploración
-
-        for i in range(num_children):
-            if len(self.elements) >= self.max_elements:
-                break
-
-            child_type = self._determine_child_type(depth)
-            child = PortalElement(
-                id=f"{element.id}_child_{i}",
-                type=child_type,
-                name=f"{element.name} - Item {i+1}",
-                selector=f"{element.selector} > .child-{i}",
-                parent_id=element.id,
-                level=depth,
-                attributes={
-                    "visible": True,
-                    "enabled": True
-                }
-            )
-
-            self.elements[child.id] = child
-            self.state.elements_discovered += 1
-
-            if element.id not in self.element_hierarchy:
-                self.element_hierarchy[element.id] = []
-            self.element_hierarchy[element.id].append(child.id)
-
-            # Recursión completa hasta max_depth configurado
-            if depth < self.max_depth:
-                await self._explore_element(child, depth + 1)
+        """
+        [DEPRECATED] Esta función ya no se usa.
+        La exploración ahora es iterativa en _deep_exploration para evitar stack overflow.
+        """
+        pass
 
     def _determine_child_type(self, depth: int) -> ElementType:
         """Determina el tipo de elemento hijo según la profundidad"""
