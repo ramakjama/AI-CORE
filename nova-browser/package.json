@@ -1,0 +1,54 @@
+{
+  "name": "nova-browser",
+  "version": "1.0.0",
+  "description": "Nova Browser - El navegador del futuro con IA integrada",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run dev:main\"",
+    "dev:main": "electron .",
+    "dev:renderer": "vite",
+    "build": "tsc && vite build",
+    "build:electron": "npm run build && electron-builder",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "browser",
+    "electron",
+    "react",
+    "ai",
+    "innovation"
+  ],
+  "author": "Nova Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "electron-builder": "^24.9.0",
+    "esbuild": "^0.27.2",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@headlessui/react": "^1.7.17",
+    "better-sqlite3": "^12.6.2",
+    "electron": "^27.0.0",
+    "electron-store": "^11.0.2",
+    "framer-motion": "^10.16.0",
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "uuid": "^13.0.0",
+    "zustand": "^4.4.0"
+  }
+}
