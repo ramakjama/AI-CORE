@@ -19,6 +19,7 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 import json
 import logging
+from playwright.async_api import async_playwright, Browser, Page, ElementHandle
 
 logger = logging.getLogger(__name__)
 
@@ -156,18 +157,27 @@ class PortalStructureMapper:
         self.headless = self.config.get("headless", True)
         self.capture_screenshots = self.config.get("screenshots", True)
 
+        # Browser automation REAL
+        self.playwright = None
+        self.browser: Optional[Browser] = None
+        self.page: Optional[Page] = None
+        self.context = None
+
     async def start_mapping(self) -> Dict[str, Any]:
         """
-        Inicia el proceso de mapeo del portal.
+        Inicia el proceso de mapeo del portal con browser automation REAL.
         """
         try:
             self.state.status = "RUNNING"
             self.state.start_time = datetime.now().isoformat()
             self.state.progress = 0.0
 
-            logger.info(f"Iniciando mapeo del portal: {self.portal_url}")
+            logger.info(f"🚀 Iniciando mapeo REAL del portal: {self.portal_url}")
 
-            # Paso 1: Login y navegación inicial
+            # Inicializar browser real con Playwright
+            await self._init_browser()
+
+            # Paso 1: Login REAL con navegación y autenticación Microsoft
             await self._login()
             await self._discover_main_structure()
 
@@ -190,7 +200,7 @@ class PortalStructureMapper:
             self.state.progress = 100.0
             self.state.end_time = datetime.now().isoformat()
 
-            logger.info(f"Mapeo completado: {self.state.elements_discovered} elementos descubiertos")
+            logger.info(f"✅ Mapeo completado: {self.state.elements_discovered} elementos descubiertos")
 
             return {
                 "status": "success",
@@ -208,112 +218,709 @@ class PortalStructureMapper:
             self.state.status = "ERROR"
             self.state.error_message = str(e)
             self.state.end_time = datetime.now().isoformat()
-            logger.error(f"Error en mapeo: {e}", exc_info=True)
+            logger.error(f"❌ Error en mapeo: {e}", exc_info=True)
             raise
 
+        finally:
+            # Cleanup: cerrar browser
+            await self._cleanup_browser()
+
+    async def _init_browser(self):
+        """Inicializa el browser con Playwright"""
+        logger.info("🌐 Inicializando browser real con Playwright...")
+
+        self.playwright = await async_playwright().start()
+
+        # Lanzar navegador (Chromium por defecto, más compatible con Microsoft auth)
+        self.browser = await self.playwright.chromium.launch(
+            headless=self.headless,
+            args=[
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+                '--no-sandbox'
+            ]
+        )
+
+        # Crear contexto con configuración anti-detección
+        self.context = await self.browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            locale='es-ES',
+            timezone_id='Europe/Madrid',
+            permissions=['geolocation', 'notifications']
+        )
+
+        # Crear página
+        self.page = await self.context.new_page()
+
+        # Configurar timeout por defecto
+        self.page.set_default_timeout(60000)  # 60 segundos
+
+        logger.info("✅ Browser inicializado correctamente")
+
+    async def _cleanup_browser(self):
+        """Cierra el browser y limpia recursos"""
+        try:
+            if self.page:
+                await self.page.close()
+                logger.info("📄 Página cerrada")
+
+            if self.context:
+                await self.context.close()
+                logger.info("🔒 Contexto cerrado")
+
+            if self.browser:
+                await self.browser.close()
+                logger.info("🌐 Browser cerrado")
+
+            if self.playwright:
+                await self.playwright.stop()
+                logger.info("🎭 Playwright detenido")
+
+        except Exception as e:
+            logger.warning(f"⚠️ Error al cerrar browser: {e}")
+
     async def _login(self):
-        """Login al portal"""
-        logger.info("Realizando login...")
-        await asyncio.sleep(1)  # Simular login
-        self.visited_urls.add(self.portal_url)
-        logger.info("Login exitoso")
+        """
+        Login REAL al portal con navegación y autenticación Microsoft OAuth
+        """
+        logger.info("🔐 Realizando login REAL al portal...")
+
+        try:
+            # Navegar al portal
+            logger.info(f"📍 Navegando a: {self.portal_url}")
+            response = await self.page.goto(self.portal_url, wait_until='networkidle')
+
+            if response:
+                logger.info(f"📡 Respuesta: {response.status} - {response.url}")
+
+            # Esperar a que cargue la página de login
+            await self.page.wait_for_load_state('domcontentloaded')
+
+            # Tomar screenshot de la página de login
+            if self.capture_screenshots:
+                await self._take_screenshot('01_login_page')
+
+            # Detectar tipo de autenticación
+            current_url = self.page.url
+            logger.info(f"🔍 URL actual: {current_url}")
+
+            # Verificar si hay redirección a Microsoft login
+            if 'login.microsoftonline.com' in current_url or 'microsoft' in current_url.lower():
+                logger.info("🔑 Detectada autenticación Microsoft OAuth - Procediendo...")
+                await self._handle_microsoft_oauth()
+            else:
+                # Login tradicional con usuario/contraseña
+                logger.info("📝 Intentando login tradicional con credenciales...")
+                await self._handle_traditional_login()
+
+            # Esperar a que se complete el login y cargue el portal
+            await self.page.wait_for_load_state('networkidle', timeout=30000)
+
+            # Verificar que estamos dentro del portal
+            await asyncio.sleep(2)  # Esperar estabilización
+            final_url = self.page.url
+            logger.info(f"✅ Login exitoso - URL final: {final_url}")
+
+            self.visited_urls.add(final_url)
+
+            # Screenshot post-login
+            if self.capture_screenshots:
+                await self._take_screenshot('02_post_login')
+
+            logger.info("✅ Login completado exitosamente")
+
+        except Exception as e:
+            logger.error(f"❌ Error en login: {e}", exc_info=True)
+            if self.capture_screenshots and self.page:
+                await self._take_screenshot('error_login')
+            raise
+
+    async def _handle_microsoft_oauth(self):
+        """Maneja el flujo de autenticación Microsoft OAuth"""
+        logger.info("🔐 Procesando autenticación Microsoft OAuth...")
+
+        try:
+            # Esperar campo de email
+            email_selector = 'input[type="email"], input[name="loginfmt"], input[placeholder*="email"]'
+            email_input = await self.page.wait_for_selector(email_selector, timeout=10000)
+
+            if email_input:
+                logger.info("📧 Campo de email encontrado")
+                await email_input.fill(self.credentials.get('username', ''))
+                await self.page.click('input[type="submit"], button[type="submit"]')
+                await self.page.wait_for_load_state('networkidle')
+
+                if self.capture_screenshots:
+                    await self._take_screenshot('03_microsoft_email_filled')
+
+            # Esperar campo de contraseña
+            password_selector = 'input[type="password"], input[name="passwd"]'
+            password_input = await self.page.wait_for_selector(password_selector, timeout=10000)
+
+            if password_input:
+                logger.info("🔑 Campo de contraseña encontrado")
+                await password_input.fill(self.credentials.get('password', ''))
+                await self.page.click('input[type="submit"], button[type="submit"]')
+                await self.page.wait_for_load_state('networkidle')
+
+                if self.capture_screenshots:
+                    await self._take_screenshot('04_microsoft_password_filled')
+
+            # Manejar prompt "Stay signed in?"
+            try:
+                stay_signed_in = await self.page.wait_for_selector(
+                    'input[type="submit"], button[type="submit"]',
+                    timeout=5000
+                )
+                if stay_signed_in:
+                    logger.info("🤔 Detectado prompt 'Stay signed in' - Aceptando...")
+                    await stay_signed_in.click()
+                    await self.page.wait_for_load_state('networkidle')
+            except:
+                logger.info("ℹ️ No se detectó prompt 'Stay signed in'")
+
+            logger.info("✅ Autenticación Microsoft OAuth completada")
+
+        except Exception as e:
+            logger.error(f"❌ Error en OAuth Microsoft: {e}", exc_info=True)
+            raise
+
+    async def _handle_traditional_login(self):
+        """Maneja login tradicional con usuario/contraseña"""
+        logger.info("📝 Procesando login tradicional...")
+
+        try:
+            # Buscar campos de login
+            username_selectors = [
+                'input[name="username"]', 'input[name="user"]', 'input[id="username"]',
+                'input[type="text"]', 'input[placeholder*="usuario"]', 'input[placeholder*="user"]'
+            ]
+
+            password_selectors = [
+                'input[name="password"]', 'input[id="password"]',
+                'input[type="password"]', 'input[placeholder*="contraseña"]'
+            ]
+
+            # Intentar llenar usuario
+            for selector in username_selectors:
+                try:
+                    username_input = await self.page.wait_for_selector(selector, timeout=2000)
+                    if username_input:
+                        await username_input.fill(self.credentials.get('username', ''))
+                        logger.info(f"✅ Usuario ingresado con selector: {selector}")
+                        break
+                except:
+                    continue
+
+            # Intentar llenar contraseña
+            for selector in password_selectors:
+                try:
+                    password_input = await self.page.wait_for_selector(selector, timeout=2000)
+                    if password_input:
+                        await password_input.fill(self.credentials.get('password', ''))
+                        logger.info(f"✅ Contraseña ingresada con selector: {selector}")
+                        break
+                except:
+                    continue
+
+            # Buscar y clickear botón de login
+            submit_selectors = [
+                'button[type="submit"]', 'input[type="submit"]',
+                'button:has-text("Entrar")', 'button:has-text("Login")',
+                'button:has-text("Iniciar")'
+            ]
+
+            for selector in submit_selectors:
+                try:
+                    submit_button = await self.page.wait_for_selector(selector, timeout=2000)
+                    if submit_button:
+                        await submit_button.click()
+                        logger.info(f"✅ Botón submit clickeado: {selector}")
+                        break
+                except:
+                    continue
+
+            logger.info("✅ Login tradicional completado")
+
+        except Exception as e:
+            logger.error(f"❌ Error en login tradicional: {e}", exc_info=True)
+            raise
+
+    async def _take_screenshot(self, name: str):
+        """Toma un screenshot de la página actual"""
+        try:
+            import os
+            screenshot_dir = "C:/Users/rsori/codex/scraper-manager/screenshots"
+            os.makedirs(screenshot_dir, exist_ok=True)
+
+            filepath = f"{screenshot_dir}/{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+            await self.page.screenshot(path=filepath, full_page=True)
+            logger.info(f"📸 Screenshot guardado: {filepath}")
+        except Exception as e:
+            logger.warning(f"⚠️ Error al tomar screenshot: {e}")
 
     async def _discover_main_structure(self):
-        """Descubre la estructura principal"""
-        logger.info("Descubriendo estructura principal...")
+        """
+        Descubre la estructura principal REAL detectando elementos del DOM
+        """
+        logger.info("🔍 Descubriendo estructura principal REAL del portal...")
         self.state.progress = 10.0
 
-        # Simular descubrimiento de estructura principal
-        main_sections = [
-            "Dashboard", "Clientes", "Pólizas", "Recibos", "Siniestros",
-            "Documentos", "Informes", "Configuración", "Ayuda"
-        ]
+        try:
+            # Esperar a que cargue completamente
+            await self.page.wait_for_load_state('networkidle')
+            await asyncio.sleep(2)  # Esperar JS dinámico
 
-        for idx, section in enumerate(main_sections):
-            element = PortalElement(
-                id=f"main_{idx}",
-                type=ElementType.SCREEN,
-                name=section,
-                selector=f"#menu-{section.lower()}",
-                level=0,
-                attributes={
-                    "visible": True,
-                    "enabled": True,
-                    "icon": f"icon-{section.lower()}"
+            # Screenshot de la estructura principal
+            if self.capture_screenshots:
+                await self._take_screenshot('05_main_structure')
+
+            # Detectar elementos de navegación principales
+            navigation_selectors = [
+                'nav a', 'nav button', 'nav li',  # Navegación estándar
+                '[role="navigation"] a', '[role="navigation"] button',  # ARIA navigation
+                '.menu a', '.menu button', '.menu-item',  # Clases comunes
+                '.nav a', '.nav button', '.nav-item',
+                '.sidebar a', '.sidebar button', '.sidebar-item',
+                'header a', 'header button',
+                '[class*="menu"] a', '[class*="menu"] button',
+                '[class*="nav"] a', '[class*="nav"] button'
+            ]
+
+            discovered_elements = set()  # Para evitar duplicados
+
+            for selector in navigation_selectors:
+                try:
+                    elements = await self.page.query_selector_all(selector)
+
+                    for elem in elements:
+                        try:
+                            # Verificar si es visible
+                            is_visible = await elem.is_visible()
+                            if not is_visible:
+                                continue
+
+                            # Obtener información del elemento
+                            text = await elem.inner_text()
+                            text = text.strip()
+
+                            if not text or len(text) > 100:  # Ignorar vacíos o muy largos
+                                continue
+
+                            # Generar ID único basado en el texto
+                            elem_id = f"main_{len(self.elements)}"
+
+                            # Evitar duplicados
+                            if text in discovered_elements:
+                                continue
+
+                            discovered_elements.add(text)
+
+                            # Obtener atributos
+                            tag_name = await elem.evaluate('el => el.tagName')
+                            href = await elem.get_attribute('href') or ''
+                            classes = await elem.get_attribute('class') or ''
+                            aria_label = await elem.get_attribute('aria-label') or ''
+
+                            # Generar selector CSS único
+                            css_selector = selector
+
+                            # Crear elemento del portal
+                            portal_element = PortalElement(
+                                id=elem_id,
+                                type=ElementType.SCREEN,
+                                name=text,
+                                selector=css_selector,
+                                xpath=await self._get_xpath(elem),
+                                level=0,
+                                attributes={
+                                    "visible": True,
+                                    "enabled": await elem.is_enabled(),
+                                    "tag": tag_name.lower(),
+                                    "href": href,
+                                    "classes": classes,
+                                    "aria_label": aria_label
+                                },
+                                metadata={
+                                    "discovered_by": selector,
+                                    "url": self.page.url
+                                }
+                            )
+
+                            self.elements[elem_id] = portal_element
+                            self.state.elements_discovered += 1
+
+                            logger.info(f"  ✅ Elemento encontrado: {text} ({tag_name})")
+
+                        except Exception as e:
+                            logger.debug(f"  ⚠️ Error procesando elemento individual: {e}")
+                            continue
+
+                except Exception as e:
+                    logger.debug(f"  ⚠️ Selector '{selector}' no encontró elementos: {e}")
+                    continue
+
+            # También detectar botones y acciones principales
+            await self._discover_main_actions()
+
+            self.state.progress = 20.0
+            logger.info(f"✅ Estructura principal descubierta: {self.state.elements_discovered} elementos principales")
+
+        except Exception as e:
+            logger.error(f"❌ Error descubriendo estructura: {e}", exc_info=True)
+            raise
+
+    async def _discover_main_actions(self):
+        """Descubre acciones principales (botones, formularios)"""
+        logger.info("🔍 Descubriendo acciones principales...")
+
+        try:
+            # Detectar botones principales
+            button_selectors = [
+                'button:not([style*="display: none"]):not([style*="display:none"])',
+                'input[type="button"]:visible',
+                'input[type="submit"]:visible',
+                'a[role="button"]:visible'
+            ]
+
+            for selector in button_selectors:
+                try:
+                    buttons = await self.page.query_selector_all(selector)
+
+                    for button in buttons[:10]:  # Limitar a primeros 10 por selector
+                        try:
+                            is_visible = await button.is_visible()
+                            if not is_visible:
+                                continue
+
+                            text = await button.inner_text()
+                            text = text.strip()
+
+                            if not text or len(text) > 50:
+                                continue
+
+                            elem_id = f"action_{len(self.elements)}"
+
+                            action_element = PortalElement(
+                                id=elem_id,
+                                type=ElementType.BUTTON,
+                                name=text,
+                                selector=selector,
+                                level=0,
+                                attributes={
+                                    "visible": True,
+                                    "enabled": await button.is_enabled()
+                                }
+                            )
+
+                            self.elements[elem_id] = action_element
+                            self.state.elements_discovered += 1
+
+                            logger.info(f"  🔘 Botón encontrado: {text}")
+
+                        except:
+                            continue
+
+                except:
+                    continue
+
+        except Exception as e:
+            logger.warning(f"⚠️ Error descubriendo acciones: {e}")
+
+    async def _get_xpath(self, element: ElementHandle) -> str:
+        """Genera XPath del elemento"""
+        try:
+            xpath = await element.evaluate('''
+                el => {
+                    const getPathTo = (element) => {
+                        if (element.id !== '')
+                            return 'id("' + element.id + '")';
+                        if (element === document.body)
+                            return element.tagName;
+
+                        let ix = 0;
+                        const siblings = element.parentNode.childNodes;
+                        for (let i = 0; i < siblings.length; i++) {
+                            const sibling = siblings[i];
+                            if (sibling === element)
+                                return getPathTo(element.parentNode) + '/' + element.tagName + '[' + (ix + 1) + ']';
+                            if (sibling.nodeType === 1 && sibling.tagName === element.tagName)
+                                ix++;
+                        }
+                    };
+                    return getPathTo(el);
                 }
-            )
-            self.elements[element.id] = element
-            self.state.elements_discovered += 1
-
-        self.state.progress = 20.0
-        logger.info(f"Estructura principal descubierta: {len(main_sections)} secciones")
+            ''')
+            return xpath
+        except:
+            return ""
 
     async def _deep_exploration(self):
-        """Exploración profunda del portal usando sistema iterativo (no recursivo)"""
-        logger.info("Iniciando exploración profunda...")
+        """
+        Exploración profunda REAL del portal navegando y clickeando elementos
+        Sistema iterativo (no recursivo) para evitar stack overflow
+        """
+        logger.info("🚀 Iniciando exploración profunda REAL del portal...")
         self.state.progress = 30.0
 
-        # Usar cola para exploración iterativa (evita stack overflow)
         from collections import deque
 
         # Inicializar cola con elementos principales
         main_elements = [e for e in self.elements.values() if e.level == 0]
-        queue = deque([(elem, 1) for elem in main_elements])  # (elemento, profundidad)
+        queue = deque([(elem, 1) for elem in main_elements])
 
         total_main = len(main_elements)
         processed_count = 0
+
+        logger.info(f"📋 {total_main} elementos principales para explorar")
 
         while queue and len(self.elements) < self.max_elements:
             element, depth = queue.popleft()
 
             # Verificar límite de profundidad
             if depth > self.max_depth:
+                logger.debug(f"  ⏭️ Profundidad máxima alcanzada: {depth}")
                 continue
 
             self.state.current_depth = max(self.state.current_depth, depth)
 
-            # Explorar hijos del elemento actual
-            num_children = 3
-            for i in range(num_children):
-                if len(self.elements) >= self.max_elements:
-                    break
+            logger.info(f"🔍 Explorando: '{element.name}' (nivel {depth})")
 
-                child_type = self._determine_child_type(depth)
-                child = PortalElement(
-                    id=f"{element.id}_child_{i}",
-                    type=child_type,
-                    name=f"{element.name} - Item {i+1}",
-                    selector=f"{element.selector} > .child-{i}",
-                    parent_id=element.id,
-                    level=depth,
-                    attributes={
-                        "visible": True,
-                        "enabled": True
-                    }
-                )
+            try:
+                # Intentar clickear el elemento y descubrir sub-elementos
+                children = await self._explore_element_real(element, depth)
 
-                self.elements[child.id] = child
-                self.state.elements_discovered += 1
+                # Agregar hijos a la cola
+                for child in children:
+                    if len(self.elements) >= self.max_elements:
+                        break
 
-                if element.id not in self.element_hierarchy:
-                    self.element_hierarchy[element.id] = []
-                self.element_hierarchy[element.id].append(child.id)
+                    # Agregar a jerarquía
+                    if element.id not in self.element_hierarchy:
+                        self.element_hierarchy[element.id] = []
+                    self.element_hierarchy[element.id].append(child.id)
 
-                # Añadir hijo a la cola para exploración posterior
-                if depth < self.max_depth:
-                    queue.append((child, depth + 1))
+                    # Encolar para exploración posterior
+                    if depth < self.max_depth:
+                        queue.append((child, depth + 1))
+
+                logger.info(f"  ✅ {len(children)} sub-elementos encontrados")
+
+            except Exception as e:
+                logger.warning(f"  ⚠️ Error explorando '{element.name}': {e}")
+                continue
 
             processed_count += 1
 
             # Actualizar progreso
             if element.level == 0:
-                main_idx = main_elements.index(element)
-                progress = 30.0 + (30.0 * (main_idx + 1) / total_main)
-                self.state.progress = progress
-                logger.info(f"Exploración: {main_idx+1}/{total_main} secciones, Elementos: {len(self.elements)}, Profundidad: {self.state.current_depth}")
+                try:
+                    main_idx = main_elements.index(element)
+                    progress = 30.0 + (30.0 * (main_idx + 1) / total_main)
+                    self.state.progress = progress
+                    logger.info(f"📊 Progreso: {main_idx+1}/{total_main} secciones principales | {len(self.elements)} elementos totales | Profundidad: {self.state.current_depth}")
+                except:
+                    pass
 
         self.state.progress = 60.0
-        logger.info(f"Exploración completada: {self.state.elements_discovered} elementos, Profundidad máxima: {self.state.current_depth}")
+        logger.info(f"✅ Exploración completada: {self.state.elements_discovered} elementos descubiertos")
+        logger.info(f"📏 Profundidad máxima alcanzada: {self.state.current_depth}")
+
+    async def _explore_element_real(self, element: PortalElement, depth: int) -> List[PortalElement]:
+        """
+        Explora un elemento REAL del portal clickeándolo y detectando sub-elementos
+        """
+        children = []
+
+        try:
+            # Intentar encontrar el elemento en la página actual
+            # Primero por XPath si existe
+            if element.xpath:
+                try:
+                    elem_handle = await self.page.query_selector(f'xpath={element.xpath}')
+                    if elem_handle:
+                        is_visible = await elem_handle.is_visible()
+                        if is_visible:
+                            # Hacer hover primero
+                            await elem_handle.hover(timeout=2000)
+                            await asyncio.sleep(0.3)
+
+                            # Intentar detectar si abre un menú/submenú
+                            children_found = await self._detect_submenu_items(element, depth)
+                            if children_found:
+                                children.extend(children_found)
+                                logger.info(f"    📂 Menú desplegable detectado: {len(children_found)} items")
+
+                            # Si es clickeable, clickear
+                            if element.type in [ElementType.BUTTON, ElementType.LINK, ElementType.MENU]:
+                                # Guardar URL actual
+                                url_before = self.page.url
+
+                                # Click con manejo de navegación
+                                try:
+                                    await elem_handle.click(timeout=3000)
+                                    await self.page.wait_for_load_state('domcontentloaded', timeout=5000)
+                                    await asyncio.sleep(1)
+
+                                    url_after = self.page.url
+
+                                    # Si hubo navegación, explorar nueva página
+                                    if url_after != url_before and url_after not in self.visited_urls:
+                                        self.visited_urls.add(url_after)
+                                        logger.info(f"    🌐 Navegó a nueva página: {url_after}")
+
+                                        # Screenshot de la nueva página
+                                        if self.capture_screenshots:
+                                            await self._take_screenshot(f'explore_{element.id}')
+
+                                        # Detectar elementos en la nueva vista
+                                        new_children = await self._detect_page_elements(element, depth)
+                                        children.extend(new_children)
+
+                                        # Volver atrás
+                                        await self.page.go_back(wait_until='domcontentloaded')
+                                        await asyncio.sleep(1)
+
+                                except Exception as e:
+                                    logger.debug(f"    ⚠️ Error en click/navegación: {e}")
+
+                except Exception as e:
+                    logger.debug(f"    ⚠️ Error con XPath: {e}")
+
+        except Exception as e:
+            logger.debug(f"  ⚠️ Error explorando elemento real: {e}")
+
+        return children
+
+    async def _detect_submenu_items(self, parent: PortalElement, depth: int) -> List[PortalElement]:
+        """Detecta items de submenú que aparecen al hacer hover"""
+        children = []
+
+        try:
+            await asyncio.sleep(0.5)  # Esperar a que aparezca el submenú
+
+            # Buscar elementos de submenú que puedan haber aparecido
+            submenu_selectors = [
+                '.submenu a', '.submenu button', '.submenu li',
+                '.dropdown-menu a', '.dropdown-menu button', '.dropdown-menu li',
+                '[role="menu"] a', '[role="menu"] button',
+                '.menu-item a', '.nav-item a'
+            ]
+
+            for selector in submenu_selectors:
+                try:
+                    items = await self.page.query_selector_all(selector)
+
+                    for item in items[:20]:  # Limitar a 20 por selector
+                        try:
+                            is_visible = await item.is_visible()
+                            if not is_visible:
+                                continue
+
+                            text = await item.inner_text()
+                            text = text.strip()
+
+                            if not text or len(text) > 100:
+                                continue
+
+                            child_id = f"{parent.id}_sub_{len(children)}"
+
+                            child = PortalElement(
+                                id=child_id,
+                                type=ElementType.SUBMENU,
+                                name=text,
+                                selector=selector,
+                                xpath=await self._get_xpath(item),
+                                parent_id=parent.id,
+                                level=depth,
+                                attributes={
+                                    "visible": True,
+                                    "enabled": await item.is_enabled()
+                                }
+                            )
+
+                            self.elements[child_id] = child
+                            self.state.elements_discovered += 1
+                            children.append(child)
+
+                        except:
+                            continue
+
+                except:
+                    continue
+
+        except Exception as e:
+            logger.debug(f"    ⚠️ Error detectando submenú: {e}")
+
+        return children
+
+    async def _detect_page_elements(self, parent: PortalElement, depth: int) -> List[PortalElement]:
+        """Detecta elementos en una nueva página/vista"""
+        children = []
+
+        try:
+            # Esperar a que cargue el contenido
+            await self.page.wait_for_load_state('networkidle', timeout=10000)
+
+            # Detectar enlaces y botones en la página
+            element_selectors = [
+                'main a', 'main button',
+                '.content a', '.content button',
+                'article a', 'article button',
+                '#content a', '#content button'
+            ]
+
+            for selector in element_selectors:
+                try:
+                    items = await self.page.query_selector_all(selector)
+
+                    for item in items[:15]:  # Limitar a 15 por selector
+                        try:
+                            is_visible = await item.is_visible()
+                            if not is_visible:
+                                continue
+
+                            text = await item.inner_text()
+                            text = text.strip()
+
+                            if not text or len(text) > 100:
+                                continue
+
+                            child_id = f"{parent.id}_page_{len(children)}"
+                            tag_name = await item.evaluate('el => el.tagName')
+
+                            child_type = ElementType.LINK if tag_name.lower() == 'a' else ElementType.BUTTON
+
+                            child = PortalElement(
+                                id=child_id,
+                                type=child_type,
+                                name=text,
+                                selector=selector,
+                                xpath=await self._get_xpath(item),
+                                parent_id=parent.id,
+                                level=depth,
+                                attributes={
+                                    "visible": True,
+                                    "enabled": await item.is_enabled(),
+                                    "tag": tag_name.lower()
+                                }
+                            )
+
+                            self.elements[child_id] = child
+                            self.state.elements_discovered += 1
+                            children.append(child)
+
+                        except:
+                            continue
+
+                except:
+                    continue
+
+        except Exception as e:
+            logger.debug(f"    ⚠️ Error detectando elementos de página: {e}")
+
+        return children[:50]  # Limitar a 50 elementos por página
 
     async def _explore_element(self, element: PortalElement, depth: int):
         """

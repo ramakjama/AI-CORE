@@ -1,0 +1,29 @@
+# FastAPI y servidor
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+pydantic>=2.5.0
+
+# Browser Automation REAL
+playwright>=1.41.0
+playwright-stealth>=1.0.2
+
+# Utilidades async
+aiofiles>=23.2.1
+
+# Logging
+colorlog>=6.8.0
+
+# JWT Auth
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Variables de entorno
+python-dotenv>=1.0.0
+
+# HTTP client async
+httpx>=0.26.0
+
+# Database (si se necesita)
+# sqlalchemy>=2.0.0
+# asyncpg>=0.29.0
