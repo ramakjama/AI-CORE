@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: ait-nerve-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ait_nerve
+      POSTGRES_USER: ait_user
+      POSTGRES_PASSWORD: secure_password_change_in_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ait_user -d ait_nerve"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ait-nerve-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AIT-NERVE Application
+  ait-nerve:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: ait-nerve-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://ait_user:secure_password_change_in_production@postgres:5432/ait_nerve?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-change-in-production}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-your-encryption-key-change-in-production}
+    ports:
+      - "3000:3000"
+      - "9090:9090"
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Prometheus (optional - for monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ait-nerve-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  # Grafana (optional - for dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ait-nerve-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  default:
+    name: ait-nerve-network

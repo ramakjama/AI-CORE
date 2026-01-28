@@ -1,0 +1,348 @@
+// Motor Manager - Database Schema
+// AIT-CORE v2.0.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// MOTOR CONFIGURATION
+// ============================================================================
+
+model Motor {
+  id          String   @id @default(cuid())
+  slug        String   @unique // "ai-engine", "pricing-engine", etc.
+  name        String   // "Motor de IA", "Motor de Cotización"
+  description String?
+  category    MotorCategory
+  version     String   @default("1.0.0")
+
+  // Status
+  enabled     Boolean  @default(true)
+  status      MotorStatus @default(STOPPED)
+  health      MotorHealth @default(UNKNOWN)
+
+  // Configuration JSON (flexible schema per motor)
+  config      Json     @default("{}")
+
+  // Metadata
+  icon        String?  // emoji or icon name
+  color       String?  // hex color for UI
+  order       Int      @default(0) // display order
+
+  // Relationships
+  metrics     MotorMetric[]
+  logs        MotorLog[]
+  configs     MotorConfigHistory[]
+  permissions MotorPermission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([enabled])
+}
+
+enum MotorCategory {
+  AI_ML         // AI & Machine Learning
+  BUSINESS_LOGIC // Cotización, Comisiones, Reglas
+  AUTOMATION    // Workflows, Scraping
+  COMMUNICATION // Email, SMS, WhatsApp
+  INTEGRATION   // APIs externas, Pagos
+  ANALYTICS     // Analytics, Reporting
+  SECURITY      // Fraude, Compliance
+  OTHER
+}
+
+enum MotorStatus {
+  STOPPED
+  STARTING
+  RUNNING
+  PAUSED
+  STOPPING
+  ERROR
+}
+
+enum MotorHealth {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+  UNKNOWN
+}
+
+// ============================================================================
+// MOTOR METRICS (Time-series data)
+// ============================================================================
+
+model MotorMetric {
+  id          String   @id @default(cuid())
+  motorId     String
+  motor       Motor    @relation(fields: [motorId], references: [id], onDelete: Cascade)
+
+  // Metrics
+  requestsPerHour     Int      @default(0)
+  avgResponseTimeMs   Int      @default(0)
+  errorRate           Float    @default(0)
+  uptime              Float    @default(0) // percentage
+
+  // Resource usage
+  cpuUsage            Float?   // percentage
+  memoryUsageMB       Int?
+  activeConnections   Int?
+
+  // Custom metrics (motor-specific)
+  customMetrics       Json     @default("{}")
+
+  timestamp   DateTime @default(now())
+
+  @@index([motorId, timestamp])
+  @@index([timestamp])
+}
+
+// ============================================================================
+// MOTOR LOGS
+// ============================================================================
+
+model MotorLog {
+  id          String   @id @default(cuid())
+  motorId     String
+  motor       Motor    @relation(fields: [motorId], references: [id], onDelete: Cascade)
+
+  level       LogLevel
+  message     String
+  metadata    Json?    // Additional context
+
+  // Error tracking
+  errorCode   String?
+  errorStack  String?
+
+  // Request tracking
+  requestId   String?
+  userId      String?
+
+  timestamp   DateTime @default(now())
+
+  @@index([motorId, timestamp])
+  @@index([level, timestamp])
+  @@index([requestId])
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+// ============================================================================
+// MOTOR CONFIG HISTORY (Versioning & Rollback)
+// ============================================================================
+
+model MotorConfigHistory {
+  id          String   @id @default(cuid())
+  motorId     String
+  motor       Motor    @relation(fields: [motorId], references: [id], onDelete: Cascade)
+
+  version     Int      // Auto-increment per motor
+  config      Json     // Configuration snapshot
+
+  // Change tracking
+  changedBy   String   // userId
+  changeReason String?
+
+  // Rollback capability
+  isActive    Boolean  @default(false)
+  rolledBackAt DateTime?
+  rolledBackBy String?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([motorId, version])
+  @@index([motorId, isActive])
+}
+
+// ============================================================================
+// MOTOR PERMISSIONS (Access Control)
+// ============================================================================
+
+model MotorPermission {
+  id          String   @id @default(cuid())
+  motorId     String
+  motor       Motor    @relation(fields: [motorId], references: [id], onDelete: Cascade)
+
+  // Who
+  roleId      String?  // Link to User.role or specific role
+  userId      String?  // Specific user override
+
+  // What
+  canRead     Boolean  @default(true)
+  canWrite    Boolean  @default(false)
+  canExecute  Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+
+  // Field-level restrictions
+  restrictedFields String[] @default([]) // Config fields that are hidden
+
+  createdAt   DateTime @default(now())
+
+  @@unique([motorId, roleId, userId])
+  @@index([motorId])
+}
+
+// ============================================================================
+// MOTOR ALERTS (Monitoring & Notifications)
+// ============================================================================
+
+model MotorAlert {
+  id          String   @id @default(cuid())
+  motorId     String
+
+  // Alert definition
+  name        String
+  description String?
+  condition   String   // e.g., "errorRate > 5"
+  severity    AlertSeverity
+
+  // Notification
+  enabled     Boolean  @default(true)
+  channels    String[] // ["email", "slack", "sms"]
+  recipients  String[] // emails, phone numbers, slack channels
+
+  // Throttling
+  cooldownMinutes Int  @default(30) // Don't alert more than once per X minutes
+  lastTriggered   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([motorId, enabled])
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ============================================================================
+// MOTOR EVENTS (Audit Trail)
+// ============================================================================
+
+model MotorEvent {
+  id          String   @id @default(cuid())
+  motorId     String
+
+  // Event details
+  eventType   MotorEventType
+  description String
+  metadata    Json?
+
+  // Actor
+  userId      String
+  userName    String?
+  userEmail   String?
+  ipAddress   String?
+
+  // Result
+  success     Boolean
+  errorMessage String?
+
+  timestamp   DateTime @default(now())
+
+  @@index([motorId, timestamp])
+  @@index([userId, timestamp])
+  @@index([eventType, timestamp])
+}
+
+enum MotorEventType {
+  CONFIG_UPDATED
+  MOTOR_STARTED
+  MOTOR_STOPPED
+  MOTOR_RESTARTED
+  HEALTH_CHECK_FAILED
+  ALERT_TRIGGERED
+  PERMISSION_CHANGED
+  CONFIG_ROLLED_BACK
+}
+
+// ============================================================================
+// MOTOR DEPENDENCIES (Motor relationships)
+// ============================================================================
+
+model MotorDependency {
+  id          String   @id @default(cuid())
+
+  motorId     String   // Motor that depends on
+  dependsOn   String   // Motor it depends on
+
+  required    Boolean  @default(true) // Is this a hard dependency?
+  description String?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([motorId, dependsOn])
+  @@index([motorId])
+  @@index([dependsOn])
+}
+
+// ============================================================================
+// MOTOR SCHEDULES (Cron jobs & scheduled tasks)
+// ============================================================================
+
+model MotorSchedule {
+  id          String   @id @default(cuid())
+  motorId     String
+
+  name        String
+  description String?
+
+  // Schedule
+  cronExpression String // e.g., "0 9 * * *" (daily at 9 AM)
+  timezone       String @default("Europe/Madrid")
+
+  // Task
+  action      String   // Action to perform
+  config      Json?    // Action configuration
+
+  // Status
+  enabled     Boolean  @default(true)
+  lastRun     DateTime?
+  lastStatus  String?  // "success" | "failed"
+  nextRun     DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([motorId, enabled])
+  @@index([nextRun])
+}
+
+// ============================================================================
+// MOTOR SECRETS (Encrypted sensitive data)
+// ============================================================================
+
+model MotorSecret {
+  id          String   @id @default(cuid())
+  motorId     String
+
+  key         String   // e.g., "stripe_secret_key"
+  value       String   // Encrypted value
+  description String?
+
+  // Metadata
+  expiresAt   DateTime?
+  rotatedAt   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([motorId, key])
+  @@index([motorId])
+}
