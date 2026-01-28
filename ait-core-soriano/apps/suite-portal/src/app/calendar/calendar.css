@@ -1,0 +1,310 @@
+/* FullCalendar Custom Styles */
+
+:root {
+  --fc-border-color: hsl(var(--border));
+  --fc-button-bg-color: hsl(var(--primary));
+  --fc-button-border-color: hsl(var(--primary));
+  --fc-button-hover-bg-color: hsl(var(--primary) / 0.9);
+  --fc-button-hover-border-color: hsl(var(--primary) / 0.9);
+  --fc-button-active-bg-color: hsl(var(--primary) / 0.8);
+  --fc-button-active-border-color: hsl(var(--primary) / 0.8);
+  --fc-event-bg-color: hsl(var(--primary));
+  --fc-event-border-color: hsl(var(--primary));
+  --fc-event-text-color: hsl(var(--primary-foreground));
+  --fc-today-bg-color: hsl(var(--accent));
+}
+
+.dark {
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-neutral-bg-color: hsl(var(--muted));
+  --fc-neutral-text-color: hsl(var(--muted-foreground));
+  --fc-list-event-hover-bg-color: hsl(var(--accent));
+}
+
+/* Calendar Container */
+.fc {
+  font-family: inherit;
+}
+
+/* Toolbar */
+.fc .fc-toolbar {
+  padding: 1rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Buttons */
+.fc .fc-button {
+  border-radius: 0.375rem;
+  text-transform: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
+}
+
+.fc .fc-button:hover {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.fc .fc-button:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px hsl(var(--ring));
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--fc-button-active-bg-color);
+  border-color: var(--fc-button-active-border-color);
+}
+
+/* Day Grid */
+.fc .fc-daygrid-day {
+  transition: background-color 0.2s;
+}
+
+.fc .fc-daygrid-day:hover {
+  background-color: hsl(var(--accent) / 0.5);
+  cursor: pointer;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: var(--fc-today-bg-color);
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 0.5rem;
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+.fc .fc-col-header-cell {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Events */
+.fc-event {
+  border-radius: 0.25rem;
+  border: none !important;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  opacity: 0.9;
+}
+
+.fc-event .fc-event-title {
+  font-weight: 500;
+}
+
+.fc-event .fc-event-time {
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+/* Time Grid */
+.fc .fc-timegrid-slot {
+  height: 3rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.fc .fc-timegrid-slot-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  padding: 0.25rem;
+}
+
+.fc .fc-timegrid-col {
+  background-color: hsl(var(--background));
+}
+
+.fc .fc-timegrid-col:hover {
+  background-color: hsl(var(--accent) / 0.3);
+}
+
+/* Now Indicator */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: hsl(var(--destructive));
+  border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: hsl(var(--destructive));
+  border-width: 6px;
+}
+
+/* List View */
+.fc .fc-list {
+  border-color: hsl(var(--border));
+}
+
+.fc .fc-list-event {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fc .fc-list-event:hover {
+  background-color: var(--fc-list-event-hover-bg-color);
+}
+
+.fc .fc-list-event-title {
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-list-event-time {
+  color: hsl(var(--muted-foreground));
+}
+
+.fc .fc-list-day-cushion {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+}
+
+/* Scrollbars */
+.fc-scroller::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.fc-scroller::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* More Link */
+.fc .fc-more-link {
+  color: hsl(var(--primary));
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.fc .fc-more-link:hover {
+  color: hsl(var(--primary) / 0.8);
+  text-decoration: underline;
+}
+
+/* Popover */
+.fc .fc-popover {
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.fc .fc-popover-header {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.fc .fc-popover-close {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.fc .fc-popover-close:hover {
+  opacity: 1;
+}
+
+/* Selection Highlight */
+.fc-highlight {
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+/* Drag and Drop */
+.fc-event-dragging {
+  opacity: 0.7;
+  cursor: move;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.25rem;
+  }
+
+  .fc .fc-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .fc .fc-col-header-cell {
+    font-size: 0.625rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .fc-event {
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark Mode Adjustments */
+.dark .fc {
+  color: hsl(var(--foreground));
+}
+
+.dark .fc .fc-scrollgrid {
+  border-color: hsl(var(--border));
+}
+
+.dark .fc td,
+.dark .fc th {
+  border-color: hsl(var(--border));
+}
+
+.dark .fc .fc-daygrid-day-frame {
+  background-color: hsl(var(--background));
+}
+
+.dark .fc .fc-timegrid-col-frame {
+  background-color: hsl(var(--background));
+}
+
+/* Animation for event creation */
+@keyframes eventCreate {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.fc-event-new {
+  animation: eventCreate 0.3s ease-out;
+}

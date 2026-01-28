@@ -1,0 +1,30 @@
+{
+  "module": {
+    "id": "ait-cache-manager",
+    "name": "Cache Manager",
+    "version": "1.0.0",
+    "category": "infrastructure",
+    "priority": "P0",
+    "status": "active"
+  },
+  "connector": {
+    "type": "nestjs-module",
+    "autoLoad": true,
+    "hotReload": true,
+    "provides": ["CacheService", "MultiLayerCache"],
+    "dependencies": []
+  },
+  "capabilities": {
+    "domain": "Caching Multi-Capa",
+    "features": [
+      "Cache en memoria (LRU)",
+      "Cache Redis distribuido",
+      "Cache de CDN (invalidación)",
+      "Estrategias: TTL, LRU, LFU",
+      "Cache warming",
+      "Invalidación por eventos",
+      "Métricas de hit/miss ratio",
+      "Compresión de datos"
+    ]
+  }
+}

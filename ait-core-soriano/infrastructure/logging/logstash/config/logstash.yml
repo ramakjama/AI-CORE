@@ -1,0 +1,41 @@
+# Logstash Configuration
+# https://www.elastic.co/guide/en/logstash/current/logstash-settings-file.html
+
+# Node name
+node.name: ait-logstash
+
+# Pipeline settings
+path.data: /usr/share/logstash/data
+path.logs: /usr/share/logstash/logs
+path.config: /usr/share/logstash/pipeline
+
+# Pipeline configuration
+pipeline.workers: 4
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# HTTP API settings
+http.host: "0.0.0.0"
+http.port: 9600
+
+# Monitoring
+xpack.monitoring.enabled: false
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Log settings
+log.level: info
+log.format: json
+
+# Queue settings
+queue.type: memory
+queue.max_bytes: 1gb
+
+# Dead letter queue
+dead_letter_queue.enable: false
+
+# Reload configuration automatically
+config.reload.automatic: true
+config.reload.interval: 30s
+
+# Elasticsearch output settings
+path.plugins: /usr/share/logstash/plugins

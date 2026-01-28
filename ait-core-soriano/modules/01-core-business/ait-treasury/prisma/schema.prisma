@@ -1,0 +1,501 @@
+// AIT-TREASURY Prisma Schema
+// Gestión completa de tesorería
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ======================
+// CASH MANAGEMENT
+// ======================
+
+model CashAccount {
+  id               String            @id @default(uuid())
+  name             String
+  bankName         String
+  iban             String            @unique
+  accountNumber    String
+  accountType      AccountType
+  balance          Decimal           @default(0)
+  availableBalance Decimal           @default(0)
+  currency         String            @default("EUR")
+  status           AccountStatus     @default(ACTIVE)
+  lastSync         DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Relations
+  movements        CashMovement[]
+  reconciliations  Reconciliation[]
+  statements       BankStatement[]
+  payments         Payment[]
+
+  @@map("cash_accounts")
+}
+
+model CashMovement {
+  id              String           @id @default(uuid())
+  accountId       String
+  account         CashAccount      @relation(fields: [accountId], references: [id])
+  type            MovementType
+  category        MovementCategory
+  amount          Decimal
+  currency        String           @default("EUR")
+  description     String
+  reference       String
+  executionDate   DateTime
+  valueDate       DateTime
+  status          MovementStatus   @default(PENDING)
+  createdBy       String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  metadata        Json?
+
+  @@map("cash_movements")
+  @@index([accountId])
+  @@index([executionDate])
+  @@index([category])
+  @@index([status])
+}
+
+model Reconciliation {
+  id              String               @id @default(uuid())
+  accountId       String
+  account         CashAccount          @relation(fields: [accountId], references: [id])
+  date            DateTime
+  bookBalance     Decimal
+  bankBalance     Decimal
+  difference      Decimal
+  matched         Int
+  unmatched       Int
+  status          ReconciliationStatus @default(PENDING)
+  discrepancies   Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@map("reconciliations")
+  @@index([accountId])
+  @@index([date])
+}
+
+model BankStatement {
+  id              String      @id @default(uuid())
+  accountId       String
+  account         CashAccount @relation(fields: [accountId], references: [id])
+  transactionDate DateTime
+  valueDate       DateTime
+  amount          Decimal
+  description     String
+  reference       String?
+  balance         Decimal
+  matched         Boolean     @default(false)
+  matchedMovementId String?
+  importedAt      DateTime    @default(now())
+
+  @@map("bank_statements")
+  @@index([accountId])
+  @@index([transactionDate])
+  @@index([matched])
+}
+
+model Alert {
+  id              String       @id @default(uuid())
+  type            AlertType
+  severity        AlertSeverity
+  accountId       String?
+  message         String
+  amount          Decimal?
+  threshold       Decimal?
+  acknowledged    Boolean      @default(false)
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@map("alerts")
+  @@index([type])
+  @@index([severity])
+  @@index([acknowledged])
+}
+
+// ======================
+// BANK INTEGRATION
+// ======================
+
+model BankConnection {
+  id          String            @id @default(uuid())
+  bankId      String
+  bankName    String
+  status      ConnectionStatus  @default(PENDING_AUTH)
+  accessToken String?
+  refreshToken String?
+  expiresAt   DateTime?
+  lastSync    DateTime?
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  accounts    BankAccount[]
+
+  @@map("bank_connections")
+  @@index([bankId])
+  @@index([status])
+}
+
+model BankAccount {
+  id            String         @id @default(uuid())
+  connectionId  String
+  connection    BankConnection @relation(fields: [connectionId], references: [id])
+  accountNumber String
+  iban          String
+  accountName   String
+  accountType   AccountType
+  balance       Decimal
+  available     Decimal
+  currency      String         @default("EUR")
+  status        AccountStatus  @default(ACTIVE)
+  capabilities  Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  transactions  Transaction[]
+
+  @@map("bank_accounts")
+  @@index([connectionId])
+  @@index([iban])
+}
+
+model Transaction {
+  id              String          @id @default(uuid())
+  accountId       String
+  account         BankAccount     @relation(fields: [accountId], references: [id])
+  transactionId   String          @unique
+  bookingDate     DateTime
+  valueDate       DateTime
+  amount          Decimal
+  currency        String          @default("EUR")
+  creditorName    String?
+  creditorAccount String?
+  debtorName      String?
+  debtorAccount   String?
+  remittanceInfo  String?
+  status          TransactionStatus @default(BOOKED)
+  type            TransactionType
+  category        String?
+  balance         Decimal?
+  createdAt       DateTime        @default(now())
+
+  @@map("transactions")
+  @@index([accountId])
+  @@index([bookingDate])
+  @@index([status])
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  accountId       String
+  account         CashAccount   @relation(fields: [accountId], references: [id])
+  paymentId       String        @unique
+  status          PaymentStatus @default(PENDING)
+  type            PaymentType
+  amount          Decimal
+  currency        String        @default("EUR")
+  creditorName    String
+  creditorIban    String
+  creditorBic     String?
+  debtorName      String
+  debtorIban      String
+  reference       String
+  endToEndId      String
+  executionDate   DateTime
+  valueDate       DateTime?
+  fees            Json?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  completedAt     DateTime?
+
+  @@map("payments")
+  @@index([accountId])
+  @@index([status])
+  @@index([executionDate])
+}
+
+model PaymentBatch {
+  id            String            @id @default(uuid())
+  batchId       String            @unique
+  accountId     String
+  status        PaymentBatchStatus @default(PENDING)
+  totalPayments Int
+  totalAmount   Decimal
+  currency      String            @default("EUR")
+  executionDate DateTime
+  createdBy     String
+  results       Json?
+  createdAt     DateTime          @default(now())
+  processedAt   DateTime?
+
+  @@map("payment_batches")
+  @@index([accountId])
+  @@index([status])
+}
+
+model StandingOrder {
+  id                String      @id @default(uuid())
+  standingOrderId   String      @unique
+  accountId         String
+  status            OrderStatus @default(ACTIVE)
+  creditorName      String
+  creditorIban      String
+  amount            Decimal
+  currency          String      @default("EUR")
+  frequency         Frequency
+  startDate         DateTime
+  endDate           DateTime?
+  nextExecutionDate DateTime
+  reference         String
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("standing_orders")
+  @@index([accountId])
+  @@index([status])
+}
+
+// ======================
+// BUDGET MANAGEMENT
+// ======================
+
+model Budget {
+  id              String         @id @default(uuid())
+  name            String
+  description     String
+  category        BudgetCategory
+  amount          Decimal
+  currency        String         @default("EUR")
+  period          BudgetPeriod
+  startDate       DateTime
+  endDate         DateTime
+  status          BudgetStatus   @default(ACTIVE)
+  alertThreshold  Int            @default(80)
+  createdBy       String
+  metadata        Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  expenses        Expense[]
+  alerts          BudgetAlert[]
+
+  @@map("budgets")
+  @@index([category])
+  @@index([period])
+  @@index([status])
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  budgetId      String
+  budget        Budget        @relation(fields: [budgetId], references: [id])
+  amount        Decimal
+  currency      String        @default("EUR")
+  description   String
+  category      String
+  vendor        String?
+  invoiceNumber String?
+  date          DateTime
+  status        ExpenseStatus @default(PENDING)
+  approvedBy    String?
+  approvedAt    DateTime?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+
+  @@map("expenses")
+  @@index([budgetId])
+  @@index([status])
+  @@index([date])
+}
+
+model BudgetAlert {
+  id                  String              @id @default(uuid())
+  budgetId            String
+  budget              Budget              @relation(fields: [budgetId], references: [id])
+  type                BudgetAlertType
+  severity            AlertSeverity
+  message             String
+  currentUtilization  Decimal
+  threshold           Decimal
+  acknowledged        Boolean             @default(false)
+  acknowledgedBy      String?
+  acknowledgedAt      DateTime?
+  createdAt           DateTime            @default(now())
+
+  @@map("budget_alerts")
+  @@index([budgetId])
+  @@index([acknowledged])
+}
+
+// ======================
+// ENUMS
+// ======================
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum MovementType {
+  INFLOW
+  OUTFLOW
+}
+
+enum MovementCategory {
+  PREMIUM_COLLECTION
+  COMMISSION
+  CLAIM_PAYMENT
+  SUPPLIER_PAYMENT
+  SALARY
+  TAX
+  LOAN
+  INVESTMENT
+  BANK_FEE
+  OTHER
+}
+
+enum MovementStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum ReconciliationStatus {
+  RECONCILED
+  PENDING
+  DISCREPANCY
+}
+
+enum AlertType {
+  LOW_BALANCE
+  OVERDRAFT
+  CASH_SHORTAGE
+  UNUSUAL_MOVEMENT
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum ConnectionStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING_AUTH
+}
+
+enum TransactionStatus {
+  BOOKED
+  PENDING
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum PaymentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentType {
+  SEPA_CREDIT
+  SEPA_INSTANT
+  DOMESTIC
+  INTERNATIONAL
+}
+
+enum PaymentBatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIALLY_FAILED
+  FAILED
+}
+
+enum OrderStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum BudgetCategory {
+  MARKETING
+  TECHNOLOGY
+  OPERATIONS
+  SALARIES
+  RENT
+  UTILITIES
+  TRAVEL
+  TRAINING
+  LEGAL
+  ACCOUNTING
+  INSURANCE
+  OTHER
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+enum BudgetStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+  EXCEEDED
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum BudgetAlertType {
+  THRESHOLD_REACHED
+  OVERSPEND
+  PROJECTED_OVERSPEND
+  UNDERSPEND
+}

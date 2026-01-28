@@ -1,0 +1,55 @@
+Contact: mailto:security@sorianomediadore.com
+Contact: https://sorianomediadore.com/security-report
+Expires: 2026-12-31T23:59:59.000Z
+Encryption: https://sorianomediadore.com/.well-known/pgp-key.txt
+Preferred-Languages: es, en
+Canonical: https://sorianomediadore.com/.well-known/security.txt
+Policy: https://sorianomediadore.com/security-policy
+Hiring: https://sorianomediadore.com/careers/security
+
+# Security Policy for AIT-CORE Soriano Mediadores
+#
+# We take security vulnerabilities seriously. If you discover a security
+# issue in our systems, please report it to us as soon as possible.
+#
+# Scope:
+# - All services under sorianomediadore.com domain
+# - Mobile applications (iOS and Android)
+# - API endpoints (api.sorianomediadore.com)
+# - Admin dashboard (admin.sorianomediadore.com)
+# - Client portal (app.sorianomediadore.com)
+#
+# Out of Scope:
+# - Third-party services and integrations
+# - Social engineering attacks
+# - Physical security
+# - DDoS attacks
+#
+# Reporting Guidelines:
+# 1. Provide detailed steps to reproduce the vulnerability
+# 2. Include proof of concept (if applicable)
+# 3. Describe the potential impact
+# 4. Allow us reasonable time to fix the issue before disclosure
+#
+# Response Time:
+# - Acknowledgment: Within 48 hours
+# - Initial assessment: Within 5 business days
+# - Status update: Every 7 days until resolution
+#
+# Rewards:
+# We offer rewards for valid security vulnerabilities based on severity:
+# - Critical: Up to €5,000
+# - High: Up to €2,500
+# - Medium: Up to €1,000
+# - Low: Up to €500
+#
+# Please DO NOT:
+# - Access or modify data that doesn't belong to you
+# - Disrupt our services or systems
+# - Use automated scanners without permission
+# - Publicly disclose vulnerabilities before they are fixed
+#
+# Thank you for helping us keep our systems secure!
+#
+# Last Updated: 2026-01-28
+# Version: 1.0.0

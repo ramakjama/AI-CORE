@@ -1,0 +1,199 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ait-core-ingress
+  namespace: ait-core
+  labels:
+    app: ait-core
+  annotations:
+    # Nginx Ingress Controller
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # SSL Configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/acme-challenge-type: "http01"
+
+    # Security Headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+
+    # CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+
+    # Body Size
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+
+    # Affinity
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "ait-core-affinity"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+
+spec:
+  tls:
+    - hosts:
+        - api.soriano-mediadores.com
+        - www.soriano-mediadores.com
+        - soriano-mediadores.com
+        - admin.soriano-mediadores.com
+        - mobile-api.soriano-mediadores.com
+      secretName: ait-core-tls
+
+  rules:
+    # Main Web Application
+    - host: www.soriano-mediadores.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 3000
+
+    - host: soriano-mediadores.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 3000
+
+    # API Backend
+    - host: api.soriano-mediadores.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 3000
+
+    # Admin Portal
+    - host: admin.soriano-mediadores.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin
+                port:
+                  number: 3001
+
+    # Mobile API
+    - host: mobile-api.soriano-mediadores.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mobile-api
+                port:
+                  number: 3002
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ait-core-ingress-modules
+  namespace: ait-core
+  labels:
+    app: ait-core
+    component: modules
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  tls:
+    - hosts:
+        - modules.soriano-mediadores.com
+      secretName: ait-core-modules-tls
+
+  rules:
+    # Module Access via subdomain
+    - host: modules.soriano-mediadores.com
+      http:
+        paths:
+          # Infrastructure Modules
+          - path: /datahub(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ait-datahub
+                port:
+                  number: 3000
+
+          - path: /auth(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ait-authenticator
+                port:
+                  number: 3000
+
+          - path: /gateway(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ait-api-gateway
+                port:
+                  number: 3000
+
+          - path: /documents(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ait-document-service
+                port:
+                  number: 3000
+
+          - path: /notifications(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ait-notification-service
+                port:
+                  number: 3000
+
+          # Core Business
+          - path: /accountant(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-accountant
+                port:
+                  number: 3000
+
+          - path: /treasury(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-treasury
+                port:
+                  number: 3000

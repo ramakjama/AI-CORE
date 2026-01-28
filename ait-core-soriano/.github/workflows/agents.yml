@@ -1,0 +1,390 @@
+name: AI Agents CI/CD
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths:
+      - 'agents/**'
+      - 'libs/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/agents.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'agents/**'
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.15.0'
+
+jobs:
+  # Job 1: Code Quality & Linting
+  quality:
+    name: Agent Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint on Specialists
+        run: pnpm --filter "@ait-core/agent-*" lint
+        continue-on-error: false
+
+      - name: TypeScript type check
+        run: pnpm --filter "@ait-core/agent-*" type-check
+
+      - name: Check agent interfaces
+        run: |
+          node -e "
+          const fs = require('fs');
+          const interfaces = require('./agents/interfaces.ts');
+          console.log('Agent interfaces validated successfully');
+          "
+
+      - name: Validate agent configuration
+        run: |
+          for agent in agents/specialists/*/package.json; do
+            echo "Validating $agent"
+            node -e "const pkg = require('./$agent');
+                     if (!pkg.name || !pkg.version) {
+                       throw new Error('Invalid agent package.json');
+                     }"
+          done
+
+      - name: Security audit
+        run: pnpm audit --audit-level=moderate --filter "@ait-core/agent-*"
+        continue-on-error: true
+
+      - name: Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=agents/specialists/*/package.json
+
+  # Job 2: Unit Tests for Each Agent
+  test-specialists:
+    name: Test Agent - ${{ matrix.agent }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+
+    strategy:
+      fail-fast: false
+      matrix:
+        agent:
+          - insurance-specialist
+          - finance-specialist
+          - legal-specialist
+          - marketing-specialist
+          - data-specialist
+          - security-specialist
+          - customer-specialist
+          - operations-specialist
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run agent tests
+        run: pnpm --filter @ait-core/agent-${{ matrix.agent }} test --coverage
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_TEST }}
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./agents/specialists/${{ matrix.agent }}/coverage/coverage-final.json
+          flags: agent-${{ matrix.agent }}
+          name: agent-${{ matrix.agent }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Job 3: Integration Tests
+  integration-tests:
+    name: Agent Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test-specialists
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ait_agents_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run agent communication tests
+        run: pnpm --filter @ait-core/agents test:integration
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ait_agents_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+      - name: Test agent orchestration
+        run: |
+          node tests/agents/orchestration-test.js
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ait_agents_test
+        continue-on-error: true
+
+  # Job 4: AI Model Tests
+  ai-model-tests:
+    name: AI Model Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test OpenAI integration
+        run: |
+          node tests/agents/openai-integration.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+        continue-on-error: true
+
+      - name: Test Anthropic Claude integration
+        run: |
+          node tests/agents/anthropic-integration.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_TEST }}
+        continue-on-error: true
+
+      - name: Test local LLM fallback
+        run: |
+          node tests/agents/local-llm-test.js
+        continue-on-error: true
+
+  # Job 5: Performance & Load Tests
+  performance:
+    name: Agent Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: integration-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Benchmark agent response times
+        run: |
+          node tests/agents/benchmark.js --iterations=100 --concurrent=10
+        env:
+          NODE_ENV: test
+
+      - name: Memory usage profiling
+        run: |
+          node --expose-gc tests/agents/memory-profile.js
+        continue-on-error: true
+
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-performance-report
+          path: tests/agents/reports/
+
+  # Job 6: Build Agent Packages
+  build:
+    name: Build Agents
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [test-specialists, integration-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all agents
+        run: pnpm --filter "@ait-core/agent-*" build
+
+      - name: Validate agent exports
+        run: |
+          for agent in agents/specialists/*/dist; do
+            echo "Checking $agent"
+            if [ ! -f "$agent/index.js" ]; then
+              echo "Missing index.js in $agent"
+              exit 1
+            fi
+          done
+
+      - name: Archive agent builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: agents-build
+          path: |
+            agents/specialists/*/dist
+            agents/executors/*/dist
+          retention-days: 7
+
+  # Job 7: Deploy Agents
+  deploy:
+    name: Deploy Agents to Registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download agent builds
+        uses: actions/download-artifact@v4
+        with:
+          name: agents-build
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Update agent registry
+        run: |
+          node scripts/update-agent-registry.js
+        env:
+          AGENT_REGISTRY_TOKEN: ${{ secrets.AGENT_REGISTRY_TOKEN }}
+
+      - name: Sync to production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core-agents
+            git pull origin main
+            pnpm install --frozen-lockfile
+            pnpm --filter "@ait-core/agent-*" build
+            pm2 reload ait-core-agents
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'AI Agents deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

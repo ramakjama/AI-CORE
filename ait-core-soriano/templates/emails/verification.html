@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifica tu cuenta</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .icon-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            background-color: #dbeafe;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .title {
+            font-size: 28px;
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff !important;
+            padding: 18px 50px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        }
+        .verification-code {
+            background-color: #f9fafb;
+            border: 2px dashed #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3a8a;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box p {
+            margin: 5px 0;
+            color: #92400e;
+            font-size: 14px;
+        }
+        .expiry-notice {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .code {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+            .cta-button {
+                display: block;
+                text-align: center;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SORIANO MEDIADORES</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="icon-container">
+                <div class="icon">✉️</div>
+            </div>
+
+            <div class="title">Verifica tu dirección de correo</div>
+
+            <div class="message">
+                <p>Hola <strong>{{user_name}}</strong>,</p>
+                <p>Para completar el proceso de registro y activar tu cuenta en Soriano Mediadores, necesitamos verificar tu dirección de correo electrónico.</p>
+            </div>
+
+            <center>
+                <a href="{{verification_link}}" class="cta-button">Verificar mi cuenta</a>
+            </center>
+
+            <div class="message" style="margin-top: 40px;">
+                <p><strong>O ingresa este código de verificación:</strong></p>
+            </div>
+
+            <div class="verification-code">
+                <div class="code">{{verification_code}}</div>
+                <p style="color: #6b7280; margin-top: 15px; font-size: 14px;">
+                    Copia y pega este código en la página de verificación
+                </p>
+            </div>
+
+            <div class="expiry-notice">
+                ⏱️ Este código expira en <strong>{{expiry_time}} horas</strong>
+            </div>
+
+            <div class="warning-box">
+                <p><strong>⚠️ Importante:</strong></p>
+                <p>• Si no solicitaste esta verificación, puedes ignorar este correo de forma segura</p>
+                <p>• No compartas este código con nadie</p>
+                <p>• Nuestro equipo nunca te pedirá este código por teléfono o correo</p>
+            </div>
+
+            <div class="message" style="margin-top: 30px;">
+                <p>Si tienes problemas con el botón de verificación, copia y pega este enlace en tu navegador:</p>
+                <p style="word-break: break-all; color: #3b82f6; font-size: 14px;">
+                    {{verification_link}}
+                </p>
+            </div>
+
+            <div class="message" style="margin-top: 30px;">
+                <p>Gracias por confiar en nosotros,<br>
+                <strong>El equipo de Soriano Mediadores</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{base_url}}/ayuda">Centro de Ayuda</a>
+                <a href="{{base_url}}/contacto">Contacto</a>
+                <a href="{{base_url}}/privacidad">Privacidad</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                © {{year}} Soriano Mediadores. Todos los derechos reservados.<br>
+                {{company_address}}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

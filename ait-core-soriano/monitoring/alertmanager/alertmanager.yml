@@ -1,0 +1,258 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@ait-core.soriano.com'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+  # Slack
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  # PagerDuty
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree
+route:
+  # Default receiver
+  receiver: 'team-notifications'
+
+  # How long to wait before sending notification
+  group_wait: 10s
+
+  # How long to wait before sending a notification about new alerts
+  group_interval: 5m
+
+  # How long to wait before sending a notification again
+  repeat_interval: 4h
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'cluster', 'service', 'severity']
+
+  # Child routes
+  routes:
+    # Critical alerts go to PagerDuty and Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 30m
+
+    # Warning alerts go to Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 10m
+      repeat_interval: 2h
+
+    # Database alerts
+    - match_re:
+        category: database|cache
+      receiver: 'database-team'
+      continue: false
+
+    # Infrastructure alerts
+    - match:
+        category: infrastructure
+      receiver: 'infrastructure-team'
+      continue: false
+
+    # Application alerts
+    - match:
+        category: application
+      receiver: 'application-team'
+      continue: false
+
+    # Business alerts
+    - match:
+        category: business
+      receiver: 'business-team'
+      continue: false
+
+    # SLO violations
+    - match:
+        category: slo
+      receiver: 'slo-violations'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 15m
+
+    # Security alerts
+    - match:
+        category: security
+      receiver: 'security-team'
+      group_wait: 0s
+      repeat_interval: 1h
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # Suppress warnings if critical alert is firing for the same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Suppress instance-level alerts if node is down
+  - source_match:
+      alertname: 'NodeNotReady'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']
+
+  # Suppress service alerts if entire pod is down
+  - source_match:
+      alertname: 'PodNotReady'
+    target_match_re:
+      alertname: '.*'
+    equal: ['pod', 'namespace']
+
+# Receivers
+receivers:
+  # Default team notifications
+  - name: 'team-notifications'
+    email_configs:
+      - to: 'team@ait-core.soriano.com'
+        headers:
+          Subject: '[AIT-CORE] {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+
+    slack_configs:
+      - channel: '#ait-core-alerts'
+        title: '{{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+  # Critical alerts
+  - name: 'critical-alerts'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }}'
+        severity: 'critical'
+
+    slack_configs:
+      - channel: '#ait-core-critical'
+        title: ':fire: CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+        actions:
+          - type: button
+            text: 'Runbook :green_book:'
+            url: '{{ (index .Alerts 0).Annotations.runbook }}'
+          - type: button
+            text: 'Silence :no_bell:'
+            url: '{{ template "__alert_silence_link" . }}'
+
+    email_configs:
+      - to: 'oncall@ait-core.soriano.com'
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+
+  # Warning alerts
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#ait-core-warnings'
+        title: ':warning: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'warning'
+
+  # Database team
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@ait-core.soriano.com'
+        headers:
+          Subject: '[Database] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#database-alerts'
+        title: ':database: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # Infrastructure team
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infra-team@ait-core.soriano.com'
+        headers:
+          Subject: '[Infrastructure] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#infrastructure-alerts'
+        title: ':gear: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # Application team
+  - name: 'application-team'
+    email_configs:
+      - to: 'app-team@ait-core.soriano.com'
+        headers:
+          Subject: '[Application] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#application-alerts'
+        title: ':computer: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # Business team
+  - name: 'business-team'
+    email_configs:
+      - to: 'business-team@ait-core.soriano.com'
+        headers:
+          Subject: '[Business Alert] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#business-alerts'
+        title: ':chart_with_upwards_trend: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # SLO violations
+  - name: 'slo-violations'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SLO_KEY}'
+        description: 'SLO Violation: {{ .GroupLabels.alertname }}'
+        severity: 'error'
+
+    slack_configs:
+      - channel: '#slo-violations'
+        title: ':rotating_light: SLO VIOLATION: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+
+    email_configs:
+      - to: 'sre-team@ait-core.soriano.com'
+        headers:
+          Subject: '[SLO VIOLATION] {{ .GroupLabels.alertname }}'
+
+  # Security team
+  - name: 'security-team'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SECURITY_KEY}'
+        description: 'Security Alert: {{ .GroupLabels.alertname }}'
+        severity: 'critical'
+
+    email_configs:
+      - to: 'security@ait-core.soriano.com'
+        headers:
+          Subject: '[SECURITY] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#security-alerts'
+        title: ':shield: SECURITY: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'

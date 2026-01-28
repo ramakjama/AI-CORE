@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit:fix": "npm audit fix",
+    "security:snyk": "snyk test",
+    "security:snyk:monitor": "snyk monitor",
+    "security:owasp": "dependency-check --project AIT-CORE --scan . --format HTML",
+    "security:scan": "npm run security:audit && npm run security:snyk",
+    "security:scan:ci": "npm run security:audit && npm run security:snyk -- --severity-threshold=high",
+    "security:licenses": "license-checker --production --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD'",
+    "security:outdated": "npm outdated",
+    "security:update": "npm update",
+    "security:headers:test": "node scripts/test-security-headers.js",
+    "security:csp:validate": "node scripts/validate-csp.js",
+    "security:report": "node scripts/generate-security-report.js"
+  }
+}

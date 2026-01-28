@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Soriano Mediadores</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .header-subtitle {
+            color: #e0e7ff;
+            font-size: 14px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff !important;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        .features {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .feature-text {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .greeting {
+                font-size: 20px;
+            }
+            .message {
+                font-size: 14px;
+            }
+            .cta-button {
+                display: block;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SORIANO MEDIADORES</div>
+            <div class="header-subtitle">Tu socio de confianza en seguros</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">¡Bienvenido/a, {{user_name}}!</div>
+
+            <div class="message">
+                <p>Nos complace darte la bienvenida a <strong>Soriano Mediadores</strong>, tu plataforma integral de gestión de seguros.</p>
+
+                <p>Tu cuenta ha sido creada exitosamente y ya puedes comenzar a disfrutar de todos nuestros servicios profesionales de mediación de seguros.</p>
+            </div>
+
+            <center>
+                <a href="{{verification_link}}" class="cta-button">Verificar mi cuenta</a>
+            </center>
+
+            <div class="features">
+                <h3 style="color: #1e3a8a; margin-top: 0;">¿Qué puedes hacer con tu cuenta?</h3>
+
+                <div class="feature-item">
+                    <span class="feature-icon"></span>
+                    <div class="feature-text">
+                        <strong>Gestionar tus pólizas:</strong> Accede a toda tu información de seguros en un solo lugar
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon"></span>
+                    <div class="feature-text">
+                        <strong>Consultar siniestros:</strong> Realiza el seguimiento de tus reclamaciones en tiempo real
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon"></span>
+                    <div class="feature-text">
+                        <strong>Pagos seguros:</strong> Realiza y consulta pagos de forma rápida y segura
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon"></span>
+                    <div class="feature-text">
+                        <strong>Reportes detallados:</strong> Obtén análisis completos de tu cartera de seguros
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Datos de tu cuenta:</strong><br>
+                Usuario: {{user_email}}<br>
+                Fecha de registro: {{registration_date}}
+            </div>
+
+            <div class="message">
+                <p>Si tienes alguna pregunta o necesitas asistencia, nuestro equipo está disponible para ayudarte.</p>
+
+                <p>Atentamente,<br>
+                <strong>El equipo de Soriano Mediadores</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{base_url}}/ayuda">Centro de Ayuda</a>
+                <a href="{{base_url}}/contacto">Contacto</a>
+                <a href="{{base_url}}/privacidad">Privacidad</a>
+            </div>
+
+            <div class="social-links">
+                <a href="{{social_facebook}}">Facebook</a> |
+                <a href="{{social_twitter}}">Twitter</a> |
+                <a href="{{social_linkedin}}">LinkedIn</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                © {{year}} Soriano Mediadores. Todos los derechos reservados.<br>
+                {{company_address}}
+            </p>
+
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+                Has recibido este correo porque te registraste en Soriano Mediadores.<br>
+                <a href="{{unsubscribe_link}}" style="color: #60a5fa;">Cancelar suscripción</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

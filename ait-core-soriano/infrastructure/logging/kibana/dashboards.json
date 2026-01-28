@@ -1,0 +1,250 @@
+{
+  "dashboards": [
+    {
+      "id": "ait-application-health",
+      "title": "AIT - Application Health",
+      "description": "Overall health metrics for all AIT applications",
+      "visualizations": [
+        {
+          "type": "line",
+          "title": "Request Rate by Application",
+          "query": "level:info AND method:*",
+          "aggregation": {
+            "type": "date_histogram",
+            "field": "timestamp",
+            "interval": "1m"
+          },
+          "breakdown": {
+            "field": "application"
+          }
+        },
+        {
+          "type": "bar",
+          "title": "Error Rate by Application",
+          "query": "level:error",
+          "aggregation": {
+            "type": "terms",
+            "field": "application",
+            "size": 10
+          }
+        },
+        {
+          "type": "metric",
+          "title": "Average Response Time",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "avg",
+            "field": "duration"
+          }
+        },
+        {
+          "type": "pie",
+          "title": "Status Codes Distribution",
+          "query": "statusCode:*",
+          "aggregation": {
+            "type": "terms",
+            "field": "statusCode"
+          }
+        },
+        {
+          "type": "metric",
+          "title": "Total Requests (Last 24h)",
+          "query": "*",
+          "aggregation": {
+            "type": "count"
+          }
+        },
+        {
+          "type": "metric",
+          "title": "Error Rate (%)",
+          "query": "level:error",
+          "aggregation": {
+            "type": "percentage",
+            "numerator": "level:error",
+            "denominator": "*"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ait-error-tracking",
+      "title": "AIT - Error Tracking",
+      "description": "Error monitoring and analysis",
+      "visualizations": [
+        {
+          "type": "data_table",
+          "title": "Recent Errors (Last 100)",
+          "query": "level:error",
+          "columns": [
+            "timestamp",
+            "application",
+            "message",
+            "statusCode",
+            "url",
+            "userId"
+          ],
+          "sort": {
+            "field": "timestamp",
+            "order": "desc"
+          },
+          "size": 100
+        },
+        {
+          "type": "bar",
+          "title": "Error Types",
+          "query": "level:error",
+          "aggregation": {
+            "type": "terms",
+            "field": "error_type"
+          }
+        },
+        {
+          "type": "timeline",
+          "title": "Errors Over Time",
+          "query": "level:error",
+          "aggregation": {
+            "type": "date_histogram",
+            "field": "timestamp",
+            "interval": "5m"
+          }
+        },
+        {
+          "type": "tag_cloud",
+          "title": "Common Error Messages",
+          "query": "level:error",
+          "aggregation": {
+            "type": "terms",
+            "field": "message.keyword",
+            "size": 50
+          }
+        },
+        {
+          "type": "heatmap",
+          "title": "Error Frequency by Application and Time",
+          "query": "level:error",
+          "x_axis": {
+            "field": "timestamp",
+            "interval": "1h"
+          },
+          "y_axis": {
+            "field": "application"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ait-performance",
+      "title": "AIT - Performance Metrics",
+      "description": "Performance monitoring and optimization",
+      "visualizations": [
+        {
+          "type": "histogram",
+          "title": "Response Time Distribution",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "histogram",
+            "field": "duration",
+            "interval": 50
+          }
+        },
+        {
+          "type": "heatmap",
+          "title": "Peak Traffic Hours",
+          "query": "*",
+          "x_axis": {
+            "field": "timestamp",
+            "calendar_interval": "1h"
+          },
+          "y_axis": {
+            "field": "timestamp",
+            "day_of_week": true
+          }
+        },
+        {
+          "type": "line",
+          "title": "Database Query Time",
+          "query": "query:*",
+          "aggregation": {
+            "type": "avg",
+            "field": "duration"
+          },
+          "breakdown": {
+            "field": "queryType"
+          }
+        },
+        {
+          "type": "metric",
+          "title": "P95 Response Time",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "percentiles",
+            "field": "duration",
+            "percents": [95]
+          }
+        },
+        {
+          "type": "metric",
+          "title": "P99 Response Time",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "percentiles",
+            "field": "duration",
+            "percents": [99]
+          }
+        },
+        {
+          "type": "line",
+          "title": "Response Time Percentiles Over Time",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "percentiles",
+            "field": "duration",
+            "percents": [50, 95, 99]
+          }
+        }
+      ]
+    }
+  ],
+  "kql_examples": [
+    {
+      "name": "All errors in last 24h",
+      "query": "level:error",
+      "description": "Show all error logs from the last 24 hours"
+    },
+    {
+      "name": "Slow requests (>1s)",
+      "query": "duration > 1000",
+      "description": "Find all requests that took longer than 1 second"
+    },
+    {
+      "name": "Failed authentication attempts",
+      "query": "authEvent:failed",
+      "description": "Show all failed login attempts"
+    },
+    {
+      "name": "Errors by specific user",
+      "query": "level:error AND userId:\"user-123\"",
+      "description": "Find all errors for a specific user"
+    },
+    {
+      "name": "API errors",
+      "query": "level:error AND url:*/api/*",
+      "description": "Show errors from API routes"
+    },
+    {
+      "name": "High severity errors",
+      "query": "severity:high",
+      "description": "Show only high severity errors"
+    },
+    {
+      "name": "Database errors",
+      "query": "level:error AND (query:* OR database:*)",
+      "description": "Find database-related errors"
+    },
+    {
+      "name": "Performance issues",
+      "query": "performance_category:(slow OR very_slow)",
+      "description": "Find slow performing requests"
+    }
+  ]
+}

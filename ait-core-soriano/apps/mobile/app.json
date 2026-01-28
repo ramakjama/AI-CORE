@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "AIT-COMMS Mobile",
+    "slug": "ait-comms-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "aitcore",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0066ff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aintech.aitcore",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AIT-CORE necesita acceso a la cámara para videollamadas.",
+        "NSMicrophoneUsageDescription": "AIT-CORE necesita acceso al micrófono para videollamadas."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0066ff"
+      },
+      "package": "com.aintech.aitcore",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite usar la cámara para videollamadas."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Permite usar el micrófono para videollamadas."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

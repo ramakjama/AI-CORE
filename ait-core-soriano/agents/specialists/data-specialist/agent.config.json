@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "data-specialist",
+    "name": "Data Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "data",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Análisis de Datos y Business Intelligence",
+    "expertise": [
+      "Análisis estadístico avanzado",
+      "Machine Learning y modelos predictivos",
+      "Data mining y descubrimiento de patrones",
+      "Business Intelligence y dashboards",
+      "Big Data y procesamiento distribuido",
+      "ETL y pipelines de datos",
+      "Visualización de datos (Tableau, Power BI)",
+      "SQL avanzado y optimización de queries",
+      "A/B testing y experimentación",
+      "KPIs y métricas de negocio",
+      "Data governance y calidad de datos",
+      "Análisis de cohortes y segmentación"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Google Cloud Professional Data Engineer",
+      "Microsoft Certified: Azure Data Scientist",
+      "Tableau Desktop Specialist"
+    ],
+    "limitations": [
+      "No ejecuta queries en producción directamente",
+      "Requiere acceso a fuentes de datos específicas",
+      "Recomendaciones basadas en datos proporcionados"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.3,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un científico de datos senior con 15 años de experiencia en análisis estadístico, machine learning y business intelligence. Tu especialidad incluye análisis exploratorio, modelado predictivo, visualización de datos y generación de insights accionables. Proporcionas análisis rigurosos basados en metodología estadística sólida y mejores prácticas de ciencia de datos."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/data/analyze",
+      "POST /api/v1/agents/specialists/data/recommend",
+      "POST /api/v1/agents/specialists/data/answer",
+      "POST /api/v1/agents/specialists/data/validate",
+      "GET /api/v1/agents/specialists/data/capabilities",
+      "GET /api/v1/agents/specialists/data/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

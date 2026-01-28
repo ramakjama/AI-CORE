@@ -1,0 +1,163 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ait-core-alerts
+  namespace: ait-core
+  labels:
+    app: ait-core
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: ait-core.applications
+      interval: 30s
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate detected"
+            description: "{{ $labels.app }} has error rate above 5% (current: {{ $value }})"
+
+        - alert: HighResponseTime
+          expr: |
+            histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High response time detected"
+            description: "{{ $labels.app }} has p95 latency above 1s (current: {{ $value }}s)"
+
+        - alert: PodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="ait-core"}[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod is crash looping"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping"
+
+        - alert: HighMemoryUsage
+          expr: |
+            container_memory_usage_bytes{namespace="ait-core"} / container_spec_memory_limit_bytes{namespace="ait-core"} > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage"
+            description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of memory limit"
+
+        - alert: HighCPUUsage
+          expr: |
+            rate(container_cpu_usage_seconds_total{namespace="ait-core"}[5m]) / container_spec_cpu_quota{namespace="ait-core"} * 100 > 90
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU usage"
+            description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value }}% CPU"
+
+    - name: ait-core.availability
+      interval: 30s
+      rules:
+        - alert: ServiceDown
+          expr: |
+            up{namespace="ait-core"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Service is down"
+            description: "Service {{ $labels.job }} has been down for more than 2 minutes"
+
+        - alert: HighPodRestarts
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace="ait-core"}[1h]) > 5
+          labels:
+            severity: warning
+          annotations:
+            summary: "High pod restart rate"
+            description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_phase{namespace="ait-core", phase!="Running"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod not ready"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not in Running state"
+
+    - name: ait-core.capacity
+      interval: 60s
+      rules:
+        - alert: HPAMaxedOut
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="ait-core"} >= kube_horizontalpodautoscaler_spec_max_replicas{namespace="ait-core"}
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HPA has reached maximum replicas"
+            description: "HPA {{ $labels.horizontalpodautoscaler }} has been at maximum capacity for 15 minutes"
+
+        - alert: PersistentVolumeSpaceLow
+          expr: |
+            kubelet_volume_stats_available_bytes{namespace="ait-core"} / kubelet_volume_stats_capacity_bytes{namespace="ait-core"} < 0.1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Persistent volume space low"
+            description: "PV {{ $labels.persistentvolumeclaim }} has less than 10% space available"
+
+    - name: ait-core.security
+      interval: 60s
+      rules:
+        - alert: UnauthorizedAccessAttempts
+          expr: |
+            rate(http_requests_total{status="401", namespace="ait-core"}[5m]) > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High rate of unauthorized access attempts"
+            description: "Service {{ $labels.service }} is experiencing {{ $value }} unauthorized access attempts per second"
+
+        - alert: SuspiciousActivity
+          expr: |
+            rate(http_requests_total{status="403", namespace="ait-core"}[5m]) > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Suspicious activity detected"
+            description: "Service {{ $labels.service }} has {{ $value }} forbidden access attempts per second"
+
+    - name: ait-core.database
+      interval: 30s
+      rules:
+        - alert: DatabaseConnectionPoolHigh
+          expr: |
+            pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Database connection pool usage high"
+            description: "Database connection pool is at {{ $value | humanizePercentage }} capacity"
+
+        - alert: SlowQueries
+          expr: |
+            rate(pg_stat_statements_mean_time_seconds[5m]) > 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Slow database queries detected"
+            description: "Average query time is {{ $value }}s"

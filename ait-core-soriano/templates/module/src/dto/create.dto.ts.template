@@ -1,0 +1,40 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsEnum,
+  IsDate,
+  IsArray,
+  IsObject,
+  IsUUID,
+  MinLength,
+  MaxLength,
+  Min,
+  Max,
+  IsEmail,
+  IsUrl,
+  Matches,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+/**
+ * DTO for creating {{ENTITY_NAME}}
+ */
+export class Create{{ENTITY_NAME}}Dto {
+  @ApiProperty({ description: '{{FIELD_1_DESCRIPTION}}', example: '{{FIELD_1_EXAMPLE}}' })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  {{FIELD_1_NAME}}: string;
+
+  @ApiPropertyOptional({ description: '{{FIELD_2_DESCRIPTION}}', example: '{{FIELD_2_EXAMPLE}}' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  {{FIELD_2_NAME}}?: string;
+
+  // Add more fields as needed based on your entity schema
+}

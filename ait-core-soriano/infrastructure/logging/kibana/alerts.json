@@ -1,0 +1,195 @@
+{
+  "alerting_rules": [
+    {
+      "id": "high-error-rate",
+      "name": "High Error Rate Alert",
+      "description": "Triggers when error rate exceeds 10% in last 5 minutes",
+      "type": "threshold",
+      "schedule": {
+        "interval": "1m"
+      },
+      "conditions": {
+        "threshold": {
+          "value": 10,
+          "comparator": "greater than",
+          "window": "5m",
+          "query": "level:error",
+          "calculation": "percentage"
+        }
+      },
+      "actions": [
+        {
+          "type": "email",
+          "to": ["ops@aintech.com"],
+          "subject": "ALERT: High Error Rate Detected",
+          "message": "Error rate has exceeded 10% in the last 5 minutes.\n\nCurrent error rate: {{context.errorRate}}%\nAffected applications: {{context.applications}}\n\nPlease investigate immediately."
+        },
+        {
+          "type": "slack",
+          "webhook": "${SLACK_WEBHOOK_URL}",
+          "channel": "#alerts",
+          "message": ":rotating_light: **HIGH ERROR RATE ALERT**\\n\\nError rate: {{context.errorRate}}%\\nWindow: Last 5 minutes\\nApplications: {{context.applications}}\\n\\n<{{kibanaUrl}}|View in Kibana>"
+        }
+      ],
+      "severity": "high",
+      "enabled": true
+    },
+    {
+      "id": "slow-response-time",
+      "name": "Slow Response Time Alert",
+      "description": "Triggers when P95 response time exceeds 1000ms in last 10 minutes",
+      "type": "threshold",
+      "schedule": {
+        "interval": "2m"
+      },
+      "conditions": {
+        "threshold": {
+          "value": 1000,
+          "comparator": "greater than",
+          "window": "10m",
+          "query": "duration:*",
+          "aggregation": {
+            "type": "percentiles",
+            "field": "duration",
+            "percentile": 95
+          }
+        }
+      },
+      "actions": [
+        {
+          "type": "slack",
+          "webhook": "${SLACK_WEBHOOK_URL}",
+          "channel": "#performance",
+          "message": ":turtle: **SLOW RESPONSE TIME ALERT**\\n\\nP95 Response Time: {{context.p95}}ms\\nWindow: Last 10 minutes\\nThreshold: 1000ms\\n\\n<{{kibanaUrl}}|View Performance Dashboard>"
+        }
+      ],
+      "severity": "medium",
+      "enabled": true
+    },
+    {
+      "id": "application-down",
+      "name": "Application Down Alert",
+      "description": "Triggers when no logs received from an application in last 5 minutes",
+      "type": "absence",
+      "schedule": {
+        "interval": "1m"
+      },
+      "conditions": {
+        "absence": {
+          "window": "5m",
+          "query": "application:*",
+          "check_per_application": true
+        }
+      },
+      "actions": [
+        {
+          "type": "pagerduty",
+          "severity": "critical",
+          "dedup_key": "app-down-{{context.application}}",
+          "message": "Application {{context.application}} appears to be down - no logs received in 5 minutes"
+        },
+        {
+          "type": "email",
+          "to": ["ops@aintech.com", "oncall@aintech.com"],
+          "subject": "CRITICAL: Application {{context.application}} Down",
+          "message": "No logs have been received from {{context.application}} in the last 5 minutes.\n\nThis may indicate:\n- Application crash\n- Network issues\n- Logging system failure\n\nPlease investigate immediately."
+        },
+        {
+          "type": "slack",
+          "webhook": "${SLACK_WEBHOOK_URL}",
+          "channel": "#critical-alerts",
+          "message": ":fire: **CRITICAL: APPLICATION DOWN**\\n\\nApplication: {{context.application}}\\nLast seen: {{context.lastSeen}}\\nDuration: 5+ minutes\\n\\n@channel Please investigate immediately!"
+        }
+      ],
+      "severity": "critical",
+      "enabled": true
+    },
+    {
+      "id": "database-errors",
+      "name": "Database Error Spike",
+      "description": "Triggers when database errors increase significantly",
+      "type": "anomaly",
+      "schedule": {
+        "interval": "5m"
+      },
+      "conditions": {
+        "anomaly": {
+          "query": "level:error AND (query:* OR database:*)",
+          "ml_job": "database-errors-detector",
+          "severity": 75,
+          "window": "15m"
+        }
+      },
+      "actions": [
+        {
+          "type": "slack",
+          "webhook": "${SLACK_WEBHOOK_URL}",
+          "channel": "#database",
+          "message": ":warning: **DATABASE ERROR SPIKE**\\n\\nAnomaly detected in database errors\\nSeverity: {{context.severity}}\\nWindow: Last 15 minutes\\n\\n<{{kibanaUrl}}|View Anomaly>"
+        }
+      ],
+      "severity": "high",
+      "enabled": true
+    },
+    {
+      "id": "failed-auth-attempts",
+      "name": "Multiple Failed Authentication Attempts",
+      "description": "Triggers on potential brute force attack (>10 failed attempts from same IP)",
+      "type": "threshold",
+      "schedule": {
+        "interval": "30s"
+      },
+      "conditions": {
+        "threshold": {
+          "value": 10,
+          "comparator": "greater than",
+          "window": "5m",
+          "query": "authEvent:failed",
+          "group_by": "client_ip"
+        }
+      },
+      "actions": [
+        {
+          "type": "slack",
+          "webhook": "${SLACK_WEBHOOK_URL}",
+          "channel": "#security",
+          "message": ":shield: **SECURITY ALERT: Brute Force Attempt**\\n\\nIP: {{context.client_ip}}\\nFailed attempts: {{context.count}}\\nWindow: Last 5 minutes\\n\\nConsider blocking this IP."
+        }
+      ],
+      "severity": "high",
+      "enabled": true
+    }
+  ],
+  "notification_channels": {
+    "email": {
+      "smtp_host": "${SMTP_HOST}",
+      "smtp_port": "${SMTP_PORT}",
+      "from": "alerts@aintech.com",
+      "auth": {
+        "user": "${SMTP_USER}",
+        "password": "${SMTP_PASSWORD}"
+      }
+    },
+    "slack": {
+      "webhook_url": "${SLACK_WEBHOOK_URL}",
+      "default_channel": "#alerts"
+    },
+    "pagerduty": {
+      "api_key": "${PAGERDUTY_API_KEY}",
+      "routing_key": "${PAGERDUTY_ROUTING_KEY}"
+    }
+  },
+  "setup_instructions": {
+    "manual_setup": [
+      "1. Open Kibana at http://localhost:5601",
+      "2. Go to Stack Management > Rules and Connectors",
+      "3. Create connectors for:",
+      "   - Email (SMTP)",
+      "   - Slack (Webhook)",
+      "   - PagerDuty (API)",
+      "4. Create rules using the definitions above",
+      "5. Test each rule to ensure notifications work"
+    ],
+    "api_setup": "Use the Kibana API to programmatically create alerts (requires authentication)"
+  }
+}

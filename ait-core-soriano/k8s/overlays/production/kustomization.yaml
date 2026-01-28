@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ait-core
+
+bases:
+  - ../../base
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+  version: v1.0.0
+
+commonAnnotations:
+  deployment.kubernetes.io/revision: "1"
+  managed-by: kustomize
+  environment: production
+
+# Resource limits for production
+replicas:
+  - name: api
+    count: 5
+  - name: web
+    count: 5
+  - name: admin
+    count: 3
+  - name: mobile-api
+    count: 3
+
+patchesStrategicMerge:
+  - patches/api-production.yaml
+  - patches/web-production.yaml
+  - patches/resources-production.yaml
+
+images:
+  - name: ait-core/api
+    newName: your-registry.com/ait-core-api
+    newTag: v1.0.0
+  - name: ait-core/web
+    newName: your-registry.com/ait-core-web
+    newTag: v1.0.0
+  - name: ait-core/admin
+    newName: your-registry.com/ait-core-admin
+    newTag: v1.0.0
+  - name: ait-core/mobile-api
+    newName: your-registry.com/ait-core-mobile-api
+    newTag: v1.0.0
+
+configMapGenerator:
+  - name: ait-core-config
+    behavior: merge
+    literals:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - ENABLE_DEBUG_LOGS=false
+      - API_RATE_LIMIT=100
+
+secretGenerator:
+  - name: ait-core-secrets
+    behavior: replace
+    envs:
+      - secrets.env

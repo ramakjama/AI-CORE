@@ -1,0 +1,392 @@
+/* Custom Handsontable Dark Theme */
+
+/* Container */
+.handsontable-wrapper {
+  --hot-border-color: hsl(var(--border));
+  --hot-background: hsl(var(--background));
+  --hot-foreground: hsl(var(--foreground));
+  --hot-muted: hsl(var(--muted));
+  --hot-muted-foreground: hsl(var(--muted-foreground));
+  --hot-accent: hsl(var(--accent));
+  --hot-primary: hsl(var(--primary));
+}
+
+/* Main table */
+.handsontable {
+  color: var(--hot-foreground) !important;
+  background: var(--hot-background) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Headers */
+.handsontable th {
+  background: var(--hot-muted) !important;
+  color: var(--hot-muted-foreground) !important;
+  border-color: var(--hot-border-color) !important;
+  font-weight: 600;
+}
+
+.handsontable thead th {
+  background: var(--hot-muted) !important;
+  border-bottom: 2px solid var(--hot-border-color) !important;
+}
+
+.handsontable tbody th {
+  background: var(--hot-muted) !important;
+  border-right: 2px solid var(--hot-border-color) !important;
+}
+
+/* Cells */
+.handsontable td {
+  border-color: var(--hot-border-color) !important;
+  background: var(--hot-background) !important;
+  color: var(--hot-foreground) !important;
+}
+
+.handsontable td.area {
+  background-color: var(--hot-accent) !important;
+}
+
+/* Current cell */
+.handsontable td.current,
+.handsontable th.current {
+  background-color: var(--hot-accent) !important;
+}
+
+/* Selection */
+.handsontable td.area::after {
+  background: var(--hot-primary);
+  opacity: 0.1;
+}
+
+/* Fill handle */
+.handsontable .wtBorder.corner {
+  background: var(--hot-primary) !important;
+  border: 2px solid var(--hot-primary) !important;
+}
+
+/* Context menu */
+.handsontable .htContextMenu {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border-radius: 8px;
+}
+
+.handsontable .htContextMenu table {
+  border: none !important;
+}
+
+.handsontable .htContextMenu table tbody tr td {
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border: none !important;
+  padding: 8px 12px;
+}
+
+.handsontable .htContextMenu table tbody tr td:hover {
+  background: var(--hot-accent) !important;
+}
+
+.handsontable .htContextMenu table tbody tr td.htSeparator {
+  border-top: 1px solid var(--hot-border-color) !important;
+  height: 1px;
+  padding: 0;
+}
+
+.handsontable .htContextMenu table tbody tr td.htDisabled {
+  color: var(--hot-muted-foreground) !important;
+  opacity: 0.5;
+}
+
+.handsontable .htContextMenu table tbody tr td.htDisabled:hover {
+  background: hsl(var(--popover)) !important;
+  cursor: not-allowed;
+}
+
+/* Dropdown menu */
+.handsontable .htDropdownMenu {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border-radius: 8px;
+}
+
+/* Comments */
+.handsontable .htComments {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Input editor */
+.handsontable .handsontableInput {
+  background: var(--hot-background) !important;
+  color: var(--hot-foreground) !important;
+  border: 2px solid var(--hot-primary) !important;
+  outline: none;
+  font-family: inherit;
+}
+
+.handsontable .handsontableInputHolder {
+  background: var(--hot-background) !important;
+}
+
+/* Autocomplete */
+.handsontable .autocompleteEditor {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+.handsontable .autocompleteEditor .ht_master .wtHolder {
+  background: hsl(var(--popover)) !important;
+}
+
+/* Filters */
+.handsontable .htFiltersMenuCheckbox {
+  background: var(--hot-background) !important;
+  border-color: var(--hot-border-color) !important;
+}
+
+.handsontable .htUIInput {
+  background: var(--hot-background) !important;
+  color: var(--hot-foreground) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.handsontable .htUIButton {
+  background: var(--hot-primary) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.handsontable .htUIButton:hover {
+  opacity: 0.9;
+}
+
+/* Scrollbars */
+.handsontable .wtHolder::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.handsontable .wtHolder::-webkit-scrollbar-track {
+  background: var(--hot-muted);
+}
+
+.handsontable .wtHolder::-webkit-scrollbar-thumb {
+  background: var(--hot-muted-foreground);
+  border-radius: 6px;
+  border: 2px solid var(--hot-muted);
+}
+
+.handsontable .wtHolder::-webkit-scrollbar-thumb:hover {
+  background: var(--hot-foreground);
+}
+
+/* Column headers resize handle */
+.handsontable .manualColumnResizer {
+  background: var(--hot-border-color) !important;
+}
+
+.handsontable .manualColumnResizer:hover {
+  background: var(--hot-primary) !important;
+}
+
+/* Row headers resize handle */
+.handsontable .manualRowResizer {
+  background: var(--hot-border-color) !important;
+}
+
+.handsontable .manualRowResizer:hover {
+  background: var(--hot-primary) !important;
+}
+
+/* Custom cell classes */
+.handsontable td.font-bold {
+  font-weight: 700;
+}
+
+.handsontable td.italic {
+  font-style: italic;
+}
+
+.handsontable td.underline {
+  text-decoration: underline;
+}
+
+.handsontable td.text-left {
+  text-align: left;
+}
+
+.handsontable td.text-center {
+  text-align: center;
+}
+
+.handsontable td.text-right {
+  text-align: right;
+}
+
+/* Dimmed cells (read-only) */
+.handsontable .htDimmed {
+  color: var(--hot-muted-foreground) !important;
+  opacity: 0.6;
+}
+
+/* Invalid cells */
+.handsontable td.htInvalid {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgb(239, 68, 68) !important;
+}
+
+/* Placeholder */
+.handsontable .htPlaceholder {
+  color: var(--hot-muted-foreground) !important;
+}
+
+/* Column sorting */
+.handsontable .columnSorting {
+  color: var(--hot-primary) !important;
+}
+
+/* Merge cells */
+.handsontable td.htMergeCells {
+  background: var(--hot-background) !important;
+}
+
+/* Comments indicator */
+.handsontable td .htCommentCell {
+  background: var(--hot-primary) !important;
+}
+
+/* Frozen columns/rows overlay */
+.handsontable .ht_clone_top,
+.handsontable .ht_clone_left,
+.handsontable .ht_clone_top_left_corner {
+  background: var(--hot-background) !important;
+}
+
+/* Loading overlay */
+.handsontable .wtLoadingOverlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: white !important;
+}
+
+/* Mobile touch scroll */
+.handsontable .ht_clone_top_left_corner .wtHider,
+.handsontable .ht_clone_top .wtHider,
+.handsontable .ht_clone_left .wtHider {
+  background: var(--hot-background) !important;
+}
+
+/* Custom colors for cells */
+.handsontable td[style*="color"] {
+  font-weight: inherit;
+}
+
+.handsontable td[style*="background"] {
+  border-color: var(--hot-border-color) !important;
+}
+
+/* Focus styles */
+.handsontable:focus {
+  outline: 2px solid var(--hot-primary);
+  outline-offset: -2px;
+}
+
+/* Better border for selected area */
+.handsontable .wtBorder {
+  border-color: var(--hot-primary) !important;
+  background: transparent !important;
+}
+
+.handsontable .htBorders .current {
+  border: 2px solid var(--hot-primary) !important;
+}
+
+.handsontable .htBorders .area {
+  border: 2px solid var(--hot-primary) !important;
+  background: transparent !important;
+}
+
+/* Checkbox renderer */
+.handsontable td input[type="checkbox"] {
+  accent-color: var(--hot-primary);
+}
+
+/* Date picker */
+.handsontable .htDatepickerHolder {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid var(--hot-border-color) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border-radius: 8px;
+}
+
+/* Custom validation error tooltip */
+.handsontable .htInvalidTooltip {
+  background: rgb(239, 68, 68) !important;
+  color: white !important;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .handsontable {
+    font-size: 14px;
+  }
+
+  .handsontable th {
+    font-size: 12px;
+  }
+}
+
+/* Color picker buttons */
+[data-color="#000000"] { background-color: #000000; }
+[data-color="#FF0000"] { background-color: #FF0000; }
+[data-color="#00FF00"] { background-color: #00FF00; }
+[data-color="#0000FF"] { background-color: #0000FF; }
+[data-color="#FFFF00"] { background-color: #FFFF00; }
+[data-color="#FF00FF"] { background-color: #FF00FF; }
+[data-color="#00FFFF"] { background-color: #00FFFF; }
+[data-color="#FFA500"] { background-color: #FFA500; }
+[data-color="#800080"] { background-color: #800080; }
+[data-color="#FFC0CB"] { background-color: #FFC0CB; }
+[data-color="#FFFFFF"] { background-color: #FFFFFF; }
+[data-color="#FFE6E6"] { background-color: #FFE6E6; }
+[data-color="#E6FFE6"] { background-color: #E6FFE6; }
+[data-color="#E6E6FF"] { background-color: #E6E6FF; }
+[data-color="#FFFFE6"] { background-color: #FFFFE6; }
+[data-color="#FFE6FF"] { background-color: #FFE6FF; }
+[data-color="#E6FFFF"] { background-color: #E6FFFF; }
+[data-color="#FFE6CC"] { background-color: #FFE6CC; }
+[data-color="#E6CCFF"] { background-color: #E6CCFF; }
+[data-color="#FFE6F0"] { background-color: #FFE6F0; }
+
+/* Print styles */
+@media print {
+  .handsontable {
+    background: white !important;
+    color: black !important;
+  }
+
+  .handsontable th {
+    background: #f5f5f5 !important;
+    color: black !important;
+  }
+
+  .handsontable td {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+}

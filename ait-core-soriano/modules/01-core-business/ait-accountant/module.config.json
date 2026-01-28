@@ -1,0 +1,78 @@
+{
+  "moduleId": "ait-accountant",
+  "moduleName": "AIT Accountant",
+  "category": "01-core-business",
+  "version": "1.0.0",
+  "enabled": true,
+  "priority": "high",
+  "description": "AIT-powered accounting automation with real-time bookkeeping, automated journal entries, and PGC compliance",
+  "capabilities": [
+    "automated-journal-entries",
+    "real-time-bookkeeping",
+    "pgc-compliance",
+    "account-reconciliation",
+    "financial-reports",
+    "tax-calculations",
+    "expense-categorization",
+    "invoice-accounting",
+    "balance-sheet-generation",
+    "profit-loss-statements"
+  ],
+  "dependencies": {
+    "required": [
+      "ait-pgc-engine",
+      "ait-treasury"
+    ],
+    "optional": [
+      "ait-encashment",
+      "ait-ops"
+    ]
+  },
+  "resources": {
+    "cpu": "medium",
+    "memory": "512Mi",
+    "storage": "2Gi"
+  },
+  "api": {
+    "rest": {
+      "enabled": true,
+      "basePath": "/api/v1/accountant",
+      "authentication": "required"
+    },
+    "graphql": {
+      "enabled": false
+    },
+    "webhooks": {
+      "enabled": true,
+      "events": [
+        "entry.created",
+        "entry.approved",
+        "entry.rejected",
+        "period.closed",
+        "reconciliation.completed"
+      ]
+    }
+  },
+  "database": {
+    "tables": [
+      "accounting_entries",
+      "journal_entries",
+      "ledger_accounts",
+      "fiscal_periods",
+      "reconciliations",
+      "audit_trail"
+    ],
+    "migrations": true
+  },
+  "security": {
+    "encryption": true,
+    "auditLog": true,
+    "dataRetention": "7years",
+    "compliance": ["SOX", "GDPR", "LOPD"]
+  },
+  "monitoring": {
+    "healthCheck": true,
+    "metrics": true,
+    "alerting": true
+  }
+}

@@ -1,0 +1,109 @@
+groups:
+  - name: recording_rules
+    interval: 30s
+    rules:
+      # API Request Rate (QPS)
+      - record: job:http_requests:rate5m
+        expr: sum(rate(http_requests_total[5m])) by (job, method, status)
+
+      - record: job:http_request_duration_seconds:p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le))
+
+      - record: job:http_request_duration_seconds:p99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le))
+
+      # Error Rate
+      - record: job:http_requests_error:rate5m
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+
+      - record: job:http_requests_error_ratio:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)
+
+      # CPU Usage
+      - record: instance:node_cpu_utilization:ratio
+        expr: 1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)
+
+      - record: job:node_cpu_utilization:avg
+        expr: avg(instance:node_cpu_utilization:ratio) by (job)
+
+      # Memory Usage
+      - record: instance:node_memory_utilization:ratio
+        expr: |
+          1 - (
+            node_memory_MemAvailable_bytes
+            /
+            node_memory_MemTotal_bytes
+          )
+
+      - record: job:node_memory_utilization:avg
+        expr: avg(instance:node_memory_utilization:ratio) by (job)
+
+      # Disk Usage
+      - record: instance:node_disk_utilization:ratio
+        expr: |
+          1 - (
+            node_filesystem_avail_bytes{fstype!="tmpfs"}
+            /
+            node_filesystem_size_bytes{fstype!="tmpfs"}
+          )
+
+      # Database Connection Pool
+      - record: job:db_connection_pool_usage:ratio
+        expr: |
+          sum(db_connection_pool_active) by (job)
+          /
+          sum(db_connection_pool_max) by (job)
+
+      # Database Query Performance
+      - record: job:db_query_duration_seconds:p95
+        expr: histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (job, le))
+
+      - record: job:db_query_duration_seconds:p99
+        expr: histogram_quantile(0.99, sum(rate(db_query_duration_seconds_bucket[5m])) by (job, le))
+
+      # Cache Hit Rate
+      - record: job:cache_hit_ratio:rate5m
+        expr: |
+          sum(rate(cache_hits_total[5m])) by (job)
+          /
+          (sum(rate(cache_hits_total[5m])) by (job) + sum(rate(cache_misses_total[5m])) by (job))
+
+      # Container Resource Usage
+      - record: container:cpu_usage_seconds:rate5m
+        expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (container, pod, namespace)
+
+      - record: container:memory_usage_bytes:avg
+        expr: avg(container_memory_usage_bytes) by (container, pod, namespace)
+
+      # Network Traffic
+      - record: instance:network_receive_bytes:rate5m
+        expr: sum(rate(node_network_receive_bytes_total[5m])) by (instance)
+
+      - record: instance:network_transmit_bytes:rate5m
+        expr: sum(rate(node_network_transmit_bytes_total[5m])) by (instance)
+
+      # Application-specific metrics
+      - record: job:insurance_policy_created:rate5m
+        expr: sum(rate(insurance_policy_created_total[5m])) by (job)
+
+      - record: job:insurance_claim_processed:rate5m
+        expr: sum(rate(insurance_claim_processed_total[5m])) by (job)
+
+      - record: job:agent_task_duration_seconds:p95
+        expr: histogram_quantile(0.95, sum(rate(agent_task_duration_seconds_bucket[5m])) by (job, agent_type, le))
+
+      # SLI/SLO Metrics
+      - record: sli:http_request_success:ratio_rate5m
+        expr: |
+          sum(rate(http_requests_total{status!~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total[5m]))
+
+      - record: sli:http_request_fast:ratio_rate5m
+        expr: |
+          sum(rate(http_request_duration_seconds_bucket{le="0.5"}[5m]))
+          /
+          sum(rate(http_request_duration_seconds_count[5m]))

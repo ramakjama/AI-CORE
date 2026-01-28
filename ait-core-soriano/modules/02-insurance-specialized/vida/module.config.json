@@ -1,0 +1,50 @@
+{
+  "moduleName": "seguro-vida",
+  "displayName": "Seguros de Vida",
+  "version": "1.0.0",
+  "category": "insurance-specialized",
+  "market": "spain",
+  "enabled": true,
+  "features": {
+    "vida_entera": true,
+    "vida_temporal": true,
+    "vida_riesgo": true,
+    "vida_ahorro": true,
+    "invalidez": true,
+    "dependencia": true,
+    "rentas": true,
+    "accidentes": true
+  },
+  "regulations": {
+    "dgsfp": true,
+    "lossp": true,
+    "rgpd": true,
+    "mifid2": false
+  },
+  "integrations": {
+    "calculadora_primas": true,
+    "tablas_mortalidad": true,
+    "scoring_medico": true,
+    "beneficiarios": true,
+    "clausulas_especiales": true
+  },
+  "tarificacion": {
+    "edad_minima": 18,
+    "edad_maxima": 75,
+    "capital_minimo": 6000,
+    "capital_maximo": 1000000,
+    "factores": [
+      "edad",
+      "sexo",
+      "profesion",
+      "estado_salud",
+      "habitos",
+      "deportes_riesgo"
+    ]
+  },
+  "documentation": {
+    "api": "/docs/vida",
+    "schemas": "/schemas/vida",
+    "guides": "/guides/vida"
+  }
+}

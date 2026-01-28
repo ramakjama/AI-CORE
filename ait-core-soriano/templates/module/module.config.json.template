@@ -1,0 +1,62 @@
+{
+  "moduleId": "{{MODULE_ID}}",
+  "moduleName": "{{MODULE_NAME}}",
+  "category": "{{CATEGORY}}",
+  "version": "1.0.0",
+  "enabled": false,
+  "priority": "{{PRIORITY}}",
+  "description": "{{DESCRIPTION}}",
+  "icon": "{{ICON}}",
+  "color": "{{COLOR}}",
+  "port": {{PORT}},
+  "database": "{{DATABASE_NAME}}",
+  "dependencies": {
+    "required": [{{REQUIRED_DEPS}}],
+    "optional": [{{OPTIONAL_DEPS}}]
+  },
+  "capabilities": [{{CAPABILITIES}}],
+  "endpoints": {
+    "api": "http://localhost:{{PORT}}/api/v1/{{MODULE_ID}}",
+    "health": "http://localhost:{{PORT}}/health",
+    "swagger": "http://localhost:{{PORT}}/api-docs"
+  },
+  "agent": {
+    "enabled": true,
+    "parallelAgents": 100,
+    "modes": {
+      "switch": true,
+      "edit": true,
+      "plain": true,
+      "bypass": {
+        "enabled": false,
+        "warning": "DANGER: Bypass mode disables all safety checks"
+      }
+    },
+    "features": {
+      "contextMemory": true,
+      "learningMode": true,
+      "autoOptimize": true,
+      "multimodal": true,
+      "realtimeProcessing": true
+    }
+  },
+  "performance": {
+    "cacheEnabled": true,
+    "cacheTTL": 3600,
+    "maxConnections": 100,
+    "timeout": 30000
+  },
+  "security": {
+    "authentication": "required",
+    "authorization": "rbac",
+    "rateLimiting": {
+      "enabled": true,
+      "maxRequests": 100,
+      "windowMs": 60000
+    },
+    "encryption": {
+      "dataAtRest": true,
+      "dataInTransit": true
+    }
+  }
+}

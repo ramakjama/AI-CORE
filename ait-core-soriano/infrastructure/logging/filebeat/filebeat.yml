@@ -1,0 +1,101 @@
+# Filebeat Configuration for Docker Container Logs
+# https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-reference-yml.html
+
+# ============================== Filebeat Inputs ===============================
+
+filebeat.inputs:
+  # Docker container logs
+  - type: container
+    enabled: true
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+
+    # Include specific containers only
+    # containers.ids:
+    #   - '*'
+
+    # Processors to add metadata
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+          match_fields: ["container.id"]
+          labels.dedot: true
+
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+          overwrite_keys: true
+          add_error_key: true
+          max_depth: 3
+
+      - drop_fields:
+          fields: ["agent.ephemeral_id", "agent.id", "ecs.version", "host.name"]
+          ignore_missing: true
+
+# ============================= Filebeat Modules ===============================
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# ======================= Elasticsearch Template Settings =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+
+# ================================== Outputs ===================================
+
+# Output to Logstash
+output.logstash:
+  hosts: ["logstash:5044"]
+  compression_level: 3
+  loadbalance: true
+  worker: 2
+  bulk_max_size: 2048
+
+# Uncomment for direct Elasticsearch output (disable logstash output first)
+# output.elasticsearch:
+#   hosts: ["elasticsearch:9200"]
+#   protocol: "http"
+#   compression_level: 3
+#   bulk_max_size: 2048
+
+# ================================= Processors =================================
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+
+  - add_cloud_metadata: ~
+
+  - add_docker_metadata: ~
+
+  - add_kubernetes_metadata: ~
+
+# ================================== Logging ===================================
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# ================================ HTTP Endpoint ================================
+
+http.enabled: true
+http.host: 0.0.0.0
+http.port: 5066
+
+# ============================== X-Pack Monitoring ==============================
+
+monitoring.enabled: false
+
+# ============================= Queue Settings ==================================
+
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s

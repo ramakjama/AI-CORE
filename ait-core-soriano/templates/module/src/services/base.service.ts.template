@@ -1,0 +1,153 @@
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from '../shared/prisma.service';
+import { Create{{ENTITY_NAME}}Dto } from '../dto/create-{{ENTITY_NAME_KEBAB}}.dto';
+import { Update{{ENTITY_NAME}}Dto } from '../dto/update-{{ENTITY_NAME_KEBAB}}.dto';
+
+interface FindAllOptions {
+  limit: number;
+  offset: number;
+  filters?: any;
+}
+
+@Injectable()
+export class {{MODULE_NAME_PASCAL}}Service {
+  private readonly logger = new Logger({{MODULE_NAME_PASCAL}}Service.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
+
+  /**
+   * Create new {{ENTITY_NAME}}
+   */
+  async create(createDto: Create{{ENTITY_NAME}}Dto) {
+    try {
+      this.logger.log(`Creating {{ENTITY_NAME}}: ${JSON.stringify(createDto)}`);
+
+      const {{ENTITY_NAME_CAMEL}} = await this.prisma.{{ENTITY_NAME_CAMEL}}.create({
+        data: {
+          ...createDto,
+          createdBy: 'system', // TODO: Get from auth context
+          updatedBy: 'system',
+        },
+      });
+
+      this.logger.log(`{{ENTITY_NAME}} created successfully: ${{{ENTITY_NAME_CAMEL}}.id}`);
+      return {{ENTITY_NAME_CAMEL}};
+    } catch (error) {
+      this.logger.error(`Error creating {{ENTITY_NAME}}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to create {{ENTITY_NAME}}');
+    }
+  }
+
+  /**
+   * Find all {{ENTITY_NAME_PLURAL}} with pagination
+   */
+  async findAll(options: FindAllOptions) {
+    try {
+      const { limit, offset, filters } = options;
+
+      const [items, total] = await Promise.all([
+        this.prisma.{{ENTITY_NAME_CAMEL}}.findMany({
+          where: filters,
+          take: limit,
+          skip: offset,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+        this.prisma.{{ENTITY_NAME_CAMEL}}.count({ where: filters }),
+      ]);
+
+      return {
+        items,
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total,
+      };
+    } catch (error) {
+      this.logger.error(`Error listing {{ENTITY_NAME_PLURAL}}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to list {{ENTITY_NAME_PLURAL}}');
+    }
+  }
+
+  /**
+   * Find one {{ENTITY_NAME}} by ID
+   */
+  async findOne(id: string) {
+    try {
+      const {{ENTITY_NAME_CAMEL}} = await this.prisma.{{ENTITY_NAME_CAMEL}}.findUnique({
+        where: { id },
+      });
+
+      if (!{{ENTITY_NAME_CAMEL}}) {
+        throw new NotFoundException(`{{ENTITY_NAME}} not found: ${id}`);
+      }
+
+      return {{ENTITY_NAME_CAMEL}};
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Error finding {{ENTITY_NAME}}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to find {{ENTITY_NAME}}');
+    }
+  }
+
+  /**
+   * Update {{ENTITY_NAME}}
+   */
+  async update(id: string, updateDto: Update{{ENTITY_NAME}}Dto) {
+    try {
+      // Verify exists
+      await this.findOne(id);
+
+      const updated = await this.prisma.{{ENTITY_NAME_CAMEL}}.update({
+        where: { id },
+        data: {
+          ...updateDto,
+          updatedBy: 'system', // TODO: Get from auth context
+        },
+      });
+
+      this.logger.log(`{{ENTITY_NAME}} updated successfully: ${id}`);
+      return updated;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Error updating {{ENTITY_NAME}}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to update {{ENTITY_NAME}}');
+    }
+  }
+
+  /**
+   * Delete {{ENTITY_NAME}}
+   */
+  async remove(id: string) {
+    try {
+      // Verify exists
+      await this.findOne(id);
+
+      await this.prisma.{{ENTITY_NAME_CAMEL}}.delete({
+        where: { id },
+      });
+
+      this.logger.log(`{{ENTITY_NAME}} deleted successfully: ${id}`);
+      return { deleted: true, id };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Error deleting {{ENTITY_NAME}}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to delete {{ENTITY_NAME}}');
+    }
+  }
+}

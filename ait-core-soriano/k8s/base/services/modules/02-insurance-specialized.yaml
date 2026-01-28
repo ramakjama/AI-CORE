@@ -1,0 +1,544 @@
+# INSURANCE SPECIALIZED SERVICES
+# Category: 02-insurance-specialized
+# Total services: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agrario
+  namespace: ait-core
+  labels:
+    app: agrario
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: agrario
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ahorro
+  namespace: ait-core
+  labels:
+    app: ahorro
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ahorro
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autos
+  namespace: ait-core
+  labels:
+    app: autos
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: autos
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caucion
+  namespace: ait-core
+  labels:
+    app: caucion
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: caucion
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ciber
+  namespace: ait-core
+  labels:
+    app: ciber
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ciber
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comunidades
+  namespace: ait-core
+  labels:
+    app: comunidades
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: comunidades
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: credito
+  namespace: ait-core
+  labels:
+    app: credito
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: credito
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: decesos
+  namespace: ait-core
+  labels:
+    app: decesos
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: decesos
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: empresas
+  namespace: ait-core
+  labels:
+    app: empresas
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: empresas
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hogar
+  namespace: ait-core
+  labels:
+    app: hogar
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: hogar
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: industrial
+  namespace: ait-core
+  labels:
+    app: industrial
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: industrial
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingenieria
+  namespace: ait-core
+  labels:
+    app: ingenieria
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ingenieria
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mascotas
+  namespace: ait-core
+  labels:
+    app: mascotas
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: mascotas
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multirriesgo
+  namespace: ait-core
+  labels:
+    app: multirriesgo
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: multirriesgo
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pensiones
+  namespace: ait-core
+  labels:
+    app: pensiones
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: pensiones
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rc
+  namespace: ait-core
+  labels:
+    app: rc
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: rc
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: salud
+  namespace: ait-core
+  labels:
+    app: salud
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: salud
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transporte
+  namespace: ait-core
+  labels:
+    app: transporte
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: transporte
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unit-linked
+  namespace: ait-core
+  labels:
+    app: unit-linked
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: unit-linked
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vida
+  namespace: ait-core
+  labels:
+    app: vida
+    category: insurance-specialized
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: vida
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # DATABASES
+  # ============================================================================
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: aitcore-postgres
+    environment:
+      POSTGRES_DB: aitcore_dev
+      POSTGRES_USER: aitcore
+      POSTGRES_PASSWORD: dev_password_change_in_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - aitcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aitcore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aitcore-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - aitcore-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    container_name: aitcore-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: aitcore
+      MONGO_INITDB_ROOT_PASSWORD: dev_password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - aitcore-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  mongodb-data:
+
+networks:
+  aitcore-network:
+    driver: bridge

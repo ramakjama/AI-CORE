@@ -1,0 +1,108 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { {{MODULE_NAME_PASCAL}}Service } from '../services/{{MODULE_NAME_KEBAB}}.service';
+import { Create{{ENTITY_NAME}}Dto } from '../dto/create-{{ENTITY_NAME_KEBAB}}.dto';
+import { Update{{ENTITY_NAME}}Dto } from '../dto/update-{{ENTITY_NAME_KEBAB}}.dto';
+
+@ApiTags('{{MODULE_TAG}}')
+@Controller('{{MODULE_ROUTE}}')
+@ApiBearerAuth()
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+export class {{MODULE_NAME_PASCAL}}Controller {
+  private readonly logger = new Logger({{MODULE_NAME_PASCAL}}Controller.name);
+
+  constructor(
+    private readonly {{MODULE_NAME_CAMEL}}Service: {{MODULE_NAME_PASCAL}}Service,
+  ) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create {{ENTITY_NAME}}' })
+  @ApiResponse({ status: 201, description: '{{ENTITY_NAME}} created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async create(@Body() createDto: Create{{ENTITY_NAME}}Dto) {
+    this.logger.log(`Creating {{ENTITY_NAME}}: ${JSON.stringify(createDto)}`);
+    return this.{{MODULE_NAME_CAMEL}}Service.create(createDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'List all {{ENTITY_NAME_PLURAL}}' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'List retrieved successfully' })
+  async findAll(
+    @Query('limit') limit: number = 20,
+    @Query('offset') offset: number = 0,
+  ) {
+    this.logger.log(`Listing {{ENTITY_NAME_PLURAL}}: limit=${limit}, offset=${offset}`);
+    return this.{{MODULE_NAME_CAMEL}}Service.findAll({ limit, offset });
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get {{ENTITY_NAME}} by ID' })
+  @ApiParam({ name: 'id', description: '{{ENTITY_NAME}} ID' })
+  @ApiResponse({ status: 200, description: '{{ENTITY_NAME}} found' })
+  @ApiResponse({ status: 404, description: '{{ENTITY_NAME}} not found' })
+  async findOne(@Param('id') id: string) {
+    this.logger.log(`Getting {{ENTITY_NAME}}: ${id}`);
+    return this.{{MODULE_NAME_CAMEL}}Service.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update {{ENTITY_NAME}}' })
+  @ApiParam({ name: 'id', description: '{{ENTITY_NAME}} ID' })
+  @ApiResponse({ status: 200, description: '{{ENTITY_NAME}} updated successfully' })
+  @ApiResponse({ status: 404, description: '{{ENTITY_NAME}} not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: Update{{ENTITY_NAME}}Dto,
+  ) {
+    this.logger.log(`Updating {{ENTITY_NAME}}: ${id}`);
+    return this.{{MODULE_NAME_CAMEL}}Service.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete {{ENTITY_NAME}}' })
+  @ApiParam({ name: 'id', description: '{{ENTITY_NAME}} ID' })
+  @ApiResponse({ status: 204, description: '{{ENTITY_NAME}} deleted successfully' })
+  @ApiResponse({ status: 404, description: '{{ENTITY_NAME}} not found' })
+  async remove(@Param('id') id: string) {
+    this.logger.log(`Deleting {{ENTITY_NAME}}: ${id}`);
+    return this.{{MODULE_NAME_CAMEL}}Service.remove(id);
+  }
+
+  @Get('health/check')
+  @ApiOperation({ summary: 'Health check' })
+  @ApiResponse({ status: 200, description: 'Service is healthy' })
+  async health() {
+    return {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: '{{MODULE_NAME}}',
+    };
+  }
+}

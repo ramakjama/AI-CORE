@@ -1,0 +1,37 @@
+{
+  "moduleName": "seguro-salud",
+  "displayName": "Seguros de Salud",
+  "version": "1.0.0",
+  "category": "insurance-specialized",
+  "market": "spain",
+  "enabled": true,
+  "features": {
+    "cuadro_medico": true,
+    "reembolso_gastos": true,
+    "hospitalizacion": true,
+    "urgencias": true,
+    "especialistas": true,
+    "pruebas_diagnosticas": true,
+    "dental": true,
+    "segunda_opinion": true
+  },
+  "regulations": {
+    "dgsfp": true,
+    "ley_sanidad": true,
+    "rgpd": true,
+    "lopd": true
+  },
+  "integrations": {
+    "cuadro_medico_api": true,
+    "citas_online": true,
+    "autorizaciones": true,
+    "reembolsos": true,
+    "tarjeta_salud": true
+  },
+  "modalidades": {
+    "sin_copagos": true,
+    "con_copagos": true,
+    "reembolso": true,
+    "mixto": true
+  }
+}

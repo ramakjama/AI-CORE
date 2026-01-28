@@ -1,0 +1,36 @@
+{
+  "name": "@ait-core/load-tests",
+  "version": "1.0.0",
+  "description": "K6 Load Testing Suite for AIT-CORE Production APIs",
+  "private": true,
+  "scripts": {
+    "test:smoke": "k6 run tests/smoke-test.js",
+    "test:load": "k6 run tests/load-test.js",
+    "test:stress": "k6 run tests/stress-test.js",
+    "test:spike": "k6 run tests/spike-test.js",
+    "test:soak": "k6 run tests/soak-test.js",
+    "test:auth": "k6 run tests/api/auth-api-test.js",
+    "test:gateway": "k6 run tests/api/gateway-test.js",
+    "test:datahub": "k6 run tests/api/datahub-api-test.js",
+    "test:notifications": "k6 run tests/api/notifications-api-test.js",
+    "test:documents": "k6 run tests/api/documents-api-test.js",
+    "test:all": "k6 run tests/comprehensive-test.js",
+    "test:production": "k6 run --out influxdb=http://localhost:8086/k6 tests/production-load-test.js",
+    "report": "k6 run --out json=reports/results.json tests/load-test.js",
+    "cloud": "k6 cloud tests/cloud-test.js",
+    "benchmark": "node scripts/run-benchmarks.js",
+    "capacity": "node scripts/capacity-planning.js"
+  },
+  "keywords": [
+    "k6",
+    "load-testing",
+    "performance",
+    "stress-testing",
+    "benchmarking"
+  ],
+  "author": "AIT-CORE Team",
+  "license": "MIT",
+  "devDependencies": {
+    "k6": "^0.0.0"
+  }
+}

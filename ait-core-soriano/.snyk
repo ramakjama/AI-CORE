@@ -1,0 +1,39 @@
+# Snyk (https://snyk.io) policy file
+# Documentation: https://support.snyk.io/hc/en-us/articles/360007487097-The-snyk-file
+
+version: v1.25.0
+
+# Ignore specific vulnerabilities
+# Format:
+# ignore:
+#   SNYK-JS-PACKAGENAME-VULNERABILITY_ID:
+#     - '**':
+#         reason: Explanation here
+#         expires: 'YYYY-MM-DD'
+
+ignore: {}
+
+# Patch specific vulnerabilities
+patch: {}
+
+# Exclude paths from scanning
+exclude:
+  global:
+    - node_modules/**
+    - dist/**
+    - build/**
+    - coverage/**
+    - '*.test.ts'
+    - '*.spec.ts'
+    - '*.mock.ts'
+
+# Language settings
+language-settings:
+  javascript:
+    ignore-dev-dependencies: false
+
+# Fail on severity threshold
+failOn: high
+
+# Organization settings (configure after Snyk setup)
+# org: soriano-mediadores

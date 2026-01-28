@@ -1,0 +1,27 @@
+{
+  "moduleId": "ait-billing",
+  "moduleName": "AIT Billing",
+  "category": "01-core-business",
+  "version": "1.0.0",
+  "enabled": false,
+  "priority": "high",
+  "description": "Facturación automática con IA",
+  "icon": "🧾",
+  "color": "#2196F3",
+  "port": 3006,
+  "database": "billing_db",
+  "dependencies": {
+    "required": ["ait-accountant", "ait-treasury"],
+    "optional": []
+  },
+  "agent": {
+    "enabled": true,
+    "parallelAgents": 100,
+    "modes": {
+      "switch": true,
+      "edit": true,
+      "plain": true,
+      "bypass": { "enabled": false }
+    }
+  }
+}

@@ -1,0 +1,85 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ait-core
+
+resources:
+  # Namespace
+  - ../namespace.yaml
+
+  # RBAC
+  - ../rbac/rbac.yaml
+
+  # ConfigMaps
+  - ../configmaps/ait-core-config.yaml
+  - ../configmaps/modules-config.yaml
+
+  # Secrets (template - must be created separately)
+  # - ../secrets/ait-core-secrets.yaml
+
+  # Application Deployments
+  - deployments/api-deployment.yaml
+  - deployments/web-deployment.yaml
+  - deployments/admin-deployment.yaml
+  - deployments/mobile-deployment.yaml
+
+  # Infrastructure
+  - deployments/postgresql-statefulset.yaml
+  - deployments/redis-statefulset.yaml
+
+  # Module Deployments (all 57 modules)
+  - deployments/modules/01-core-business.yaml
+  - deployments/modules/02-insurance-specialized.yaml
+  - deployments/modules/03-marketing-sales.yaml
+  - deployments/modules/04-analytics-intelligence.yaml
+  - deployments/modules/05-security-compliance.yaml
+  - deployments/modules/06-infrastructure.yaml
+  - deployments/modules/07-integration-automation.yaml
+
+  # Services
+  - services/api-service.yaml
+  - services/web-service.yaml
+  - services/admin-service.yaml
+  - services/mobile-service.yaml
+
+  # Module Services
+  - services/modules/01-core-business.yaml
+  - services/modules/02-insurance-specialized.yaml
+  - services/modules/03-marketing-sales.yaml
+  - services/modules/04-analytics-intelligence.yaml
+  - services/modules/05-security-compliance.yaml
+  - services/modules/06-infrastructure.yaml
+  - services/modules/07-integration-automation.yaml
+
+  # Ingress
+  - ../ingress/cert-issuer.yaml
+  - ../ingress/ingress.yaml
+
+  # HPA
+  - ../hpa/apps-hpa.yaml
+  - ../hpa/modules-hpa.yaml
+
+  # Monitoring
+  - ../monitoring/servicemonitors.yaml
+  - ../monitoring/prometheus-rules.yaml
+
+  # Network Policies
+  - ../network-policies/network-policies.yaml
+
+commonLabels:
+  app.kubernetes.io/name: ait-core
+  app.kubernetes.io/managed-by: kustomize
+
+images:
+  - name: ait-core/api
+    newName: your-registry/ait-core-api
+    newTag: latest
+  - name: ait-core/web
+    newName: your-registry/ait-core-web
+    newTag: latest
+  - name: ait-core/admin
+    newName: your-registry/ait-core-admin
+    newTag: latest
+  - name: ait-core/mobile-api
+    newName: your-registry/ait-core-mobile-api
+    newTag: latest

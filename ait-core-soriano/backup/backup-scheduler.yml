@@ -1,0 +1,73 @@
+# Docker Compose service for backup scheduling
+# Add this to your main docker-compose.yml or use as standalone
+
+version: '3.8'
+
+services:
+  backup-scheduler:
+    image: alpine:3.18
+    container_name: ait-backup-scheduler
+    restart: unless-stopped
+    volumes:
+      - ./backup:/backup:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - postgres_data:/var/lib/postgresql/data:ro
+      - redis_data:/data:ro
+      - minio_data:/minio-data:ro
+      - elasticsearch_data:/usr/share/elasticsearch/data:ro
+    environment:
+      - BACKUP_ROOT=/backup
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=aitcore
+      - DB_NAME=soriano_core
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - ES_HOST=elasticsearch
+      - ES_PORT=9200
+      - RETENTION_DAYS=30
+      - S3_BUCKET=${S3_BUCKET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK}
+    networks:
+      - ait-network
+    entrypoint: /bin/sh
+    command: |
+      -c "
+      apk add --no-cache bash postgresql-client redis aws-cli curl tar gzip
+
+      # Install MinIO client
+      wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
+      chmod +x /usr/local/bin/mc
+
+      # Setup cron
+      echo '0 2 * * * cd /backup && bash backup-all.sh >> /backup/cron.log 2>&1' > /etc/crontabs/root
+      echo '0 */6 * * * cd /backup && bash backup-postgres.sh >> /backup/postgres-cron.log 2>&1' >> /etc/crontabs/root
+      echo '0 */4 * * * cd /backup && bash backup-redis.sh >> /backup/redis-cron.log 2>&1' >> /etc/crontabs/root
+      echo '0 3 * * * cd /backup && bash backup-minio.sh >> /backup/minio-cron.log 2>&1' >> /etc/crontabs/root
+      echo '0 4 * * * cd /backup && bash backup-elasticsearch.sh >> /backup/es-cron.log 2>&1' >> /etc/crontabs/root
+      echo '0 1 * * 0 cd /backup && bash verify-backups.sh >> /backup/verify.log 2>&1' >> /etc/crontabs/root
+
+      # Start cron
+      crond -f -l 2
+      "
+
+volumes:
+  postgres_data:
+    external: true
+  redis_data:
+    external: true
+  minio_data:
+    external: true
+  elasticsearch_data:
+    external: true
+
+networks:
+  ait-network:
+    external: true

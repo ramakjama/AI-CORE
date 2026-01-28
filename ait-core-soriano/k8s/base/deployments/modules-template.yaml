@@ -1,0 +1,132 @@
+# Template for Module Deployments
+# This file serves as a template. Actual deployments are generated for each module.
+
+# Module Categories:
+# - 01-core-business: ai-accountant, ai-treasury
+# - 02-insurance-specialized: agrario, ahorro, autos, caucion, ciber, comunidades, credito, decesos, empresas, hogar, industrial, ingenieria, mascotas, multirriesgo, pensiones, rc, salud, transporte, unit-linked, vida
+# - 03-marketing-sales: ai-brand-manager, ai-campaign-manager, ai-conversion-optimizer, ai-customer-journey, ai-influencer-manager, ai-lead-generation, ai-loyalty-programs, ai-marketing, ai-pricing-optimizer, ai-referral-engine
+# - 04-analytics-intelligence: ai-business-intelligence, ai-customer-analytics, ai-data-analyst, ai-operational-analytics, ai-predictive-analytics, ai-risk-analytics
+# - 05-security-compliance: ai-audit-trail, ai-compliance, ai-defender, ai-fraud-detection
+# - 06-infrastructure: ait-api-gateway, ait-authenticator, ait-datahub, ait-document-service, ait-notification-service
+# - 07-integration-automation: ait-connector, ait-nerve
+
+---
+# CORE BUSINESS MODULES
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-accountant
+  namespace: ait-core
+  labels:
+    app: ai-accountant
+    category: core-business
+    tier: module
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-accountant
+  template:
+    metadata:
+      labels:
+        app: ai-accountant
+        category: core-business
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: ait-core-sa
+      containers:
+        - name: ai-accountant
+          image: ait-core/ai-accountant:latest
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 9090
+              name: metrics
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-treasury
+  namespace: ait-core
+  labels:
+    app: ai-treasury
+    category: core-business
+    tier: module
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-treasury
+  template:
+    metadata:
+      labels:
+        app: ai-treasury
+        category: core-business
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: ait-core-sa
+      containers:
+        - name: ai-treasury
+          image: ait-core/ai-treasury:latest
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 9090
+              name: metrics
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5

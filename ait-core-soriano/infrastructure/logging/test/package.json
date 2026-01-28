@@ -1,0 +1,19 @@
+{
+  "name": "elk-test-logs",
+  "version": "1.0.0",
+  "description": "Test log generator for ELK Stack",
+  "scripts": {
+    "test:logs": "ts-node generate-test-logs.ts",
+    "test:logs:1k": "ts-node generate-test-logs.ts 1000 100",
+    "test:logs:10k": "ts-node generate-test-logs.ts 10000 50",
+    "test:logs:fast": "ts-node generate-test-logs.ts 1000 0"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  }
+}

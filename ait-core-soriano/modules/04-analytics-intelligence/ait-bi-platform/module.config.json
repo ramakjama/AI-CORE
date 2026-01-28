@@ -1,0 +1,72 @@
+{
+  "moduleId": "ait-bi-platform",
+  "moduleName": "AIT Business Intelligence Platform",
+  "category": "04-analytics-intelligence",
+  "version": "1.0.0",
+  "enabled": true,
+  "priority": "high",
+  "description": "Comprehensive Business Intelligence platform with interactive dashboards, reports, and data visualizations",
+  "capabilities": [
+    "interactive-dashboards",
+    "custom-reports",
+    "data-visualization",
+    "kpi-tracking",
+    "drill-down-analytics",
+    "cross-filtering",
+    "export-reports",
+    "scheduled-reports",
+    "real-time-updates",
+    "multi-dimensional-analysis"
+  ],
+  "dependencies": {
+    "required": [
+      "ai-data-analyst",
+      "ait-data-warehouse"
+    ],
+    "optional": [
+      "ait-kpi-dashboard",
+      "ait-reporting-engine"
+    ]
+  },
+  "resources": {
+    "cpu": "high",
+    "memory": "2Gi",
+    "storage": "10Gi"
+  },
+  "api": {
+    "rest": {
+      "enabled": true,
+      "basePath": "/api/v1/bi",
+      "authentication": "required"
+    },
+    "graphql": {
+      "enabled": true
+    },
+    "websocket": {
+      "enabled": true,
+      "events": ["dashboard.updated", "report.generated", "data.refreshed"]
+    }
+  },
+  "database": {
+    "tables": [
+      "bi_dashboards",
+      "bi_widgets",
+      "bi_reports",
+      "bi_queries",
+      "bi_data_sources",
+      "bi_visualizations"
+    ],
+    "migrations": true
+  },
+  "security": {
+    "encryption": true,
+    "auditLog": true,
+    "dataRetention": "2years",
+    "compliance": ["GDPR", "SOC2"]
+  },
+  "monitoring": {
+    "healthCheck": true,
+    "metrics": true,
+    "alerting": true
+  }
+}

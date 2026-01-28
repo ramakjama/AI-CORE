@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Póliza</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .header-subtitle {
+            color: #e0e7ff;
+            font-size: 14px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .notification-type {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-new {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .badge-renewal {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .badge-expiring {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .badge-updated {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+        }
+        .title {
+            font-size: 28px;
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .policy-card {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .policy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .policy-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .policy-type {
+            background-color: #3b82f6;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .policy-details {
+            margin: 15px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        .highlight-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight-box p {
+            margin: 5px 0;
+            color: #92400e;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff !important;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .cta-secondary {
+            background-color: transparent;
+            border: 2px solid #3b82f6;
+            color: #3b82f6 !important;
+        }
+        .info-section {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .info-section h4 {
+            color: #1e3a8a;
+            margin-top: 0;
+        }
+        .info-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #4b5563;
+            line-height: 1.8;
+        }
+        .footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .policy-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .policy-type {
+                margin-top: 10px;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+            .cta-button {
+                display: block;
+                text-align: center;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SORIANO MEDIADORES</div>
+            <div class="header-subtitle">Gestión de Pólizas de Seguros</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="notification-type">
+                <span class="badge badge-{{notification_class}}">{{notification_type}}</span>
+            </div>
+
+            <div class="title">{{notification_title}}</div>
+
+            <div class="message">
+                <p>Hola <strong>{{user_name}}</strong>,</p>
+                <p>{{notification_message}}</p>
+            </div>
+
+            <div class="policy-card">
+                <div class="policy-header">
+                    <div class="policy-number">Póliza #{{policy_number}}</div>
+                    <div class="policy-type">{{policy_type}}</div>
+                </div>
+
+                <div class="policy-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Compañía aseguradora:</span>
+                        <span class="detail-value">{{insurance_company}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tomador:</span>
+                        <span class="detail-value">{{policyholder}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Fecha de inicio:</span>
+                        <span class="detail-value">{{start_date}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Fecha de vencimiento:</span>
+                        <span class="detail-value">{{expiry_date}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Prima anual:</span>
+                        <span class="detail-value">{{premium_amount}} €</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Estado:</span>
+                        <span class="detail-value" style="color: {{status_color}};">{{policy_status}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conditional sections based on notification type -->
+            {{#if is_expiring}}
+            <div class="highlight-box">
+                <p><strong>⚠️ Acción requerida:</strong></p>
+                <p>Tu póliza vence en <strong>{{days_until_expiry}} días</strong>. Para mantener tu cobertura sin interrupciones, por favor renueva tu póliza antes del {{expiry_date}}.</p>
+            </div>
+            {{/if}}
+
+            {{#if is_renewal}}
+            <div class="highlight-box">
+                <p><strong>🔄 Renovación disponible:</strong></p>
+                <p>Ya puedes renovar tu póliza. Hemos preparado una propuesta con condiciones actualizadas para el próximo periodo.</p>
+            </div>
+            {{/if}}
+
+            <center>
+                <a href="{{policy_link}}" class="cta-button">Ver detalles de la póliza</a>
+                {{#if show_renewal_button}}
+                <a href="{{renewal_link}}" class="cta-button">Renovar ahora</a>
+                {{/if}}
+                {{#if show_download_button}}
+                <a href="{{download_link}}" class="cta-button cta-secondary">Descargar póliza</a>
+                {{/if}}
+            </center>
+
+            <div class="info-section">
+                <h4>Información importante:</h4>
+                <ul>
+                    <li>Revisa periódicamente tus coberturas para asegurar que se ajustan a tus necesidades</li>
+                    <li>Mantén actualizados tus datos de contacto y de pago</li>
+                    <li>Consulta con nuestros asesores si tienes dudas sobre tu póliza</li>
+                    <li>Puedes gestionar todas tus pólizas desde tu área personal</li>
+                </ul>
+            </div>
+
+            <div class="message" style="margin-top: 30px;">
+                <p>Si tienes alguna pregunta o necesitas asesoramiento personalizado, nuestro equipo está disponible para ayudarte.</p>
+
+                <p><strong>Teléfono:</strong> {{contact_phone}}<br>
+                <strong>Email:</strong> {{contact_email}}<br>
+                <strong>Horario:</strong> Lunes a Viernes, 9:00 - 18:00</p>
+
+                <p>Atentamente,<br>
+                <strong>El equipo de Soriano Mediadores</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{base_url}}/polizas">Mis Pólizas</a>
+                <a href="{{base_url}}/ayuda">Centro de Ayuda</a>
+                <a href="{{base_url}}/contacto">Contacto</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                © {{year}} Soriano Mediadores. Todos los derechos reservados.<br>
+                {{company_address}}
+            </p>
+
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+                Has recibido este correo porque tienes una póliza activa con nosotros.<br>
+                <a href="{{preferences_link}}" style="color: #60a5fa;">Gestionar preferencias de correo</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

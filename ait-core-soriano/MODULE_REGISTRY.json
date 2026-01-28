@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-28T12:33:00Z",
+  "totalModules": 57,
+  "registry": {
+    "categories": {
+      "01-core-business": {
+        "name": "Core Business",
+        "description": "Módulos de negocio central",
+        "modules": 8,
+        "enabled": 1
+      },
+      "02-insurance-specialized": {
+        "name": "Insurance Specialized",
+        "description": "Módulos especializados en seguros",
+        "modules": 20,
+        "enabled": 0
+      },
+      "03-marketing-sales": {
+        "name": "Marketing & Sales",
+        "description": "Marketing y ventas",
+        "modules": 10,
+        "enabled": 0
+      },
+      "04-analytics-intelligence": {
+        "name": "Analytics & Intelligence",
+        "description": "Analítica e inteligencia",
+        "modules": 6,
+        "enabled": 0
+      },
+      "05-security-compliance": {
+        "name": "Security & Compliance",
+        "description": "Seguridad y cumplimiento",
+        "modules": 4,
+        "enabled": 0
+      },
+      "06-infrastructure": {
+        "name": "Infrastructure",
+        "description": "Infraestructura",
+        "modules": 5,
+        "enabled": 0
+      },
+      "07-integration-automation": {
+        "name": "Integration & Automation",
+        "description": "Integración y automatización",
+        "modules": 4,
+        "enabled": 0
+      }
+    },
+    "modules": [
+      {
+        "moduleId": "ait-pgc-engine",
+        "moduleName": "AIT-PGC-ENGINE",
+        "category": "01-core-business",
+        "version": "1.0.0",
+        "enabled": true,
+        "priority": "critical",
+        "status": "active",
+        "health": "healthy",
+        "dependencies": [],
+        "consumers": ["ait-accountant", "ait-treasury", "ait-billing"],
+        "lastHealthCheck": "2026-01-28T12:33:00Z",
+        "endpoints": {
+          "api": "http://localhost:3001/api/v1/pgc-engine",
+          "health": "http://localhost:3001/health",
+          "swagger": "http://localhost:3001/api-docs"
+        }
+      }
+    ]
+  },
+  "dependencyGraph": {},
+  "health": {
+    "lastCheck": null,
+    "healthyModules": 0,
+    "degradedModules": 0,
+    "unhealthyModules": 0
+  }
+}

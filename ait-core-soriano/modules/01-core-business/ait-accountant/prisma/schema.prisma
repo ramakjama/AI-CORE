@@ -1,0 +1,313 @@
+// Prisma Schema para AI-ACCOUNTANT
+// Base de datos: accounting_db
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ACCOUNTING ENTRY (Asiento Contable)
+// ============================================
+
+model AccountingEntry {
+  id              String    @id @default(uuid())
+  entryNumber     String    @unique
+  entryDate       DateTime
+  description     String
+  totalDebit      Decimal   @db.Decimal(15, 2)
+  totalCredit     Decimal   @db.Decimal(15, 2)
+  status          EntryStatus  @default(DRAFT)
+  fiscalYear      String
+  period          String    // 01-12
+  postDate        DateTime?
+  postedBy        String?
+  reviewedBy      String?
+  reviewDate      DateTime?
+
+  // Relaciones
+  lines           AccountingLine[]
+
+  // Auditoría (23 campos estándar)
+  createdAt       DateTime  @default(now())
+  createdBy       String
+  updatedAt       DateTime  @updatedAt
+  updatedBy       String
+  deletedAt       DateTime?
+  deletedBy       String?
+  isDeleted       Boolean   @default(false)
+  version         Int       @default(1)
+
+  // Multi-tenancy
+  companyId       String
+  tenantId        String
+
+  // Metadata
+  notes           String?
+  tags            String[]
+  attachments     Json?
+  metadata        Json?
+
+  // Control
+  locked          Boolean   @default(false)
+  lockedBy        String?
+  lockedAt        DateTime?
+
+  // Trazabilidad
+  sourceModule    String?   // De dónde viene: AI-BILLING, AI-TREASURY, etc.
+  sourceId        String?
+  externalRef     String?
+
+  @@index([fiscalYear, period])
+  @@index([entryDate])
+  @@index([status])
+  @@index([companyId, tenantId])
+  @@map("accounting_entries")
+}
+
+enum EntryStatus {
+  DRAFT
+  PENDING_REVIEW
+  REVIEWED
+  POSTED
+  CANCELLED
+}
+
+// ============================================
+// ACCOUNTING LINE (Línea de Asiento)
+// ============================================
+
+model AccountingLine {
+  id              String    @id @default(uuid())
+  entryId         String
+  entry           AccountingEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  // Cuenta contable
+  accountCode     String
+  accountName     String
+
+  // Importes
+  debit           Decimal   @default(0) @db.Decimal(15, 2)
+  credit          Decimal   @default(0) @db.Decimal(15, 2)
+
+  // Descripción
+  description     String
+
+  // Dimensiones analíticas
+  costCenter      String?
+  project         String?
+  department      String?
+  analytic1       String?
+  analytic2       String?
+  analytic3       String?
+
+  // Trazabilidad
+  sourceDocument  String?   // Factura, pago, etc.
+  sourceId        String?
+
+  // Metadata
+  lineNumber      Int       @default(autoincrement())
+  notes           String?
+
+  @@index([entryId])
+  @@index([accountCode])
+  @@map("accounting_lines")
+}
+
+// ============================================
+// BANK RECONCILIATION (Conciliación Bancaria)
+// ============================================
+
+model BankReconciliation {
+  id                    String    @id @default(uuid())
+
+  // Cuenta bancaria
+  bankAccountId         String
+  bankAccountName       String
+
+  // Periodo
+  reconciliationDate    DateTime
+  fiscalYear            String
+  period                String
+
+  // Saldos
+  openingBalance        Decimal   @db.Decimal(15, 2)
+  closingBalance        Decimal   @db.Decimal(15, 2)
+  bankClosingBalance    Decimal   @db.Decimal(15, 2)
+  difference            Decimal   @db.Decimal(15, 2)
+
+  // Estado
+  status                ReconciliationStatus @default(PENDING)
+
+  // Estadísticas
+  matchedTransactions   Int       @default(0)
+  unmatchedTransactions Int       @default(0)
+  totalTransactions     Int       @default(0)
+
+  // IA
+  aiConfidence          Float?    // 0-1
+  aiSuggestions         Json?
+
+  // Trazabilidad
+  reconciledBy          String?
+  reconciledAt          DateTime?
+  reviewedBy            String?
+  reviewedAt            DateTime?
+
+  // Auditoría
+  createdAt             DateTime  @default(now())
+  createdBy             String
+  updatedAt             DateTime  @updatedAt
+  updatedBy             String
+  companyId             String
+  tenantId              String
+
+  @@index([bankAccountId])
+  @@index([fiscalYear, period])
+  @@index([status])
+  @@map("bank_reconciliations")
+}
+
+enum ReconciliationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REVIEWED
+  APPROVED
+}
+
+// ============================================
+// PERIOD CLOSING (Cierre de Periodo)
+// ============================================
+
+model PeriodClosing {
+  id              String    @id @default(uuid())
+
+  // Periodo
+  fiscalYear      String
+  period          String    // 01-12 o "ANNUAL"
+  closingType     ClosingType
+
+  // Estado
+  status          ClosingStatus @default(PENDING)
+
+  // Fechas
+  startDate       DateTime
+  endDate         DateTime
+  closedAt        DateTime?
+
+  // Validaciones
+  validations     Json?     // Checklist de validaciones
+  errors          Json?
+  warnings        Json?
+
+  // Reportes generados
+  reports         Json?
+
+  // Control
+  closedBy        String?
+  approvedBy      String?
+  approvedAt      DateTime?
+
+  // Auditoría
+  createdAt       DateTime  @default(now())
+  createdBy       String
+  updatedAt       DateTime  @updatedAt
+  updatedBy       String
+  companyId       String
+  tenantId        String
+
+  @@unique([fiscalYear, period, companyId])
+  @@index([fiscalYear])
+  @@index([status])
+  @@map("period_closings")
+}
+
+enum ClosingType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum ClosingStatus {
+  PENDING
+  IN_PROGRESS
+  PRE_CLOSED
+  CLOSED
+  APPROVED
+  REOPENED
+}
+
+// ============================================
+// ANOMALY DETECTION (Detección de Anomalías)
+// ============================================
+
+model Anomaly {
+  id              String    @id @default(uuid())
+
+  // Tipo
+  type            AnomalyType
+  severity        Severity
+
+  // Referencias
+  entryId         String?
+  accountCode     String?
+  amount          Decimal?  @db.Decimal(15, 2)
+
+  // Descripción
+  title           String
+  description     String
+
+  // IA
+  mlConfidence    Float     // 0-1
+  mlModel         String?
+  mlVersion       String?
+
+  // Estado
+  reviewed        Boolean   @default(false)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  falsePositive   Boolean   @default(false)
+
+  // Acción tomada
+  actionTaken     String?
+  resolution      String?
+  resolvedBy      String?
+  resolvedAt      DateTime?
+
+  // Auditoría
+  createdAt       DateTime  @default(now())
+  createdBy       String
+  updatedAt       DateTime  @updatedAt
+  updatedBy       String
+  companyId       String
+  tenantId        String
+
+  @@index([type, severity])
+  @@index([reviewed])
+  @@index([createdAt])
+  @@map("anomalies")
+}
+
+enum AnomalyType {
+  UNUSUAL_AMOUNT
+  DUPLICATE_ENTRY
+  TIMING_ANOMALY
+  ACCOUNT_MISUSE
+  UNBALANCED_ENTRY
+  COMPLIANCE_VIOLATION
+  FRAUD_INDICATOR
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

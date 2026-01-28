@@ -1,0 +1,37 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Reports
+reports/*.json
+reports/*.html
+reports/*.csv
+reports/benchmarks/*.json
+!reports/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Node modules
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# K6 output
+k6-results/
+*.har
+
+# Temporary files
+tmp/
+temp/
+*.tmp

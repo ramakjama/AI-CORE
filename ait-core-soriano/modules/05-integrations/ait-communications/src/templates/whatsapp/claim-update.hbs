@@ -1,0 +1,18 @@
+🔔 *Actualización de Siniestro*
+
+Hola {{customer_name}},
+
+Su siniestro *{{claim_number}}* ha sido actualizado.
+
+*Estado:* {{claim_status}}
+{{#if approved_amount}}
+*Importe Aprobado:* {{currency approved_amount 'EUR'}}
+{{/if}}
+
+{{#if notes}}
+*Notas:* {{notes}}
+{{/if}}
+
+Ver detalles: {{url '/claims/' claim_id}}
+
+_Soriano Mediadores_

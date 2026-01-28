@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaboration WebSocket Client Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .status.disconnected {
+      background: #fee;
+      color: #c33;
+    }
+
+    .status.connected {
+      background: #efe;
+      color: #3c3;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .info {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .value {
+      color: #333;
+      font-family: 'Courier New', monospace;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      border-bottom-color: #007bff;
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .log-container {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 4px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+      word-wrap: break-word;
+    }
+
+    .log-time {
+      color: #858585;
+    }
+
+    .log-info {
+      color: #4ec9b0;
+    }
+
+    .log-error {
+      color: #f48771;
+    }
+
+    .log-sent {
+      color: #569cd6;
+    }
+
+    .log-received {
+      color: #ce9178;
+    }
+
+    .peers-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .peer-card {
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 4px solid #007bff;
+    }
+
+    .peer-id {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .message-composer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Collaboration WebSocket Client</h1>
+    <div class="status disconnected" id="status">Disconnected</div>
+
+    <div class="controls">
+      <input type="text" id="roomInput" placeholder="Room ID" value="test-room-123">
+      <button onclick="connect()" id="connectBtn">Connect</button>
+      <input type="text" id="serverInput" placeholder="WebSocket URL" value="ws://localhost:1234">
+      <button onclick="disconnect()" id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+
+    <div class="info" id="info" style="display: none;">
+      <div class="info-row">
+        <span class="label">Connection ID:</span>
+        <span class="value" id="connectionId">-</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Room:</span>
+        <span class="value" id="currentRoom">-</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Peers:</span>
+        <span class="value" id="peerCount">0</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('logs')">Logs</div>
+      <div class="tab" onclick="switchTab('peers')">Peers</div>
+      <div class="tab" onclick="switchTab('messages')">Send Message</div>
+    </div>
+
+    <div id="logs" class="tab-content active">
+      <div class="log-container" id="logContainer"></div>
+    </div>
+
+    <div id="peers" class="tab-content">
+      <div class="peers-list" id="peersList">
+        <p style="color: #666; text-align: center; padding: 40px 0;">No peers connected</p>
+      </div>
+    </div>
+
+    <div id="messages" class="tab-content">
+      <div class="message-composer">
+        <textarea id="messageInput" placeholder='{"type": "custom", "data": {"action": "test"}}'></textarea>
+        <button onclick="sendMessage()">Send</button>
+      </div>
+      <div style="margin-top: 10px;">
+        <button onclick="sendAwareness()">Send Awareness Update</button>
+        <button onclick="requestPeers()" style="margin-left: 10px;">Request Peers</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let connectionId = null;
+    let peers = [];
+
+    function log(message, type = 'info') {
+      const container = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+
+      const time = new Date().toLocaleTimeString();
+      const timeSpan = `<span class="log-time">[${time}]</span>`;
+
+      entry.innerHTML = `${timeSpan} <span class="log-${type}">${message}</span>`;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function updateStatus(connected) {
+      const statusEl = document.getElementById('status');
+      const infoEl = document.getElementById('info');
+      const connectBtn = document.getElementById('connectBtn');
+      const disconnectBtn = document.getElementById('disconnectBtn');
+
+      if (connected) {
+        statusEl.textContent = 'Connected';
+        statusEl.className = 'status connected';
+        infoEl.style.display = 'block';
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+      } else {
+        statusEl.textContent = 'Disconnected';
+        statusEl.className = 'status disconnected';
+        infoEl.style.display = 'none';
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        document.getElementById('connectionId').textContent = '-';
+        document.getElementById('currentRoom').textContent = '-';
+        document.getElementById('peerCount').textContent = '0';
+      }
+    }
+
+    function updatePeersList() {
+      const container = document.getElementById('peersList');
+
+      if (peers.length === 0) {
+        container.innerHTML = '<p style="color: #666; text-align: center; padding: 40px 0;">No peers connected</p>';
+      } else {
+        container.innerHTML = peers.map(peerId => `
+          <div class="peer-card">
+            <div class="peer-id">${peerId}</div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('peerCount').textContent = peers.length;
+    }
+
+    function connect() {
+      const server = document.getElementById('serverInput').value;
+      const room = document.getElementById('roomInput').value;
+
+      if (!room) {
+        alert('Please enter a room ID');
+        return;
+      }
+
+      log(`Connecting to ${server}?room=${room}...`, 'info');
+
+      ws = new WebSocket(`${server}?room=${room}`);
+
+      ws.onopen = () => {
+        log('WebSocket connection established', 'info');
+        updateStatus(true);
+        document.getElementById('currentRoom').textContent = room;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          log(`Received: ${JSON.stringify(message, null, 2)}`, 'received');
+
+          if (message.type === 'init') {
+            connectionId = message.connectionId;
+            peers = message.peers || [];
+            document.getElementById('connectionId').textContent = connectionId;
+            updatePeersList();
+          }
+          else if (message.type === 'peers') {
+            peers = message.peers || [];
+            updatePeersList();
+          }
+          else if (message.type === 'awareness') {
+            log(`Awareness update from ${message.clientId}`, 'info');
+          }
+          else if (message.type === 'peer-disconnected') {
+            peers = peers.filter(p => p !== message.connectionId);
+            updatePeersList();
+            log(`Peer disconnected: ${message.connectionId}`, 'info');
+          }
+          else if (message.type === 'webrtc-signal') {
+            log(`WebRTC signal from ${message.from}`, 'info');
+          }
+        } catch (e) {
+          // Binary or non-JSON message (Y.js sync)
+          log('Received binary message (Y.js sync)', 'received');
+        }
+      };
+
+      ws.onerror = (error) => {
+        log(`WebSocket error: ${error.message || 'Unknown error'}`, 'error');
+      };
+
+      ws.onclose = (event) => {
+        log(`Connection closed (code: ${event.code}, reason: ${event.reason || 'No reason'})`, 'error');
+        updateStatus(false);
+        ws = null;
+        connectionId = null;
+        peers = [];
+        updatePeersList();
+      };
+    }
+
+    function disconnect() {
+      if (ws) {
+        log('Disconnecting...', 'info');
+        ws.close(1000, 'User requested disconnect');
+      }
+    }
+
+    function sendMessage() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('Not connected');
+        return;
+      }
+
+      const message = document.getElementById('messageInput').value;
+
+      try {
+        JSON.parse(message); // Validate JSON
+        ws.send(message);
+        log(`Sent: ${message}`, 'sent');
+      } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+      }
+    }
+
+    function sendAwareness() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('Not connected');
+        return;
+      }
+
+      const message = {
+        type: 'awareness',
+        data: {
+          user: {
+            name: 'Test User',
+            color: '#FF5733'
+          },
+          cursor: {
+            line: Math.floor(Math.random() * 100),
+            column: Math.floor(Math.random() * 80)
+          }
+        }
+      };
+
+      ws.send(JSON.stringify(message));
+      log(`Sent awareness update: ${JSON.stringify(message)}`, 'sent');
+    }
+
+    function requestPeers() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('Not connected');
+        return;
+      }
+
+      const message = { type: 'get-peers' };
+      ws.send(JSON.stringify(message));
+      log('Requested peer list', 'sent');
+    }
+
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabName).classList.add('active');
+    }
+
+    // Initialize
+    log('Collaboration WebSocket Client Ready', 'info');
+    log('Enter a room ID and click Connect to start', 'info');
+  </script>
+</body>
+</html>

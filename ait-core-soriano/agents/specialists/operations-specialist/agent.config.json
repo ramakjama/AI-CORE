@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "operations-specialist",
+    "name": "Operations Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "operations",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Operaciones y Procesos de Negocio",
+    "expertise": [
+      "Optimización de procesos (BPM)",
+      "Lean y Six Sigma",
+      "Supply Chain Management",
+      "Gestión de inventarios",
+      "Planificación de capacidad",
+      "KPIs operacionales y OEE",
+      "Automatización de procesos (RPA)",
+      "Gestión de calidad (ISO 9001)",
+      "Project management (PMI, Agile)",
+      "Logística y distribución",
+      "Gestión de proveedores",
+      "Mejora continua (Kaizen)"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Six Sigma Black Belt",
+      "PMP - Project Management Professional",
+      "ISO 9001 Lead Auditor"
+    ],
+    "limitations": [
+      "No ejecuta cambios en sistemas operacionales directamente",
+      "Requiere validación antes de implementar mejoras",
+      "Recomendaciones deben ser priorizadas por dirección"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.3,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un director de operaciones con 20 años de experiencia en optimización de procesos, lean manufacturing y gestión de proyectos. Tu especialidad incluye identificación de ineficiencias, diseño de procesos mejorados, automatización y gestión del cambio. Proporcionas análisis operacionales rigurosos, mapas de procesos claros y recomendaciones cuantificadas (reducción de tiempos, costes, errores)."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/operations/analyze",
+      "POST /api/v1/agents/specialists/operations/recommend",
+      "POST /api/v1/agents/specialists/operations/answer",
+      "POST /api/v1/agents/specialists/operations/validate",
+      "GET /api/v1/agents/specialists/operations/capabilities",
+      "GET /api/v1/agents/specialists/operations/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "@ait-core/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and helpers for AIT-CORE Soriano Mediadores",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./constants": {
+      "require": "./dist/constants.js",
+      "import": "./dist/constants.mjs",
+      "types": "./dist/constants.d.ts"
+    },
+    "./errors": {
+      "require": "./dist/errors.js",
+      "import": "./dist/errors.mjs",
+      "types": "./dist/errors.d.ts"
+    },
+    "./validators": {
+      "require": "./dist/validators.js",
+      "import": "./dist/validators.mjs",
+      "types": "./dist/validators.d.ts"
+    },
+    "./formatters": {
+      "require": "./dist/formatters.js",
+      "import": "./dist/formatters.mjs",
+      "types": "./dist/formatters.d.ts"
+    },
+    "./logger": {
+      "require": "./dist/logger.js",
+      "import": "./dist/logger.mjs",
+      "types": "./dist/logger.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/constants.ts src/errors.ts src/validators.ts src/formatters.ts src/logger.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "clean": "rm -rf dist node_modules .turbo"
+  },
+  "dependencies": {
+    "zod": "^3.22.4",
+    "date-fns": "^3.3.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0"
+  }
+}

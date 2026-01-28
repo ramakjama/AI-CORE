@@ -1,0 +1,274 @@
+# MARKETING SALES SERVICES
+# Category: 03-marketing-sales
+# Total services: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-brand-manager
+  namespace: ait-core
+  labels:
+    app: ai-brand-manager
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-brand-manager
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-campaign-manager
+  namespace: ait-core
+  labels:
+    app: ai-campaign-manager
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-campaign-manager
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-conversion-optimizer
+  namespace: ait-core
+  labels:
+    app: ai-conversion-optimizer
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-conversion-optimizer
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-customer-journey
+  namespace: ait-core
+  labels:
+    app: ai-customer-journey
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-customer-journey
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-influencer-manager
+  namespace: ait-core
+  labels:
+    app: ai-influencer-manager
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-influencer-manager
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-lead-generation
+  namespace: ait-core
+  labels:
+    app: ai-lead-generation
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-lead-generation
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-loyalty-programs
+  namespace: ait-core
+  labels:
+    app: ai-loyalty-programs
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-loyalty-programs
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-marketing
+  namespace: ait-core
+  labels:
+    app: ai-marketing
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-marketing
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-pricing-optimizer
+  namespace: ait-core
+  labels:
+    app: ai-pricing-optimizer
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-pricing-optimizer
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-referral-engine
+  namespace: ait-core
+  labels:
+    app: ai-referral-engine
+    category: marketing-sales
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-referral-engine
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

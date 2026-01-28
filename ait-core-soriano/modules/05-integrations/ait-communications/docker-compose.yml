@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ait-communications-db
+    environment:
+      POSTGRES_DB: ait_communications
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ait-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ait-communications-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ait-network
+    command: redis-server --appendonly yes
+
+  # AIT Communications Service
+  ait-communications:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ait-communications
+    environment:
+      NODE_ENV: development
+      PORT: 3020
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ait_communications
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3020:3020"
+      - "9090:9090"  # Metrics
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    volumes:
+      - ./src:/app/src
+      - ./templates:/app/templates
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ait-network:
+    driver: bridge

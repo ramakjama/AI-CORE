@@ -1,0 +1,16 @@
+{
+  "name": "@ait-core/seguro-autos",
+  "version": "1.0.0",
+  "description": "Módulo especializado para seguros de autos - Mercado español",
+  "main": "dist/index.js",
+  "keywords": ["seguros", "autos", "vehiculos", "car-insurance", "nestjs"],
+  "author": "AIT Soriano Mediadores",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.0",
+    "typeorm": "^0.3.17",
+    "class-validator": "^0.14.0"
+  }
+}

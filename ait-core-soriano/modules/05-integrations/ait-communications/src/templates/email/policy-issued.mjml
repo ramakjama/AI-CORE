@@ -1,0 +1,66 @@
+<mjml>
+  <mj-head>
+    <mj-title>Póliza Emitida</mj-title>
+    <mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" />
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-image width="200px" src="{{logo_url}}" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="24px" color="#27ae60" font-weight="bold">
+          ¡Póliza Emitida Exitosamente!
+        </mj-text>
+
+        <mj-text font-size="16px" color="#555555">
+          Estimado/a {{customer_name}},
+        </mj:text>
+
+        <mj-text font-size="16px" color="#555555" line-height="24px">
+          Tu póliza de seguro ha sido emitida correctamente. A continuación los detalles:
+        </mj-text>
+
+        <mj-divider border-color="#e0e0e0" />
+
+        <mj-text font-size="14px" color="#333333">
+          <strong>Número de Póliza:</strong> {{policy_number}}<br/>
+          <strong>Tipo de Seguro:</strong> {{policy_type}}<br/>
+          <strong>Fecha de Inicio:</strong> {{date start_date}}<br/>
+          <strong>Fecha de Vencimiento:</strong> {{date end_date}}<br/>
+          <strong>Prima Anual:</strong> {{currency premium 'EUR'}}<br/>
+          <strong>Estado:</strong> Activa
+        </mj-text>
+
+        <mj-button
+          background-color="#27ae60"
+          href="{{url '/policies/' policy_id}}"
+        >
+          Ver Detalles de la Póliza
+        </mj-button>
+
+        <mj-button
+          background-color="#3498db"
+          href="{{policy_document_url}}"
+        >
+          Descargar Documento PDF
+        </mj-button>
+
+        <mj-text font-size="14px" color="#777777" padding-top="20px">
+          Guarda este email para tu referencia futura.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#2c3e50" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="12px" align="center">
+          © {{date now 'long'}} Soriano Mediadores
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

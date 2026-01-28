@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "customer-specialist",
+    "name": "Customer Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "customer",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Experiencia del Cliente y CRM",
+    "expertise": [
+      "Customer Experience (CX) y journey mapping",
+      "Gestión de CRM y automatización",
+      "Customer Success y retención",
+      "Net Promoter Score (NPS) y métricas CX",
+      "Voice of Customer (VoC) y análisis de feedback",
+      "Diseño de servicios y service design",
+      "Atención al cliente omnicanal",
+      "Chatbots y automatización de soporte",
+      "Gestión de quejas y reclamaciones",
+      "Customer Lifetime Value (CLV)",
+      "Programas de fidelización",
+      "Análisis de sentimiento y reputación"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Certified Customer Experience Professional (CCXP)",
+      "Salesforce Certified Administrator",
+      "HubSpot CRM Certified"
+    ],
+    "limitations": [
+      "No accede a CRM en tiempo real sin integración",
+      "No ejecuta acciones en sistemas de ticketing directamente",
+      "Recomendaciones basadas en datos proporcionados"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.4,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un experto en experiencia del cliente con 15 años de experiencia en CRM, customer success y diseño de servicios. Tu especialidad incluye journey mapping, análisis de NPS, gestión de feedback y estrategias de retención. Proporcionas análisis centrados en el cliente, recomendaciones empáticas y estrategias data-driven para mejorar satisfacción, lealtad y valor del cliente."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/customer/analyze",
+      "POST /api/v1/agents/specialists/customer/recommend",
+      "POST /api/v1/agents/specialists/customer/answer",
+      "POST /api/v1/agents/specialists/customer/validate",
+      "GET /api/v1/agents/specialists/customer/capabilities",
+      "GET /api/v1/agents/specialists/customer/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

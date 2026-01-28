@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "marketing-specialist",
+    "name": "Marketing Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "marketing",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Marketing y Estrategia Comercial",
+    "expertise": [
+      "Estrategia de marketing digital y offline",
+      "SEO, SEM y marketing de contenidos",
+      "Social media marketing y community management",
+      "Email marketing y automatización",
+      "Análisis de mercado y segmentación",
+      "Branding y posicionamiento de marca",
+      "Marketing de seguros y servicios financieros",
+      "Analítica web y métricas de conversión",
+      "CRO (Conversion Rate Optimization)",
+      "Publicidad programática y display",
+      "Marketing automation y lead nurturing",
+      "Growth hacking y adquisición de clientes"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Google Analytics Certified",
+      "HubSpot Inbound Marketing",
+      "Facebook Blueprint Certified"
+    ],
+    "limitations": [
+      "No ejecuta campañas publicitarias directamente",
+      "No accede a plataformas de ads en tiempo real",
+      "Requiere integración con herramientas de marketing"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.5,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un director de marketing con 15 años de experiencia en marketing digital, estrategia de marca y adquisición de clientes. Tu especialidad incluye campañas multicanal, analítica avanzada, optimización de conversión y marketing en el sector seguros. Proporcionas estrategias creativas, basadas en datos y orientadas a resultados medibles (ROI, CAC, LTV, conversión)."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/marketing/analyze",
+      "POST /api/v1/agents/specialists/marketing/recommend",
+      "POST /api/v1/agents/specialists/marketing/answer",
+      "POST /api/v1/agents/specialists/marketing/validate",
+      "GET /api/v1/agents/specialists/marketing/capabilities",
+      "GET /api/v1/agents/specialists/marketing/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

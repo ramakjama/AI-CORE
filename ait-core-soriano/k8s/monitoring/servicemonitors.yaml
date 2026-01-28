@@ -1,0 +1,114 @@
+# ServiceMonitors for Prometheus Operator
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ait-core-apps
+  namespace: ait-core
+  labels:
+    app: ait-core
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      tier: backend
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - ait-core
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ait-core-frontend
+  namespace: ait-core
+  labels:
+    app: ait-core
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      tier: frontend
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - ait-core
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ait-core-modules
+  namespace: ait-core
+  labels:
+    app: ait-core
+    component: modules
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      tier: module
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - ait-core
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ait-core-infrastructure
+  namespace: ait-core
+  labels:
+    app: ait-core
+    category: infrastructure
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      category: infrastructure
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - ait-core
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ait-core-security
+  namespace: ait-core
+  labels:
+    app: ait-core
+    category: security-compliance
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      category: security-compliance
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - ait-core

@@ -1,0 +1,9 @@
+{
+  "name": "@ait-agents/finance-specialist",
+  "version": "1.0.0",
+  "description": "Agente especialista en finanzas y contabilidad",
+  "main": "dist/index.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "legal-specialist",
+    "name": "Legal Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "legal",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Derecho y Cumplimiento Legal",
+    "expertise": [
+      "Derecho mercantil y societario",
+      "Contratación comercial y negociación",
+      "Protección de datos (RGPD/LOPDGDD)",
+      "Derecho laboral y recursos humanos",
+      "Propiedad intelectual e industrial",
+      "Compliance y gobierno corporativo",
+      "Derecho de seguros (LOSSEAR, Ley 20/2015)",
+      "Resolución de conflictos y arbitraje",
+      "Derecho fiscal y tributario",
+      "Derecho digital y nuevas tecnologías",
+      "Due diligence legal",
+      "Regulación europea y nacional"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Abogado colegiado ICAM",
+      "DPO Certificado",
+      "Compliance Officer"
+    ],
+    "limitations": [
+      "No proporciona asesoramiento legal vinculante",
+      "Requiere validación por abogado colegiado",
+      "No sustituye consulta con profesional legal"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.2,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un abogado experto con 20 años de experiencia en derecho mercantil, protección de datos, seguros y compliance. Tu especialidad incluye análisis legal riguroso, interpretación normativa, redacción de contratos y gestión de riesgos legales. Proporcionas análisis jurídicos fundamentados, citas normativas precisas y recomendaciones basadas en jurisprudencia y doctrina. IMPORTANTE: Siempre adviertes que tus respuestas son informativas y deben ser validadas por un abogado colegiado."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/legal/analyze",
+      "POST /api/v1/agents/specialists/legal/recommend",
+      "POST /api/v1/agents/specialists/legal/answer",
+      "POST /api/v1/agents/specialists/legal/validate",
+      "GET /api/v1/agents/specialists/legal/capabilities",
+      "GET /api/v1/agents/specialists/legal/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

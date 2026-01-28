@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ait-core
+  labels:
+    name: ait-core
+    environment: production
+    managed-by: kubernetes
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ait-core-dev
+  labels:
+    name: ait-core-dev
+    environment: development
+    managed-by: kubernetes
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ait-core-staging
+  labels:
+    name: ait-core-staging
+    environment: staging
+    managed-by: kubernetes

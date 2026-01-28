@@ -1,0 +1,41 @@
+{
+  "module": {
+    "id": "ait-crm",
+    "name": "CRM",
+    "version": "1.0.0",
+    "category": "marketing-sales",
+    "priority": "P0",
+    "status": "active"
+  },
+  "connector": {
+    "type": "nestjs-module",
+    "autoLoad": true,
+    "provides": ["LeadService", "OpportunityService", "ActivityService"],
+    "api": {
+      "prefix": "/api/v1/crm",
+      "endpoints": [
+        "POST /leads",
+        "GET /leads",
+        "PUT /leads/:id",
+        "POST /leads/:id/convert",
+        "POST /opportunities",
+        "GET /opportunities",
+        "PUT /opportunities/:id/stage",
+        "POST /activities"
+      ]
+    }
+  },
+  "capabilities": {
+    "domain": "CRM y Gestión Comercial",
+    "features": [
+      "Gestión de leads y cualificación",
+      "Pipeline de oportunidades",
+      "Actividades y seguimiento",
+      "Conversión lead → cliente",
+      "Scoring automático de leads",
+      "Previsión de ventas",
+      "Integración con AI sales agent",
+      "Reporting de conversión"
+    ]
+  }
+}

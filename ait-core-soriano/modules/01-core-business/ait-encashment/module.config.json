@@ -1,0 +1,27 @@
+{
+  "moduleId": "ait-encashment",
+  "moduleName": "AIT Encashment",
+  "category": "01-core-business",
+  "version": "1.0.0",
+  "enabled": false,
+  "priority": "high",
+  "description": "Gestión de cobros con IA",
+  "icon": "💸",
+  "color": "#FF5722",
+  "port": 3007,
+  "database": "encashment_db",
+  "dependencies": {
+    "required": ["ait-billing", "ait-treasury"],
+    "optional": []
+  },
+  "agent": {
+    "enabled": true,
+    "parallelAgents": 100,
+    "modes": {
+      "switch": true,
+      "edit": true,
+      "plain": true,
+      "bypass": { "enabled": false }
+    }
+  }
+}

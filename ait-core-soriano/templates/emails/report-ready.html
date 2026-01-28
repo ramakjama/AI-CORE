@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Disponible</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .header-subtitle {
+            color: #ede9fe;
+            font-size: 14px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .icon-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            background-color: #ede9fe;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .title {
+            font-size: 28px;
+            color: #5b21b6;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .report-card {
+            background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+            border: 2px solid #a78bfa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .report-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ede9fe;
+            margin-bottom: 20px;
+        }
+        .report-type {
+            font-size: 14px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .report-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #5b21b6;
+            margin: 10px 0;
+        }
+        .report-period {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+        .report-details {
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7c3aed;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .highlights {
+            background-color: #faf5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .highlights h4 {
+            color: #5b21b6;
+            margin-top: 0;
+        }
+        .highlights ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #4b5563;
+        }
+        .highlights li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #7c3aed;
+            color: #ffffff !important;
+            padding: 18px 50px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 20px 5px;
+            box-shadow: 0 4px 6px rgba(124, 58, 237, 0.3);
+        }
+        .cta-secondary {
+            background-color: transparent;
+            border: 2px solid #7c3aed;
+            color: #7c3aed !important;
+            box-shadow: none;
+        }
+        .report-formats {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .format-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: white;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #e5e7eb;
+        }
+        .format-info {
+            display: flex;
+            align-items: center;
+        }
+        .format-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #ede9fe;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #7c3aed;
+            font-size: 12px;
+        }
+        .format-name {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .format-size {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        .download-link {
+            color: #7c3aed;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .expiry-notice {
+            text-align: center;
+            background-color: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .expiry-notice p {
+            color: #92400e;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+            .format-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .download-link {
+                margin-top: 10px;
+            }
+            .cta-button {
+                display: block;
+                text-align: center;
+                margin: 10px 0;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SORIANO MEDIADORES</div>
+            <div class="header-subtitle">Informes y Analíticas</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="icon-container">
+                <div class="icon">📊</div>
+            </div>
+
+            <div class="title">Tu informe está listo</div>
+
+            <div class="message">
+                <p>Hola <strong>{{user_name}}</strong>,</p>
+                <p>El informe que solicitaste ha sido generado correctamente y ya está disponible para su descarga.</p>
+            </div>
+
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-type">{{report_category}}</div>
+                    <div class="report-title">{{report_name}}</div>
+                    <div class="report-period">Período: {{report_period}}</div>
+                </div>
+
+                <div class="report-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Generado el:</span>
+                        <span class="detail-value">{{generation_date}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Solicitado por:</span>
+                        <span class="detail-value">{{requester_name}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total de páginas:</span>
+                        <span class="detail-value">{{page_count}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Registros incluidos:</span>
+                        <span class="detail-value">{{record_count}}</span>
+                    </div>
+                </div>
+            </div>
+
+            {{#if statistics}}
+            <div class="stats-grid">
+                {{#each statistics}}
+                <div class="stat-card">
+                    <div class="stat-label">{{this.label}}</div>
+                    <div class="stat-value">{{this.value}}</div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+
+            {{#if highlights}}
+            <div class="highlights">
+                <h4>📌 Puntos destacados del informe:</h4>
+                <ul>
+                    {{#each highlights}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+
+            <center>
+                <a href="{{view_report_link}}" class="cta-button">Ver informe online</a>
+            </center>
+
+            <div class="report-formats">
+                <h4 style="color: #5b21b6; margin-top: 0;">Descargar en diferentes formatos:</h4>
+
+                <div class="format-item">
+                    <div class="format-info">
+                        <div class="format-icon">PDF</div>
+                        <div>
+                            <div class="format-name">Documento PDF</div>
+                            <div class="format-size">{{pdf_size}}</div>
+                        </div>
+                    </div>
+                    <a href="{{pdf_download_link}}" class="download-link">Descargar →</a>
+                </div>
+
+                <div class="format-item">
+                    <div class="format-info">
+                        <div class="format-icon">XLS</div>
+                        <div>
+                            <div class="format-name">Hoja de cálculo Excel</div>
+                            <div class="format-size">{{excel_size}}</div>
+                        </div>
+                    </div>
+                    <a href="{{excel_download_link}}" class="download-link">Descargar →</a>
+                </div>
+
+                <div class="format-item">
+                    <div class="format-info">
+                        <div class="format-icon">CSV</div>
+                        <div>
+                            <div class="format-name">Archivo CSV</div>
+                            <div class="format-size">{{csv_size}}</div>
+                        </div>
+                    </div>
+                    <a href="{{csv_download_link}}" class="download-link">Descargar →</a>
+                </div>
+            </div>
+
+            <div class="expiry-notice">
+                <p><strong>⏱️ Disponibilidad limitada</strong></p>
+                <p>Este informe estará disponible para descarga durante <strong>{{availability_days}} días</strong></p>
+                <p>Fecha de expiración: {{expiry_date}}</p>
+            </div>
+
+            <div class="info-box">
+                <p><strong>💡 Consejos para usar tu informe:</strong></p>
+                <p style="margin: 10px 0; color: #4b5563; font-size: 14px;">
+                    • Descarga el formato que mejor se adapte a tus necesidades<br>
+                    • El formato Excel permite análisis y filtrado de datos<br>
+                    • El formato PDF es ideal para compartir e imprimir<br>
+                    • Guarda una copia local si necesitas conservar el informe
+                </p>
+            </div>
+
+            <div class="highlights">
+                <h4>🔍 ¿Qué incluye este informe?</h4>
+                <ul>
+                    <li><strong>Resumen ejecutivo:</strong> Visión general de los datos clave</li>
+                    <li><strong>Análisis detallado:</strong> Desglose completo por categorías</li>
+                    <li><strong>Gráficos y visualizaciones:</strong> Representación visual de tendencias</li>
+                    <li><strong>Datos históricos:</strong> Comparativas con períodos anteriores</li>
+                    <li><strong>Conclusiones y recomendaciones:</strong> Insights accionables</li>
+                </ul>
+            </div>
+
+            <center>
+                <a href="{{schedule_report_link}}" class="cta-button cta-secondary">Programar informes periódicos</a>
+            </center>
+
+            <div class="message" style="margin-top: 30px;">
+                <p>Si tienes alguna pregunta sobre este informe o necesitas informes adicionales, no dudes en contactarnos.</p>
+
+                <p><strong>Teléfono:</strong> {{contact_phone}}<br>
+                <strong>Email:</strong> {{contact_email}}<br>
+                <strong>Horario:</strong> Lunes a Viernes, 9:00 - 18:00</p>
+
+                <p>Atentamente,<br>
+                <strong>Departamento de Análisis<br>Soriano Mediadores</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{base_url}}/informes">Mis Informes</a>
+                <a href="{{base_url}}/estadisticas">Estadísticas</a>
+                <a href="{{base_url}}/ayuda">Centro de Ayuda</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                © {{year}} Soriano Mediadores. Todos los derechos reservados.<br>
+                {{company_address}}
+            </p>
+
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+                Informe generado automáticamente. ID: {{report_id}}<br>
+                <a href="{{preferences_link}}" style="color: #60a5fa;">Gestionar preferencias de notificaciones</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

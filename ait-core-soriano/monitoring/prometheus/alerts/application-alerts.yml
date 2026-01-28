@@ -1,0 +1,233 @@
+groups:
+  - name: application_alerts
+    interval: 30s
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "High error rate detected on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-error-rate"
+
+      # API Response Time High
+      - alert: APIResponseTimeHigh
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "API response time is high on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s)"
+          runbook: "https://runbooks.ait-core.soriano.com/api-slow-response"
+
+      - alert: APIResponseTimeCritical
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le)
+          ) > 5
+        for: 3m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "API response time is critically high on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 5s)"
+          runbook: "https://runbooks.ait-core.soriano.com/api-slow-response"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job=~"ait-core-.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 2 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/service-down"
+
+      # High Request Rate
+      - alert: HighRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) by (job) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          category: capacity
+        annotations:
+          summary: "High request rate on {{ $labels.job }}"
+          description: "Request rate is {{ $value }} req/s (threshold: 1000 req/s)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-traffic"
+
+      # Database Connection Pool Exhaustion
+      - alert: DatabaseConnectionPoolHigh
+        expr: |
+          (
+            sum(db_connection_pool_active) by (job)
+            /
+            sum(db_connection_pool_max) by (job)
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database connection pool usage is high on {{ $labels.job }}"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/db-connection-pool"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            sum(db_connection_pool_active) by (job)
+            /
+            sum(db_connection_pool_max) by (job)
+          ) >= 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "Database connection pool is exhausted on {{ $labels.job }}"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://runbooks.ait-core.soriano.com/db-connection-pool"
+
+      # Database Query Slow
+      - alert: DatabaseQuerySlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(db_query_duration_seconds_bucket[5m])) by (job, le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Database queries are slow on {{ $labels.job }}"
+          description: "95th percentile query time is {{ $value }}s (threshold: 1s)"
+          runbook: "https://runbooks.ait-core.soriano.com/slow-db-queries"
+
+      # Cache Hit Rate Low
+      - alert: CacheHitRateLow
+        expr: |
+          (
+            sum(rate(cache_hits_total[5m])) by (job)
+            /
+            (sum(rate(cache_hits_total[5m])) by (job) + sum(rate(cache_misses_total[5m])) by (job))
+          ) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Cache hit rate is low on {{ $labels.job }}"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 70%)"
+          runbook: "https://runbooks.ait-core.soriano.com/low-cache-hit-rate"
+
+      # Agent Task Processing Slow
+      - alert: AgentTaskProcessingSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(agent_task_duration_seconds_bucket[5m])) by (job, agent_type, le)
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Agent task processing is slow for {{ $labels.agent_type }}"
+          description: "95th percentile task duration is {{ $value }}s (threshold: 30s)"
+          runbook: "https://runbooks.ait-core.soriano.com/slow-agent-tasks"
+
+      # Agent Task Failure Rate High
+      - alert: AgentTaskFailureRateHigh
+        expr: |
+          (
+            sum(rate(agent_task_failed_total[5m])) by (job, agent_type)
+            /
+            sum(rate(agent_task_total[5m])) by (job, agent_type)
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "Agent task failure rate is high for {{ $labels.agent_type }}"
+          description: "Failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          runbook: "https://runbooks.ait-core.soriano.com/agent-task-failures"
+
+      # SLO Violation - Availability
+      - alert: SLOViolationAvailability
+        expr: |
+          (
+            sum(rate(http_requests_total{status!~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) < 0.999
+        for: 5m
+        labels:
+          severity: critical
+          category: slo
+        annotations:
+          summary: "SLO violation: Availability is below 99.9%"
+          description: "Current availability is {{ $value | humanizePercentage }}"
+          runbook: "https://runbooks.ait-core.soriano.com/slo-violation"
+
+      # SLO Violation - Latency
+      - alert: SLOViolationLatency
+        expr: |
+          (
+            sum(rate(http_request_duration_seconds_bucket{le="0.5"}[5m]))
+            /
+            sum(rate(http_request_duration_seconds_count[5m]))
+          ) < 0.95
+        for: 5m
+        labels:
+          severity: critical
+          category: slo
+        annotations:
+          summary: "SLO violation: Less than 95% of requests served under 500ms"
+          description: "Current fast request ratio is {{ $value | humanizePercentage }}"
+          runbook: "https://runbooks.ait-core.soriano.com/slo-violation"
+
+      # Insurance Policy Processing Stalled
+      - alert: InsurancePolicyProcessingStalled
+        expr: |
+          rate(insurance_policy_created_total[5m]) == 0
+          and
+          rate(insurance_policy_created_total[1h] offset 1h) > 0
+        for: 15m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Insurance policy processing has stalled"
+          description: "No policies created in the last 15 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/policy-processing-stalled"
+
+      # Claims Processing Backlog
+      - alert: ClaimsProcessingBacklog
+        expr: |
+          insurance_claim_queue_depth > 100
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Claims processing backlog is growing"
+          description: "Current backlog: {{ $value }} claims"
+          runbook: "https://runbooks.ait-core.soriano.com/claims-backlog"

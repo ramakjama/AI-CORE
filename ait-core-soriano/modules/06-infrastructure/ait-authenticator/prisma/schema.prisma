@@ -1,0 +1,97 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String?
+  name         String
+  avatar       String?
+  roles        String[]  @default(["user"])
+  isActive     Boolean   @default(true)
+  isVerified   Boolean   @default(false)
+  mfaEnabled   Boolean   @default(false)
+  mfaSecret    String?
+  provider     String?
+  providerId   String?
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tokens       Token[]
+  apiKeys      ApiKey[]
+  sessions     Session[]
+
+  @@index([email])
+  @@index([provider, providerId])
+  @@map("users")
+}
+
+model Token {
+  id           String   @id @default(uuid())
+  userId       String
+  type         String   // access, refresh, authorization_code
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("tokens")
+}
+
+model ApiKey {
+  id           String   @id @default(uuid())
+  userId       String
+  key          String   @unique
+  name         String
+  scopes       String[]
+  isActive     Boolean  @default(true)
+  lastUsed     DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([key])
+  @@map("api_keys")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  ipAddress    String
+  userAgent    String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model OAuthClient {
+  id              String   @id @default(uuid())
+  clientId        String   @unique
+  clientSecret    String
+  name            String
+  redirectUris    String[]
+  allowedScopes   String[]
+  grantTypes      String[]
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@map("oauth_clients")
+}

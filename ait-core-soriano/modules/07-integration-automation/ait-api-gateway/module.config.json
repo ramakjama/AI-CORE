@@ -1,0 +1,49 @@
+{
+  "module": {
+    "id": "ait-api-gateway",
+    "name": "API Gateway",
+    "version": "1.0.0",
+    "category": "integration-automation",
+    "priority": "P0",
+    "status": "active"
+  },
+  "connector": {
+    "type": "nestjs-gateway",
+    "autoLoad": true,
+    "hotReload": false,
+    "dependencies": ["@ait-core/cache", "@ait-authenticator/client"],
+    "provides": ["GatewayService", "RoutingService", "RateLimiter"],
+    "api": {
+      "prefix": "/api/v1",
+      "routes": [
+        "/auth/* -> ait-authenticator:4000",
+        "/policies/* -> ait-policy-manager:3001",
+        "/claims/* -> ait-claim-processor:3002",
+        "/clients/* -> ait-client-hub:3003",
+        "/engines/* -> ait-engines:8000",
+        "/scraper/* -> ait-engines:8000"
+      ]
+    }
+  },
+  "capabilities": {
+    "domain": "API Gateway & Routing",
+    "features": [
+      "Routing centralizado a microservicios",
+      "Validación JWT con cache Redis",
+      "Rate limiting por usuario/endpoint",
+      "Request aggregation (combinar múltiples APIs)",
+      "Response caching inteligente",
+      "Logging centralizado de requests",
+      "CORS handling",
+      "Compresión gzip/brotli",
+      "Health checks de servicios backend",
+      "Circuit breaker pattern",
+      "Request/Response transformation",
+      "API versioning (/v1, /v2)"
+    ]
+  },
+  "resources": {
+    "cpu": "500m",
+    "memory": "1Gi"
+  }
+}

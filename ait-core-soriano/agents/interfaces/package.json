@@ -1,0 +1,8 @@
+{
+  "name": "@ait-agents/interfaces",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared interfaces for AIT agents",
+  "main": "index.ts",
+  "types": "index.ts"
+}

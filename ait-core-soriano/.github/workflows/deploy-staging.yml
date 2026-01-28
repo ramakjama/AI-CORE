@@ -1,0 +1,503 @@
+name: Deploy to Staging (Auto)
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests before deployment'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.15.0'
+  PYTHON_VERSION: '3.11'
+  DEPLOYMENT_ENV: staging
+
+jobs:
+  # Job 1: Pre-deployment Validation
+  validate:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        run: |
+          echo "Validating staging deployment..."
+          if [ ! -f ".env.staging.example" ]; then
+            echo "Warning: .env.staging.example not found"
+          fi
+
+      - name: Check deployment prerequisites
+        run: |
+          echo "Checking prerequisites..."
+          # Add any prerequisite checks here
+
+      - name: Notify deployment start
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '🚀 Starting staging deployment from develop branch',
+              attachments: [{
+                color: 'warning',
+                fields: [{
+                  title: 'Commit',
+                  value: '${{ github.sha }}',
+                  short: true
+                }, {
+                  title: 'Author',
+                  value: '${{ github.actor }}',
+                  short: true
+                }]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 2: Quick Tests (if not skipped)
+  quick-tests:
+    name: Quick Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate
+    if: github.event.inputs.skip_tests != 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run critical tests only
+        run: |
+          pnpm --filter @ait-core/api test --testPathPattern="critical" --maxWorkers=2
+          pnpm --filter @ait-core/web test --testPathPattern="critical" --maxWorkers=2
+        env:
+          NODE_ENV: test
+        continue-on-error: false
+
+  # Job 3: Build All Components
+  build:
+    name: Build for Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [validate, quick-tests]
+    if: always() && (needs.quick-tests.result == 'success' || needs.quick-tests.result == 'skipped')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @ait-core/api prisma:generate
+
+      - name: Build backend
+        run: pnpm --filter @ait-core/api build
+        env:
+          NODE_ENV: production
+
+      - name: Build web app
+        run: pnpm --filter @ait-core/web build
+        env:
+          NEXT_PUBLIC_API_URL: https://api-staging.ait-core.soriano.com
+          NEXT_PUBLIC_WS_URL: wss://api-staging.ait-core.soriano.com
+          NODE_ENV: production
+
+      - name: Build admin app
+        run: pnpm --filter @ait-core/admin build
+        env:
+          NEXT_PUBLIC_API_URL: https://api-staging.ait-core.soriano.com
+          NODE_ENV: production
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-build-${{ github.sha }}
+          path: |
+            apps/api/dist
+            apps/web/.next
+            apps/admin/.next
+          retention-days: 3
+
+  # Job 4: Deploy Backend
+  deploy-backend:
+    name: Deploy Backend to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    environment:
+      name: staging-backend
+      url: https://api-staging.ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-build-${{ github.sha }}
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT || 22 }}
+          script: |
+            set -e
+            cd /var/www/ait-core-staging/backend
+
+            # Backup current version
+            if [ -d "dist" ]; then
+              cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S)
+              find . -name "dist.backup.*" -mtime +7 -delete
+            fi
+
+            # Pull latest code
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+
+            # Install dependencies
+            pnpm install --frozen-lockfile --prod
+
+            # Run database migrations
+            pnpm --filter @ait-core/api prisma migrate deploy
+
+            # Reload application
+            pm2 reload ait-core-api-staging --update-env
+
+            # Wait for app to start
+            sleep 5
+
+            # Health check
+            pm2 describe ait-core-api-staging | grep "online" || exit 1
+
+      - name: Backend health check
+        run: |
+          max_attempts=10
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            if curl --fail --silent https://api-staging.ait-core.soriano.com/health; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt failed, retrying..."
+            sleep 5
+          done
+          echo "Backend health check failed"
+          exit 1
+
+  # Job 5: Deploy Frontend (Vercel)
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    environment:
+      name: staging-frontend
+      url: https://staging.ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy Web to Vercel
+        uses: amondnet/vercel-action@v25
+        id: deploy-web
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          vercel-args: '--prod'
+          working-directory: apps/web
+          alias-domains: |
+            staging.ait-core.soriano.com
+
+      - name: Deploy Admin to Vercel
+        uses: amondnet/vercel-action@v25
+        id: deploy-admin
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          vercel-args: '--prod'
+          working-directory: apps/admin
+          alias-domains: |
+            admin-staging.ait-core.soriano.com
+
+      - name: Output deployment URLs
+        run: |
+          echo "Web URL: ${{ steps.deploy-web.outputs.preview-url }}"
+          echo "Admin URL: ${{ steps.deploy-admin.outputs.preview-url }}"
+
+  # Job 6: Deploy AI Agents
+  deploy-agents:
+    name: Deploy AI Agents
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy agents to staging
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core-staging/agents
+            git pull origin develop
+            pnpm install --frozen-lockfile
+            pnpm --filter "@ait-core/agent-*" build
+            pm2 reload ait-core-agents-staging
+
+  # Job 7: Deploy Python Engines
+  deploy-engines:
+    name: Deploy Python Engines
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy engines to staging
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core-staging/engines
+            git pull origin develop
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            supervisorctl restart ait-engines-staging:*
+
+  # Job 8: Database Migration & Seeding
+  database-setup:
+    name: Database Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run database migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core-staging/backend
+            pnpm --filter @ait-core/api prisma migrate deploy
+
+            # Seed staging data if needed
+            if [ -f "prisma/seed.staging.ts" ]; then
+              pnpm --filter @ait-core/api prisma:seed:staging
+            fi
+
+  # Job 9: Smoke Tests
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [deploy-backend, deploy-frontend, deploy-agents, deploy-engines]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install test dependencies
+        run: |
+          npm install -g newman artillery
+
+      - name: API smoke tests
+        run: |
+          curl --fail https://api-staging.ait-core.soriano.com/health || exit 1
+          curl --fail https://api-staging.ait-core.soriano.com/api || exit 1
+
+      - name: Web app smoke test
+        run: |
+          curl --fail https://staging.ait-core.soriano.com || exit 1
+          curl --fail https://admin-staging.ait-core.soriano.com || exit 1
+
+      - name: Agent connectivity test
+        run: |
+          curl --fail https://api-staging.ait-core.soriano.com/agents/health || exit 1
+        continue-on-error: true
+
+      - name: Run Postman collection
+        run: |
+          if [ -f "tests/postman/staging-smoke-tests.json" ]; then
+            newman run tests/postman/staging-smoke-tests.json \
+              --environment tests/postman/staging-env.json \
+              --reporters cli,json
+          fi
+        continue-on-error: true
+
+  # Job 10: Performance Check
+  performance-check:
+    name: Quick Performance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: smoke-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run quick load test
+        run: |
+          npm install -g artillery
+          artillery quick --count 10 --num 50 https://api-staging.ait-core.soriano.com/health
+        continue-on-error: true
+
+  # Job 11: Notify Deployment Status
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [deploy-backend, deploy-frontend, deploy-agents, deploy-engines, smoke-tests]
+    if: always()
+
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          if [[ "${{ needs.deploy-backend.result }}" == "success" && \
+                "${{ needs.deploy-frontend.result }}" == "success" && \
+                "${{ needs.smoke-tests.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '${{ steps.status.outputs.emoji }} Staging Deployment ${{ steps.status.outputs.status }}',
+              attachments: [{
+                color: '${{ steps.status.outputs.color }}',
+                fields: [
+                  {
+                    title: 'Environment',
+                    value: 'Staging',
+                    short: true
+                  },
+                  {
+                    title: 'Branch',
+                    value: 'develop',
+                    short: true
+                  },
+                  {
+                    title: 'Backend',
+                    value: '${{ needs.deploy-backend.result }}',
+                    short: true
+                  },
+                  {
+                    title: 'Frontend',
+                    value: '${{ needs.deploy-frontend.result }}',
+                    short: true
+                  },
+                  {
+                    title: 'Agents',
+                    value: '${{ needs.deploy-agents.result }}',
+                    short: true
+                  },
+                  {
+                    title: 'Engines',
+                    value: '${{ needs.deploy-engines.result }}',
+                    short: true
+                  },
+                  {
+                    title: 'URLs',
+                    value: 'Web: https://staging.ait-core.soriano.com\nAPI: https://api-staging.ait-core.soriano.com\nAdmin: https://admin-staging.ait-core.soriano.com',
+                    short: false
+                  }
+                ]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Component Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.deploy-backend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.deploy-frontend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Agents: ${{ needs.deploy-agents.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Engines: ${{ needs.deploy-engines.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Smoke Tests: ${{ needs.smoke-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### URLs" >> $GITHUB_STEP_SUMMARY
+          echo "- Web: https://staging.ait-core.soriano.com" >> $GITHUB_STEP_SUMMARY
+          echo "- Admin: https://admin-staging.ait-core.soriano.com" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://api-staging.ait-core.soriano.com" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,42 @@
+{
+  "name": "@ait-core/database",
+  "version": "1.0.0",
+  "description": "Prisma database schemas and clients for AIT-CORE Soriano Mediadores (40 DBs)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./clients/*": {
+      "require": "./dist/clients/*.js",
+      "import": "./dist/clients/*.mjs",
+      "types": "./dist/clients/*.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "db:generate": "node scripts/generate-all.js",
+    "db:migrate": "node scripts/migrate-all.js",
+    "db:seed": "node scripts/seed-all.js",
+    "db:studio": "prisma studio",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist node_modules .turbo"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.8.1",
+    "@ait-core/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "prisma": "^5.8.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0"
+  }
+}

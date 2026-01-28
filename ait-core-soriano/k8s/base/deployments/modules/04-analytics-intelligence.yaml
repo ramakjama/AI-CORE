@@ -1,0 +1,892 @@
+# ANALYTICS INTELLIGENCE MODULES
+# Category: 04-analytics-intelligence
+# Total modules: 6
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-business-intelligence
+  namespace: ait-core
+  labels:
+    app: ai-business-intelligence
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-business-intelligence
+  template:
+    metadata:
+      labels:
+        app: ai-business-intelligence
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-business-intelligence
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-business-intelligence
+          image: ait-core/ai-business-intelligence:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-business-intelligence"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-customer-analytics
+  namespace: ait-core
+  labels:
+    app: ai-customer-analytics
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-customer-analytics
+  template:
+    metadata:
+      labels:
+        app: ai-customer-analytics
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-customer-analytics
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-customer-analytics
+          image: ait-core/ai-customer-analytics:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-customer-analytics"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-data-analyst
+  namespace: ait-core
+  labels:
+    app: ai-data-analyst
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-data-analyst
+  template:
+    metadata:
+      labels:
+        app: ai-data-analyst
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-data-analyst
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-data-analyst
+          image: ait-core/ai-data-analyst:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-data-analyst"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-operational-analytics
+  namespace: ait-core
+  labels:
+    app: ai-operational-analytics
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-operational-analytics
+  template:
+    metadata:
+      labels:
+        app: ai-operational-analytics
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-operational-analytics
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-operational-analytics
+          image: ait-core/ai-operational-analytics:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-operational-analytics"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-predictive-analytics
+  namespace: ait-core
+  labels:
+    app: ai-predictive-analytics
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-predictive-analytics
+  template:
+    metadata:
+      labels:
+        app: ai-predictive-analytics
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-predictive-analytics
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-predictive-analytics
+          image: ait-core/ai-predictive-analytics:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-predictive-analytics"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-risk-analytics
+  namespace: ait-core
+  labels:
+    app: ai-risk-analytics
+    category: analytics-intelligence
+    tier: module
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ai-risk-analytics
+  template:
+    metadata:
+      labels:
+        app: ai-risk-analytics
+        category: analytics-intelligence
+        tier: module
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ait-core-sa
+      imagePullSecrets:
+        - name: docker-registry-secret
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ai-risk-analytics
+                topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: wait-for-datahub
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z ait-datahub 3000; do echo waiting for datahub; sleep 2; done;']
+
+      containers:
+        - name: ai-risk-analytics
+          image: ait-core/ai-risk-analytics:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: MODULE_NAME
+              value: "ai-risk-analytics"
+            - name: MODULE_CATEGORY
+              value: "analytics-intelligence"
+            - name: PORT
+              value: "3000"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          envFrom:
+            - configMapRef:
+                name: ait-core-config
+            - configMapRef:
+                name: ait-modules-config
+            - secretRef:
+                name: ait-core-secrets
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          volumeMounts:
+            - name: module-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: module-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      terminationGracePeriodSeconds: 30

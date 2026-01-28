@@ -1,0 +1,20 @@
+# Add these lines to your .gitignore
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/test-results.json
+/playwright-state.json
+
+# Screenshots and videos
+/tests/screenshots/
+/tests/videos/
+/tests/traces/
+
+# Test coverage
+/coverage/
+/.nyc_output/
+
+# Playwright browsers (optional - remove if you want to cache them)
+/node_modules/.playwright/

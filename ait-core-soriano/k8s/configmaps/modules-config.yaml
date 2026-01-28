@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ait-modules-config
+  namespace: ait-core
+  labels:
+    app: ait-core
+    component: modules
+data:
+  # Core Business Modules
+  AI_ACCOUNTANT_ENABLED: "true"
+  AI_TREASURY_ENABLED: "true"
+
+  # Insurance Specialized Modules (20 modules)
+  MODULE_AGRARIO_ENABLED: "true"
+  MODULE_AHORRO_ENABLED: "true"
+  MODULE_AUTOS_ENABLED: "true"
+  MODULE_CAUCION_ENABLED: "true"
+  MODULE_CIBER_ENABLED: "true"
+  MODULE_COMUNIDADES_ENABLED: "true"
+  MODULE_CREDITO_ENABLED: "true"
+  MODULE_DECESOS_ENABLED: "true"
+  MODULE_EMPRESAS_ENABLED: "true"
+  MODULE_HOGAR_ENABLED: "true"
+  MODULE_INDUSTRIAL_ENABLED: "true"
+  MODULE_INGENIERIA_ENABLED: "true"
+  MODULE_MASCOTAS_ENABLED: "true"
+  MODULE_MULTIRRIESGO_ENABLED: "true"
+  MODULE_PENSIONES_ENABLED: "true"
+  MODULE_RC_ENABLED: "true"
+  MODULE_SALUD_ENABLED: "true"
+  MODULE_TRANSPORTE_ENABLED: "true"
+  MODULE_UNIT_LINKED_ENABLED: "true"
+  MODULE_VIDA_ENABLED: "true"
+
+  # Marketing & Sales Modules (10 modules)
+  AI_BRAND_MANAGER_ENABLED: "true"
+  AI_CAMPAIGN_MANAGER_ENABLED: "true"
+  AI_CONVERSION_OPTIMIZER_ENABLED: "true"
+  AI_CUSTOMER_JOURNEY_ENABLED: "true"
+  AI_INFLUENCER_MANAGER_ENABLED: "true"
+  AI_LEAD_GENERATION_ENABLED: "true"
+  AI_LOYALTY_PROGRAMS_ENABLED: "true"
+  AI_MARKETING_ENABLED: "true"
+  AI_PRICING_OPTIMIZER_ENABLED: "true"
+  AI_REFERRAL_ENGINE_ENABLED: "true"
+
+  # Analytics & Intelligence Modules (6 modules)
+  AI_BUSINESS_INTELLIGENCE_ENABLED: "true"
+  AI_CUSTOMER_ANALYTICS_ENABLED: "true"
+  AI_DATA_ANALYST_ENABLED: "true"
+  AI_OPERATIONAL_ANALYTICS_ENABLED: "true"
+  AI_PREDICTIVE_ANALYTICS_ENABLED: "true"
+  AI_RISK_ANALYTICS_ENABLED: "true"
+
+  # Security & Compliance Modules (4 modules)
+  AI_AUDIT_TRAIL_ENABLED: "true"
+  AI_COMPLIANCE_ENABLED: "true"
+  AI_DEFENDER_ENABLED: "true"
+  AI_FRAUD_DETECTION_ENABLED: "true"
+
+  # Infrastructure Modules (5 modules)
+  AIT_API_GATEWAY_ENABLED: "true"
+  AIT_AUTHENTICATOR_ENABLED: "true"
+  AIT_DATAHUB_ENABLED: "true"
+  AIT_DOCUMENT_SERVICE_ENABLED: "true"
+  AIT_NOTIFICATION_SERVICE_ENABLED: "true"
+
+  # Integration & Automation Modules (4 modules)
+  AIT_CONNECTOR_ENABLED: "true"
+  AIT_NERVE_ENABLED: "true"
+
+  # Module Ports Configuration
+  MODULE_DEFAULT_PORT: "3000"
+  MODULE_HEALTH_PORT: "9090"
+  MODULE_METRICS_PORT: "9090"
+
+  # Module Communication
+  MODULE_INTER_COMMUNICATION: "grpc"
+  MODULE_TIMEOUT: "30000"
+  MODULE_RETRY_ATTEMPTS: "3"
+
+  # Module Registry
+  MODULE_REGISTRY_URL: "http://ait-datahub:3000"
+  MODULE_DISCOVERY_INTERVAL: "60000"

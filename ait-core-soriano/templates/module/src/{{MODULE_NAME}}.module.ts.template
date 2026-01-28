@@ -1,0 +1,46 @@
+import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
+
+// Controllers
+import { {{MODULE_NAME_PASCAL}}Controller } from './controllers/{{MODULE_NAME_KEBAB}}.controller';
+
+// Services
+import { PrismaService } from './shared/prisma.service';
+import { {{MODULE_NAME_PASCAL}}Service } from './services/{{MODULE_NAME_KEBAB}}.service';
+
+/**
+ * {{MODULE_NAME_UPPER}} Module
+ *
+ * {{MODULE_DESCRIPTION}}
+ *
+ * Features:
+ * {{FEATURES_LIST}}
+ *
+ * Dependencies:
+ * {{DEPENDENCIES_LIST}}
+ */
+@Module({
+  imports: [
+    ConfigModule,
+    HttpModule.register({
+      timeout: 30000,
+      maxRedirects: 5,
+    }),
+  ],
+  controllers: [
+    {{MODULE_NAME_PASCAL}}Controller,
+  ],
+  providers: [
+    // Database
+    PrismaService,
+
+    // Core Services
+    {{MODULE_NAME_PASCAL}}Service,
+  ],
+  exports: [
+    PrismaService,
+    {{MODULE_NAME_PASCAL}}Service,
+  ],
+})
+export class {{MODULE_NAME_PASCAL}}Module {}

@@ -1,0 +1,386 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths:
+      - 'apps/web/**'
+      - 'apps/admin/**'
+      - 'libs/ui/**'
+      - 'libs/shared/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/web/**'
+      - 'apps/admin/**'
+      - 'libs/ui/**'
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.15.0'
+
+jobs:
+  # Job 1: Code Quality & Linting
+  quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint on Web
+        run: pnpm --filter @ait-core/web lint
+        continue-on-error: false
+
+      - name: Run ESLint on Admin
+        run: pnpm --filter @ait-core/admin lint
+        continue-on-error: false
+
+      - name: Run Prettier check
+        run: pnpm format --check
+
+      - name: TypeScript type check
+        run: |
+          pnpm --filter @ait-core/web type-check
+          pnpm --filter @ait-core/admin type-check
+
+      - name: Check for unused dependencies
+        run: npx depcheck apps/web apps/admin
+        continue-on-error: true
+
+      - name: Security audit
+        run: pnpm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --all-projects
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'ait-core-frontend'
+          path: '.'
+          format: 'HTML'
+        continue-on-error: true
+
+      - name: Upload OWASP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-report
+          path: reports
+
+  # Job 2: Unit Tests
+  test:
+    name: Test - ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+
+    strategy:
+      matrix:
+        app: ['web', 'admin']
+        node-version: ['20.x']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm --filter @ait-core/${{ matrix.app }} test --coverage
+        env:
+          NODE_ENV: test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/${{ matrix.app }}/coverage/coverage-final.json
+          flags: frontend-${{ matrix.app }}
+          name: frontend-${{ matrix.app }}-${{ matrix.node-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.app }}
+          path: apps/${{ matrix.app }}/coverage
+
+  # Job 3: Build Applications
+  build:
+    name: Build - ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+
+    strategy:
+      matrix:
+        app: ['web', 'admin']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm --filter @ait-core/${{ matrix.app }} build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
+
+      - name: Analyze bundle size
+        run: |
+          npx @next/bundle-analyzer apps/${{ matrix.app }}/.next
+        continue-on-error: true
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-build
+          path: |
+            apps/${{ matrix.app }}/.next
+            apps/${{ matrix.app }}/out
+          retention-days: 7
+
+  # Job 4: E2E Tests with Playwright
+  e2e:
+    name: E2E Tests - ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+
+    strategy:
+      matrix:
+        app: ['web', 'admin']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter @ait-core/${{ matrix.app }} exec playwright install --with-deps
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.app }}-build
+          path: apps/${{ matrix.app }}/.next
+
+      - name: Run Playwright tests
+        run: pnpm --filter @ait-core/${{ matrix.app }} test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.app }}
+          path: apps/${{ matrix.app }}/playwright-report
+          retention-days: 7
+
+  # Job 5: Accessibility Tests
+  accessibility:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.next
+
+      - name: Start Next.js server
+        run: |
+          pnpm --filter @ait-core/web start &
+          sleep 10
+
+      - name: Run Pa11y accessibility tests
+        run: |
+          npm install -g pa11y-ci
+          pa11y-ci --sitemap http://localhost:3000/sitemap.xml
+        continue-on-error: true
+
+      - name: Run Axe accessibility tests
+        run: |
+          npm install -g @axe-core/cli
+          axe http://localhost:3000 --save accessibility-report.json
+        continue-on-error: true
+
+      - name: Upload accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: accessibility-report.json
+
+  # Job 6: Lighthouse Performance
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.next
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000
+            http://localhost:3000/dashboard
+            http://localhost:3000/polizas
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # Job 7: Deploy to Vercel Staging
+  deploy-staging:
+    name: Deploy to Vercel (Staging)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, e2e]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy Web to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          vercel-args: '--prod'
+          working-directory: apps/web
+          alias-domains: staging.ait-core.soriano.com
+
+      - name: Deploy Admin to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          vercel-args: '--prod'
+          working-directory: apps/admin
+          alias-domains: admin-staging.ait-core.soriano.com
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'Frontend deployment to staging ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

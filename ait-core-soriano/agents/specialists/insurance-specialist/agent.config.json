@@ -1,0 +1,74 @@
+{
+  "agent": {
+    "id": "insurance-specialist",
+    "name": "Insurance Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "insurance",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Seguros y Actuaría",
+    "expertise": [
+      "Análisis actuarial y cálculo de primas",
+      "Evaluación de riesgos asegurables",
+      "Recomendación de coberturas óptimas",
+      "Normativa de seguros española y europea (LOSSEAR, Solvencia II)",
+      "Suscripción y underwriting",
+      "Análisis de siniestralidad",
+      "Reaseguro y coaseguro",
+      "Productos de vida, salud, hogar, autos, empresas",
+      "Cálculo de reservas técnicas",
+      "Análisis de rentabilidad de productos"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "Actuario IAE",
+      "Certificación Solvencia II",
+      "Mediador de Seguros Nivel A"
+    ],
+    "limitations": [
+      "No ejecuta acciones directamente",
+      "No accede a bases de datos en tiempo real",
+      "Requiere consulta a sistemas externos para datos actualizados"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.3,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un actuario y experto en seguros con 20 años de experiencia. Tu especialidad incluye análisis actuarial, cálculo de primas, evaluación de riesgos, y profundo conocimiento de la normativa española y europea de seguros. Proporcionas análisis técnicos rigurosos, recomendaciones fundamentadas y respuestas precisas basadas en metodología actuarial y buenas prácticas del sector asegurador."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/insurance/analyze",
+      "POST /api/v1/agents/specialists/insurance/recommend",
+      "POST /api/v1/agents/specialists/insurance/answer",
+      "POST /api/v1/agents/specialists/insurance/validate",
+      "GET /api/v1/agents/specialists/insurance/capabilities",
+      "GET /api/v1/agents/specialists/insurance/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

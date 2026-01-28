@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+
+  - job_name: 'ait-authenticator'
+    static_configs:
+      - targets: ['ait-authenticator:3004']
+
+  - job_name: 'ait-core-soriano'
+    static_configs:
+      - targets: ['ait-core-soriano:3001']
+
+  - job_name: 'ait-comms-telephony'
+    static_configs:
+      - targets: ['ait-comms-telephony:3002']

@@ -1,0 +1,27 @@
+# AIT-CORE Backup Cron Schedule
+# Add these entries to your crontab: crontab -e
+
+# Load environment variables
+SHELL=/bin/bash
+BACKUP_ENV=/path/to/ait-core-soriano/backup/backup.env
+
+# Daily full backup at 2:00 AM
+0 2 * * * source $BACKUP_ENV && /path/to/ait-core-soriano/backup/backup-all.sh >> /backup/cron.log 2>&1
+
+# PostgreSQL backup every 6 hours
+0 */6 * * * source $BACKUP_ENV && /path/to/ait-core-soriano/backup/backup-postgres.sh >> /backup/postgres-cron.log 2>&1
+
+# Redis backup every 4 hours
+0 */4 * * * source $BACKUP_ENV && /path/to/ait-core-soriano/backup/backup-redis.sh >> /backup/redis-cron.log 2>&1
+
+# MinIO backup daily at 3:00 AM
+0 3 * * * source $BACKUP_ENV && /path/to/ait-core-soriano/backup/backup-minio.sh >> /backup/minio-cron.log 2>&1
+
+# Elasticsearch backup daily at 4:00 AM
+0 4 * * * source $BACKUP_ENV && /path/to/ait-core-soriano/backup/backup-elasticsearch.sh >> /backup/es-cron.log 2>&1
+
+# Weekly backup verification on Sundays at 1:00 AM
+0 1 * * 0 source $BACKUP_ENV && /path/to/ait-core-soriano/backup/verify-backups.sh >> /backup/verify.log 2>&1
+
+# Monthly cleanup on the 1st of each month at 5:00 AM
+0 5 1 * * find /backup -name "*.log" -mtime +90 -delete

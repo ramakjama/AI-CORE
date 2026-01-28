@@ -1,0 +1,549 @@
+# Docker Compose for FastAPI Services (Python)
+# Integrado desde AI-Suite - 28 Enero 2026
+
+version: '3.8'
+
+networks:
+  ait-network:
+    driver: bridge
+
+services:
+  # ==========================================
+  # AUTH SERVICE (Port 8000)
+  # ==========================================
+  auth-service:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    container_name: ait-auth-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/auth_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production}
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # GATEWAY SERVICE (Port 8001)
+  # ==========================================
+  gateway-service:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: ait-gateway-service
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - auth-service
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # STORAGE SERVICE (Port 8002)
+  # ==========================================
+  storage-service:
+    build:
+      context: ./services/storage
+      dockerfile: Dockerfile
+    container_name: ait-storage-service
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - S3_ENDPOINT=${S3_ENDPOINT:-http://minio:9000}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET=${S3_BUCKET:-ait-storage}
+    depends_on:
+      - minio
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # DOCUMENTS SERVICE (Port 8003)
+  # ==========================================
+  documents-service:
+    build:
+      context: ./services/documents
+      dockerfile: Dockerfile
+    container_name: ait-documents-service
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/documents_db
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+      - REDIS_URL=redis://redis:6379/2
+    depends_on:
+      - postgres
+      - storage-service
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # MAIL SERVICE (Port 8004)
+  # ==========================================
+  mail-service:
+    build:
+      context: ./services/mail
+      dockerfile: Dockerfile
+    container_name: ait-mail-service
+    ports:
+      - "8004:8004"
+    environment:
+      - PORT=8004
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - REDIS_URL=redis://redis:6379/3
+    depends_on:
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # NOTIFICATIONS SERVICE (Port 8005)
+  # ==========================================
+  notifications-service:
+    build:
+      context: ./services/notifications
+      dockerfile: Dockerfile
+    container_name: ait-notifications-service
+    ports:
+      - "8005:8005"
+    environment:
+      - PORT=8005
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/notifications_db
+      - REDIS_URL=redis://redis:6379/4
+      - FCM_SERVER_KEY=${FCM_SERVER_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # CALENDAR SERVICE (Port 8006)
+  # ==========================================
+  calendar-service:
+    build:
+      context: ./services/calendar
+      dockerfile: Dockerfile
+    container_name: ait-calendar-service
+    ports:
+      - "8006:8006"
+    environment:
+      - PORT=8006
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/calendar_db
+      - REDIS_URL=redis://redis:6379/5
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # TASKS SERVICE (Port 8007)
+  # ==========================================
+  tasks-service:
+    build:
+      context: ./services/tasks
+      dockerfile: Dockerfile
+    container_name: ait-tasks-service
+    ports:
+      - "8007:8007"
+    environment:
+      - PORT=8007
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tasks_db
+      - REDIS_URL=redis://redis:6379/6
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # CRM SERVICE (Port 8008)
+  # ==========================================
+  crm-service:
+    build:
+      context: ./services/crm
+      dockerfile: Dockerfile
+    container_name: ait-crm-service-fastapi
+    ports:
+      - "8008:8008"
+    environment:
+      - PORT=8008
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/crm_db
+      - REDIS_URL=redis://redis:6379/7
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # ANALYTICS SERVICE (Port 8009)
+  # ==========================================
+  analytics-service:
+    build:
+      context: ./services/analytics
+      dockerfile: Dockerfile
+    container_name: ait-analytics-service
+    ports:
+      - "8009:8009"
+    environment:
+      - PORT=8009
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics_db
+      - CLICKHOUSE_URL=${CLICKHOUSE_URL:-http://clickhouse:8123}
+      - REDIS_URL=redis://redis:6379/8
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # HR SERVICE (Port 8010)
+  # ==========================================
+  hr-service:
+    build:
+      context: ./services/hr
+      dockerfile: Dockerfile
+    container_name: ait-hr-service-fastapi
+    ports:
+      - "8010:8010"
+    environment:
+      - PORT=8010
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/hr_db
+      - REDIS_URL=redis://redis:6379/9
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # WORKFLOW SERVICE (Port 8011)
+  # ==========================================
+  workflow-service:
+    build:
+      context: ./services/workflow
+      dockerfile: Dockerfile
+    container_name: ait-workflow-service
+    ports:
+      - "8011:8011"
+    environment:
+      - PORT=8011
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/workflow_db
+      - REDIS_URL=redis://redis:6379/10
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # COLLABORATION SERVICE (Port 8012)
+  # ==========================================
+  collaboration-service:
+    build:
+      context: ./services/collaboration
+      dockerfile: Dockerfile
+    container_name: ait-collaboration-service
+    ports:
+      - "8012:8012"
+    environment:
+      - PORT=8012
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/collaboration_db
+      - REDIS_URL=redis://redis:6379/11
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # SPREADSHEETS SERVICE (Port 8013)
+  # ==========================================
+  spreadsheets-service:
+    build:
+      context: ./services/spreadsheets
+      dockerfile: Dockerfile
+    container_name: ait-spreadsheets-service
+    ports:
+      - "8013:8013"
+    environment:
+      - PORT=8013
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/spreadsheets_db
+      - REDIS_URL=redis://redis:6379/12
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+    depends_on:
+      - postgres
+      - redis
+      - storage-service
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # PRESENTATIONS SERVICE (Port 8014)
+  # ==========================================
+  presentations-service:
+    build:
+      context: ./services/presentations
+      dockerfile: Dockerfile
+    container_name: ait-presentations-service
+    ports:
+      - "8014:8014"
+    environment:
+      - PORT=8014
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/presentations_db
+      - REDIS_URL=redis://redis:6379/13
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+    depends_on:
+      - postgres
+      - redis
+      - storage-service
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # FORMS SERVICE (Port 8015)
+  # ==========================================
+  forms-service:
+    build:
+      context: ./services/forms
+      dockerfile: Dockerfile
+    container_name: ait-forms-service
+    ports:
+      - "8015:8015"
+    environment:
+      - PORT=8015
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/forms_db
+      - REDIS_URL=redis://redis:6379/14
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # NOTES SERVICE (Port 8016)
+  # ==========================================
+  notes-service:
+    build:
+      context: ./services/notes
+      dockerfile: Dockerfile
+    container_name: ait-notes-service
+    ports:
+      - "8016:8016"
+    environment:
+      - PORT=8016
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/notes_db
+      - REDIS_URL=redis://redis:6379/15
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # BOOKINGS SERVICE (Port 8017)
+  # ==========================================
+  bookings-service:
+    build:
+      context: ./services/bookings
+      dockerfile: Dockerfile
+    container_name: ait-bookings-service
+    ports:
+      - "8017:8017"
+    environment:
+      - PORT=8017
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bookings_db
+      - REDIS_URL=redis://redis:6379/16
+      - CALENDAR_SERVICE_URL=http://calendar-service:8006
+    depends_on:
+      - postgres
+      - redis
+      - calendar-service
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # ASSISTANT SERVICE (Port 8018)
+  # ==========================================
+  assistant-service:
+    build:
+      context: ./services/assistant
+      dockerfile: Dockerfile
+    container_name: ait-assistant-service
+    ports:
+      - "8018:8018"
+    environment:
+      - PORT=8018
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/assistant_db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - REDIS_URL=redis://redis:6379/17
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # WHITEBOARD SERVICE (Port 8019)
+  # ==========================================
+  whiteboard-service:
+    build:
+      context: ./services/whiteboard
+      dockerfile: Dockerfile
+    container_name: ait-whiteboard-service
+    ports:
+      - "8019:8019"
+    environment:
+      - PORT=8019
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/whiteboard_db
+      - REDIS_URL=redis://redis:6379/18
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+    depends_on:
+      - postgres
+      - redis
+      - storage-service
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # TRANSLATOR SERVICE (Port 8020)
+  # ==========================================
+  translator-service:
+    build:
+      context: ./services/translator
+      dockerfile: Dockerfile
+    container_name: ait-translator-service
+    ports:
+      - "8020:8020"
+    environment:
+      - PORT=8020
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/translator_db
+      - REDIS_URL=redis://redis:6379/19
+      - GOOGLE_TRANSLATE_API_KEY=${GOOGLE_TRANSLATE_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # EMBEDDED APPS SERVICE (Port 8021)
+  # ==========================================
+  embedded-apps-service:
+    build:
+      context: ./services/embedded-apps
+      dockerfile: Dockerfile
+    container_name: ait-embedded-apps-service
+    ports:
+      - "8021:8021"
+    environment:
+      - PORT=8021
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/embedded_apps_db
+      - REDIS_URL=redis://redis:6379/20
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ==========================================
+  # INFRASTRUCTURE SERVICES
+  # ==========================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ait-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_MULTIPLE_DATABASES=auth_db,documents_db,notifications_db,calendar_db,tasks_db,crm_db,analytics_db,hr_db,workflow_db,collaboration_db,spreadsheets_db,presentations_db,forms_db,notes_db,bookings_db,assistant_db,whiteboard_db,translator_db,embedded_apps_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ait-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ait-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  minio:
+    image: minio/minio:latest
+    container_name: ait-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+    networks:
+      - ait-network
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

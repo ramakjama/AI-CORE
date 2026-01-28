@@ -1,0 +1,13 @@
+packages:
+  - 'apps/*'
+  - 'modules/01-core-business/*'
+  - 'modules/02-insurance-specialized/*'
+  - 'modules/03-marketing-sales/*'
+  - 'modules/04-analytics-intelligence/*'
+  - 'modules/05-security-compliance/*'
+  - 'modules/06-infrastructure/*'
+  - 'modules/07-integration-automation/*'
+  - 'libs/*'
+  - 'agents/interfaces'
+  - 'agents/specialists/*'
+  - 'agents/executors/*'

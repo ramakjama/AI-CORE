@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ait-core-staging
+
+bases:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+  version: v1.0.0-staging
+
+replicas:
+  - name: api
+    count: 3
+  - name: web
+    count: 3
+  - name: admin
+    count: 2
+  - name: mobile-api
+    count: 2
+
+images:
+  - name: ait-core/api
+    newName: your-registry.com/ait-core-api
+    newTag: staging
+  - name: ait-core/web
+    newName: your-registry.com/ait-core-web
+    newTag: staging
+
+configMapGenerator:
+  - name: ait-core-config
+    behavior: merge
+    literals:
+      - NODE_ENV=staging
+      - LOG_LEVEL=debug
+      - ENABLE_DEBUG_LOGS=true

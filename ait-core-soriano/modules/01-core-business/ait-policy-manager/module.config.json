@@ -1,0 +1,50 @@
+{
+  "module": {
+    "id": "ait-policy-manager",
+    "name": "Policy Manager",
+    "version": "1.0.0",
+    "category": "core-business",
+    "priority": "P0",
+    "status": "active"
+  },
+  "connector": {
+    "type": "nestjs-module",
+    "autoLoad": true,
+    "hotReload": true,
+    "dependencies": ["@ait-core/database", "@ait-core/kafka"],
+    "provides": ["PolicyService", "PolicyController"],
+    "api": {
+      "prefix": "/api/v1/policies",
+      "endpoints": [
+        "POST /",
+        "GET /",
+        "GET /:id",
+        "PUT /:id",
+        "DELETE /:id",
+        "POST /:id/renew",
+        "POST /:id/cancel",
+        "POST /:id/endorse",
+        "GET /:id/history",
+        "GET /:id/documents"
+      ]
+    }
+  },
+  "capabilities": {
+    "domain": "Gestión de Pólizas",
+    "features": [
+      "Creación y emisión de pólizas",
+      "Renovaciones automáticas y manuales",
+      "Endosos y modificaciones mid-term",
+      "Cancelaciones y anulaciones",
+      "Historial completo de cambios",
+      "Gestión de documentos asociados",
+      "Cálculo de primas con ait-engines",
+      "Validación de underwriting",
+      "Integración con agentes AI"
+    ]
+  },
+  "resources": {
+    "cpu": "200m",
+    "memory": "512Mi"
+  }
+}

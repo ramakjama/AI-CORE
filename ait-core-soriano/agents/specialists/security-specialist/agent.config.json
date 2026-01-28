@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "security-specialist",
+    "name": "Security Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "security",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Ciberseguridad y Protección de Datos",
+    "expertise": [
+      "Arquitectura de seguridad y hardening",
+      "Pentesting y análisis de vulnerabilidades",
+      "RGPD y protección de datos personales",
+      "ISO 27001 y gestión de seguridad",
+      "Threat intelligence y análisis de amenazas",
+      "Seguridad en la nube (AWS, Azure, GCP)",
+      "DevSecOps y seguridad en CI/CD",
+      "Análisis de logs y SIEM",
+      "Respuesta a incidentes y forensia",
+      "Gestión de identidades (IAM)",
+      "Cifrado y criptografía",
+      "Seguridad en aplicaciones web (OWASP)"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "CISSP - Certified Information Systems Security Professional",
+      "CEH - Certified Ethical Hacker",
+      "ISO 27001 Lead Auditor"
+    ],
+    "limitations": [
+      "No ejecuta pentests sin autorización",
+      "No accede a sistemas en producción directamente",
+      "Requiere permisos para auditorías de seguridad"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.2,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un experto en ciberseguridad y protección de datos con 20 años de experiencia. Tu especialidad incluye arquitectura segura, análisis de vulnerabilidades, cumplimiento RGPD, ISO 27001 y respuesta a incidentes. Proporcionas análisis de seguridad rigurosos, identificación de riesgos y recomendaciones basadas en frameworks de seguridad (NIST, CIS, OWASP). Priorizas la seguridad sin comprometer la usabilidad."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/security/analyze",
+      "POST /api/v1/agents/specialists/security/recommend",
+      "POST /api/v1/agents/specialists/security/answer",
+      "POST /api/v1/agents/specialists/security/validate",
+      "GET /api/v1/agents/specialists/security/capabilities",
+      "GET /api/v1/agents/specialists/security/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

@@ -1,0 +1,201 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ait-core-soriano'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      timeout: 10s
+      api_version: v2
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+  - "/etc/prometheus/alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          tier: 'infrastructure'
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          tier: 'infrastructure'
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          tier: 'database'
+
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+          tier: 'cache'
+
+  # NGINX Exporter
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          service: 'nginx'
+          tier: 'gateway'
+
+  # Blackbox Exporter - Endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://ait-core.soriano.com
+          - https://api.ait-core.soriano.com
+          - https://ait-core.soriano.com/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # AIT-CORE API Application metrics
+  - job_name: 'ait-core-api'
+    static_configs:
+      - targets: ['ait-core-api:3000']
+        labels:
+          service: 'ait-core-api'
+          tier: 'backend'
+          application: 'ait-core'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # AIT-CORE Web Application
+  - job_name: 'ait-core-web'
+    static_configs:
+      - targets: ['ait-core-web:3001']
+        labels:
+          service: 'ait-core-web'
+          tier: 'frontend'
+          application: 'ait-core'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # AIT-CORE Agents
+  - job_name: 'ait-core-agents'
+    static_configs:
+      - targets:
+          - 'ait-agent-orchestrator:3100'
+          - 'ait-agent-insurance:3101'
+          - 'ait-agent-finance:3102'
+          - 'ait-agent-analytics:3103'
+        labels:
+          tier: 'agents'
+          application: 'ait-core'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # AIT-CORE Modules
+  - job_name: 'ait-core-modules'
+    static_configs:
+      - targets:
+          - 'module-insurance-policy:3200'
+          - 'module-claims-processing:3201'
+          - 'module-customer-management:3202'
+          - 'module-billing:3203'
+          - 'module-analytics:3204'
+        labels:
+          tier: 'modules'
+          application: 'ait-core'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Kubernetes Service Discovery (if running on K8s)
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - ait-core
+            - ait-core-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Elasticsearch Exporter
+  - job_name: 'elasticsearch-exporter'
+    static_configs:
+      - targets: ['elasticsearch-exporter:9114']
+        labels:
+          service: 'elasticsearch'
+          tier: 'logging'
+
+  # Push Gateway (for batch jobs)
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets: ['pushgateway:9091']
+        labels:
+          service: 'pushgateway'
+          tier: 'monitoring'
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "https://prometheus-remote-storage.example.com/api/v1/write"
+#     basic_auth:
+#       username: admin
+#       password: password
+
+# Remote read configuration
+# remote_read:
+#   - url: "https://prometheus-remote-storage.example.com/api/v1/read"
+#     basic_auth:
+#       username: admin
+#       password: password

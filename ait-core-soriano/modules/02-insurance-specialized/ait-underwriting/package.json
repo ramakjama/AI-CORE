@@ -1,0 +1,14 @@
+{
+  "name": "@ait-core/underwriting",
+  "version": "1.0.0",
+  "description": "Motor de underwriting y evaluación de riesgos",
+  "main": "dist/index.js",
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/swagger": "^7.2.0",
+    "@prisma/client": "^5.8.0",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "axios": "^1.6.5"
+  }
+}

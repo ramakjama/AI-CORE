@@ -1,0 +1,279 @@
+groups:
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-cpu"
+
+      - alert: CriticalCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-cpu"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-memory"
+
+      - alert: CriticalMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Critical memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://runbooks.ait-core.soriano.com/high-memory"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/low-disk-space"
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://runbooks.ait-core.soriano.com/low-disk-space"
+
+      # High Disk I/O
+      - alert: HighDiskIO
+        expr: |
+          rate(node_disk_io_time_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High disk I/O on {{ $labels.instance }}"
+          description: "Disk I/O utilization is {{ $value | humanizePercentage }}"
+          runbook: "https://runbooks.ait-core.soriano.com/high-disk-io"
+
+      # Network Traffic High
+      - alert: HighNetworkTraffic
+        expr: |
+          sum(rate(node_network_receive_bytes_total[5m])) by (instance) > 100 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High network receive traffic on {{ $labels.instance }}"
+          description: "Network receive rate is {{ $value | humanize }}B/s"
+          runbook: "https://runbooks.ait-core.soriano.com/high-network-traffic"
+
+      # Container Restart Rate High
+      - alert: ContainerRestartRateHigh
+        expr: |
+          rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} is restarting frequently"
+          description: "Container has restarted {{ $value }} times in the last 15 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/container-restarts"
+
+      # Container OOMKilled
+      - alert: ContainerOOMKilled
+        expr: |
+          (kube_pod_container_status_terminated_reason{reason="OOMKilled"} == 1)
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} was OOM killed"
+          description: "Container was terminated due to out of memory"
+          runbook: "https://runbooks.ait-core.soriano.com/oom-killed"
+
+      # Pod Not Ready
+      - alert: PodNotReady
+        expr: |
+          kube_pod_status_phase{phase!~"Running|Succeeded"} > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not ready"
+          description: "Pod has been in {{ $labels.phase }} phase for more than 5 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/pod-not-ready"
+
+      # Node Not Ready
+      - alert: NodeNotReady
+        expr: |
+          kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Node {{ $labels.node }} is not ready"
+          description: "Node has been NotReady for more than 5 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/node-not-ready"
+
+      # PostgreSQL Down
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL on {{ $labels.instance }} has been down for more than 2 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/postgresql-down"
+
+      # PostgreSQL Too Many Connections
+      - alert: PostgreSQLTooManyConnections
+        expr: |
+          (sum(pg_stat_database_numbackends) / pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL has high connection usage"
+          description: "Connection usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/postgresql-connections"
+
+      # PostgreSQL Replication Lag
+      - alert: PostgreSQLReplicationLag
+        expr: |
+          pg_replication_lag > 30
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL replication lag is high"
+          description: "Replication lag is {{ $value }}s (threshold: 30s)"
+          runbook: "https://runbooks.ait-core.soriano.com/postgresql-replication-lag"
+
+      # Redis Down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis on {{ $labels.instance }} has been down for more than 2 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/redis-down"
+
+      # Redis Memory Usage High
+      - alert: RedisMemoryHigh
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://runbooks.ait-core.soriano.com/redis-memory-high"
+
+      # Elasticsearch Cluster Health
+      - alert: ElasticsearchClusterRed
+        expr: elasticsearch_cluster_health_status{color="red"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          category: logging
+        annotations:
+          summary: "Elasticsearch cluster health is RED"
+          description: "Elasticsearch cluster {{ $labels.cluster }} is in RED state"
+          runbook: "https://runbooks.ait-core.soriano.com/elasticsearch-red"
+
+      - alert: ElasticsearchClusterYellow
+        expr: elasticsearch_cluster_health_status{color="yellow"} == 1
+        for: 15m
+        labels:
+          severity: warning
+          category: logging
+        annotations:
+          summary: "Elasticsearch cluster health is YELLOW"
+          description: "Elasticsearch cluster {{ $labels.cluster }} is in YELLOW state"
+          runbook: "https://runbooks.ait-core.soriano.com/elasticsearch-yellow"
+
+      # Certificate Expiration
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "Certificate expires in {{ $value }} days"
+          runbook: "https://runbooks.ait-core.soriano.com/cert-expiring"
+
+      - alert: SSLCertificateExpiringCritical
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "SSL certificate expiring very soon for {{ $labels.instance }}"
+          description: "Certificate expires in {{ $value }} days"
+          runbook: "https://runbooks.ait-core.soriano.com/cert-expiring"
+
+      # Endpoint Down
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Endpoint {{ $labels.instance }} is down"
+          description: "Endpoint has been down for more than 5 minutes"
+          runbook: "https://runbooks.ait-core.soriano.com/endpoint-down"

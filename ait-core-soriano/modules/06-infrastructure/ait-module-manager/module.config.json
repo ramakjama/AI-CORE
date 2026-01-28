@@ -1,0 +1,71 @@
+{
+  "moduleId": "ait-module-manager",
+  "moduleName": "AIT Module Manager",
+  "category": "06-infrastructure",
+  "version": "1.0.0",
+  "enabled": true,
+  "priority": "critical",
+  "description": "Meta-módulo para gestión dinámica de módulos: crear, editar, eliminar, activar/desactivar",
+  "icon": "🏗️",
+  "color": "#FF9800",
+  "port": 3099,
+  "database": "module_manager_db",
+  "dependencies": {
+    "required": [],
+    "optional": ["ait-authenticator"]
+  },
+  "capabilities": [
+    "module-generation",
+    "module-editing",
+    "module-deletion",
+    "module-activation",
+    "template-management",
+    "scaffold-generation",
+    "dependency-management",
+    "hot-reload"
+  ],
+  "endpoints": {
+    "api": "http://localhost:3099/api/v1/module-manager",
+    "health": "http://localhost:3099/health",
+    "swagger": "http://localhost:3099/api-docs"
+  },
+  "agent": {
+    "enabled": true,
+    "parallelAgents": 10,
+    "modes": {
+      "switch": true,
+      "edit": true,
+      "plain": true,
+      "bypass": {
+        "enabled": true,
+        "warning": "DANGER: Can modify core system files"
+      }
+    },
+    "features": {
+      "contextMemory": true,
+      "learningMode": true,
+      "autoOptimize": true,
+      "multimodal": false,
+      "realtimeProcessing": true,
+      "codeGeneration": true,
+      "codeExecution": true
+    }
+  },
+  "security": {
+    "authentication": "required",
+    "authorization": "rbac",
+    "requiredRoles": ["ADMIN", "DEVELOPER"],
+    "rateLimiting": {
+      "enabled": true,
+      "maxRequests": 100,
+      "windowMs": 60000
+    }
+  },
+  "permissions": {
+    "allowModuleCreation": true,
+    "allowModuleDeletion": true,
+    "allowCoreModification": false,
+    "allowTemplateEdit": true,
+    "requireApprovalForProduction": true
+  }
+}

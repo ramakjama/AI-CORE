@@ -1,0 +1,26 @@
+{
+  "name": "collaboration-websocket-server",
+  "version": "1.0.0",
+  "description": "Real-time collaboration WebSocket server with Y.js CRDT support",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "websocket",
+    "yjs",
+    "crdt",
+    "collaboration",
+    "real-time"
+  ],
+  "author": "AIT-CORE",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.16.0",
+    "y-websocket": "^2.0.0",
+    "yjs": "^13.6.0"
+  }
+}

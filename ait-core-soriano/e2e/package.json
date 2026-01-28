@@ -1,0 +1,29 @@
+{
+  "name": "@ait-core/e2e-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for AIT-CORE Soriano using Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=mobile-chrome --project=mobile-safari",
+    "test:auth": "playwright test tests/auth",
+    "test:policies": "playwright test tests/policies",
+    "test:claims": "playwright test tests/claims",
+    "test:clients": "playwright test tests/clients",
+    "test:dashboard": "playwright test tests/dashboard",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:3000",
+    "install-browsers": "playwright install --with-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

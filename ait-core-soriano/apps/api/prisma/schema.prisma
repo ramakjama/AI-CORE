@@ -1,0 +1,657 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password        String
+  firstName       String
+  lastName        String
+  phone           String?
+  avatar          String?
+  role            UserRole  @default(USER)
+  isActive        Boolean   @default(true)
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tokens        RefreshToken[]
+  sessions      Session[]
+  customers     Customer[]
+  policies      Policy[]        @relation("AgentPolicies")
+  quotes        Quote[]         @relation("AgentQuotes")
+  claims        Claim[]         @relation("AgentClaims")
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  MANAGER
+  AGENT
+  CUSTOMER
+}
+
+// Refresh Token Management
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// Session Management
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+// Audit Log
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  changes   Json?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+// Insurance Customer Management
+model Customer {
+  id          String   @id @default(uuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type        CustomerType @default(INDIVIDUAL)
+
+  // Personal Information
+  firstName   String
+  lastName    String
+  email       String   @unique
+  phone       String
+  dateOfBirth DateTime?
+  gender      String?
+
+  // Address
+  address1    String?
+  address2    String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String   @default("USA")
+
+  // Business Information (for BUSINESS type)
+  businessName String?
+  taxId        String?
+
+  // Additional Info
+  occupation   String?
+  maritalStatus String?
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policies    Policy[]
+  quotes      Quote[]
+  claims      Claim[]
+  payments    Payment[]
+  documents   Document[]
+
+  @@map("customers")
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+// Insurance Products
+model InsuranceProduct {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  category    ProductCategory
+  description String?
+
+  // Pricing
+  baseRate    Decimal  @db.Decimal(10, 2)
+  minPremium  Decimal  @db.Decimal(10, 2)
+  maxPremium  Decimal  @db.Decimal(10, 2)
+
+  // Configuration
+  isActive    Boolean  @default(true)
+  features    Json?
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policies    Policy[]
+  quotes      Quote[]
+  coverages   Coverage[]
+
+  @@map("insurance_products")
+}
+
+enum ProductCategory {
+  AUTO
+  HOME
+  LIFE
+  HEALTH
+  BUSINESS
+  TRAVEL
+  PET
+  OTHER
+}
+
+// Insurance Coverage
+model Coverage {
+  id          String   @id @default(uuid())
+  productId   String
+  product     InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+
+  coverageLimit  Decimal?  @db.Decimal(15, 2)
+  deductible     Decimal?  @db.Decimal(10, 2)
+  premium        Decimal   @db.Decimal(10, 2)
+
+  isOptional  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policyCoverages PolicyCoverage[]
+  quoteCoverages  QuoteCoverage[]
+
+  @@unique([productId, code])
+  @@map("coverages")
+}
+
+// Insurance Quotes
+model Quote {
+  id          String   @id @default(uuid())
+  quoteNumber String   @unique
+
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     InsuranceProduct @relation(fields: [productId], references: [id])
+
+  agentId     String?
+  agent       User?    @relation("AgentQuotes", fields: [agentId], references: [id], onDelete: SetNull)
+
+  status      QuoteStatus @default(DRAFT)
+
+  // Pricing
+  premium     Decimal  @db.Decimal(10, 2)
+  fees        Decimal  @default(0) @db.Decimal(10, 2)
+  taxes       Decimal  @default(0) @db.Decimal(10, 2)
+  totalAmount Decimal  @db.Decimal(10, 2)
+
+  // Coverage Period
+  effectiveDate DateTime
+  expirationDate DateTime
+
+  // Additional Info
+  riskScore   Float?
+  notes       String?
+  metadata    Json?
+
+  validUntil  DateTime
+  convertedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  coverages   QuoteCoverage[]
+  policy      Policy?
+
+  @@map("quotes")
+}
+
+enum QuoteStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  DECLINED
+  CONVERTED
+  EXPIRED
+}
+
+// Quote Coverage
+model QuoteCoverage {
+  id         String   @id @default(uuid())
+  quoteId    String
+  quote      Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  coverageId String
+  coverage   Coverage @relation(fields: [coverageId], references: [id])
+
+  limit      Decimal  @db.Decimal(15, 2)
+  deductible Decimal  @db.Decimal(10, 2)
+  premium    Decimal  @db.Decimal(10, 2)
+
+  isIncluded Boolean  @default(true)
+
+  @@unique([quoteId, coverageId])
+  @@map("quote_coverages")
+}
+
+// Insurance Policies
+model Policy {
+  id            String   @id @default(uuid())
+  policyNumber  String   @unique
+
+  quoteId       String?  @unique
+  quote         Quote?   @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  productId     String
+  product       InsuranceProduct @relation(fields: [productId], references: [id])
+
+  agentId       String?
+  agent         User?    @relation("AgentPolicies", fields: [agentId], references: [id], onDelete: SetNull)
+
+  status        PolicyStatus @default(PENDING)
+
+  // Pricing
+  premium       Decimal  @db.Decimal(10, 2)
+  fees          Decimal  @default(0) @db.Decimal(10, 2)
+  taxes         Decimal  @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal  @db.Decimal(10, 2)
+
+  // Coverage Period
+  effectiveDate DateTime
+  expirationDate DateTime
+  renewalDate   DateTime?
+
+  // Payment
+  paymentFrequency PaymentFrequency @default(MONTHLY)
+  nextPaymentDate DateTime?
+
+  // Additional Info
+  isAutoRenew   Boolean  @default(true)
+  notes         String?
+  metadata      Json?
+
+  issuedAt      DateTime?
+  cancelledAt   DateTime?
+  cancellationReason String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  coverages     PolicyCoverage[]
+  claims        Claim[]
+  payments      Payment[]
+  documents     Document[]
+  endorsements  PolicyEndorsement[]
+
+  @@map("policies")
+}
+
+enum PolicyStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+  RENEWED
+}
+
+enum PaymentFrequency {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  ONE_TIME
+}
+
+// Policy Coverage
+model PolicyCoverage {
+  id         String   @id @default(uuid())
+  policyId   String
+  policy     Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  coverageId String
+  coverage   Coverage @relation(fields: [coverageId], references: [id])
+
+  limit      Decimal  @db.Decimal(15, 2)
+  deductible Decimal  @db.Decimal(10, 2)
+  premium    Decimal  @db.Decimal(10, 2)
+
+  isActive   Boolean  @default(true)
+
+  @@unique([policyId, coverageId])
+  @@map("policy_coverages")
+}
+
+// Policy Endorsements
+model PolicyEndorsement {
+  id          String   @id @default(uuid())
+  policyId    String
+  policy      Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  type        EndorsementType
+  description String
+
+  // Pricing Impact
+  premiumChange Decimal @default(0) @db.Decimal(10, 2)
+
+  effectiveDate DateTime
+  status      EndorsementStatus @default(PENDING)
+
+  approvedBy  String?
+  approvedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("policy_endorsements")
+}
+
+enum EndorsementType {
+  COVERAGE_CHANGE
+  INSURED_CHANGE
+  VEHICLE_CHANGE
+  ADDRESS_CHANGE
+  BENEFICIARY_CHANGE
+  OTHER
+}
+
+enum EndorsementStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  IMPLEMENTED
+}
+
+// Insurance Claims
+model Claim {
+  id           String   @id @default(uuid())
+  claimNumber  String   @unique
+
+  policyId     String
+  policy       Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+
+  agentId      String?
+  agent        User?    @relation("AgentClaims", fields: [agentId], references: [id], onDelete: SetNull)
+
+  status       ClaimStatus @default(REPORTED)
+
+  // Claim Details
+  incidentDate DateTime
+  reportedDate DateTime @default(now())
+  description  String
+  location     String?
+
+  // Financial
+  estimatedAmount Decimal?  @db.Decimal(15, 2)
+  approvedAmount  Decimal?  @db.Decimal(15, 2)
+  paidAmount      Decimal   @default(0) @db.Decimal(15, 2)
+
+  // Processing
+  adjusterName    String?
+  investigationNotes String?
+
+  closedAt     DateTime?
+  closureReason String?
+
+  metadata     Json?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents    Document[]
+  payments     Payment[]
+
+  @@map("claims")
+}
+
+enum ClaimStatus {
+  REPORTED
+  UNDER_REVIEW
+  INVESTIGATING
+  APPROVED
+  DENIED
+  PAID
+  CLOSED
+}
+
+// Payments
+model Payment {
+  id            String   @id @default(uuid())
+  paymentNumber String   @unique
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  policyId      String?
+  policy        Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  claimId       String?
+  claim         Claim?   @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  type          PaymentType
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+
+  // Amount
+  amount        Decimal  @db.Decimal(15, 2)
+  fee           Decimal  @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal  @db.Decimal(15, 2)
+
+  // Payment Details
+  transactionId String?
+  referenceNumber String?
+
+  // Dates
+  dueDate       DateTime?
+  paidAt        DateTime?
+
+  // Additional Info
+  notes         String?
+  metadata      Json?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payments")
+}
+
+enum PaymentType {
+  PREMIUM
+  CLAIM
+  REFUND
+  FEE
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  CHECK
+  CASH
+  PAYPAL
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+// Documents
+model Document {
+  id          String   @id @default(uuid())
+
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  policyId    String?
+  policy      Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  claimId     String?
+  claim       Claim?   @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  type        DocumentType
+  name        String
+  description String?
+
+  // File Info
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  fileUrl     String
+
+  // Metadata
+  uploadedBy  String?
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("documents")
+}
+
+enum DocumentType {
+  POLICY
+  CLAIM_FORM
+  PROOF_OF_LOSS
+  MEDICAL_REPORT
+  POLICE_REPORT
+  PHOTO
+  INVOICE
+  RECEIPT
+  ID_CARD
+  DRIVERS_LICENSE
+  REGISTRATION
+  OTHER
+}
+
+// Notifications
+model Notification {
+  id        String   @id @default(uuid())
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  channel   NotificationChannel
+
+  title     String
+  message   String
+
+  // Delivery
+  status    NotificationStatus @default(PENDING)
+  sentAt    DateTime?
+  readAt    DateTime?
+
+  // Metadata
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  POLICY_ISSUED
+  POLICY_RENEWAL
+  POLICY_CANCELLED
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  CLAIM_SUBMITTED
+  CLAIM_APPROVED
+  CLAIM_DENIED
+  QUOTE_READY
+  SYSTEM_ALERT
+  OTHER
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+// System Configuration
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  category  String?
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}

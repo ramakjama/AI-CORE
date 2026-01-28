@@ -1,0 +1,673 @@
+name: Deploy to Production (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.2.3)'
+        required: true
+        type: string
+      skip_backup:
+        description: 'Skip database backup'
+        required: false
+        default: false
+        type: boolean
+      rollback_on_failure:
+        description: 'Auto-rollback on failure'
+        required: false
+        default: true
+        type: boolean
+      notify_channels:
+        description: 'Notification channels'
+        required: false
+        default: 'slack,email'
+        type: string
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.15.0'
+  PYTHON_VERSION: '3.11'
+  DEPLOYMENT_ENV: production
+
+jobs:
+  # Job 1: Pre-deployment Approval & Validation
+  approval:
+    name: Deployment Approval
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: production-approval
+      url: https://ait-core.soriano.com
+
+    steps:
+      - name: Manual approval checkpoint
+        run: |
+          echo "🚨 PRODUCTION DEPLOYMENT INITIATED 🚨"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Initiated by: ${{ github.actor }}"
+          echo "Time: $(date)"
+
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ github.event.inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Invalid version format. Expected format: v1.2.3"
+            exit 1
+          fi
+
+      - name: Send approval notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '🚨 PRODUCTION DEPLOYMENT APPROVED',
+              attachments: [{
+                color: 'warning',
+                fields: [
+                  {
+                    title: 'Version',
+                    value: '${{ github.event.inputs.version }}',
+                    short: true
+                  },
+                  {
+                    title: 'Initiated by',
+                    value: '${{ github.actor }}',
+                    short: true
+                  },
+                  {
+                    title: 'Rollback enabled',
+                    value: '${{ github.event.inputs.rollback_on_failure }}',
+                    short: true
+                  }
+                ]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 2: Pre-deployment Checks
+  pre-deployment:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: approval
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Verify git tag exists
+        run: |
+          if ! git rev-parse ${{ github.event.inputs.version }} >/dev/null 2>&1; then
+            echo "Error: Tag ${{ github.event.inputs.version }} does not exist"
+            exit 1
+          fi
+
+      - name: Check production prerequisites
+        run: |
+          echo "Checking production readiness..."
+          # Add prerequisite checks
+
+      - name: Validate environment variables
+        run: |
+          required_secrets=("PROD_HOST" "PROD_USER" "PROD_SSH_KEY" "DATABASE_URL" "REDIS_URL")
+          for secret in "${required_secrets[@]}"; do
+            if [ -z "${{ secrets[secret] }}" ]; then
+              echo "Error: Required secret $secret is not set"
+              exit 1
+            fi
+          done
+        continue-on-error: false
+
+      - name: Check staging health
+        run: |
+          curl --fail https://api-staging.ait-core.soriano.com/health || \
+            echo "Warning: Staging environment is not healthy"
+        continue-on-error: true
+
+  # Job 3: Database Backup
+  database-backup:
+    name: Backup Production Database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: pre-deployment
+    if: github.event.inputs.skip_backup != 'true'
+
+    steps:
+      - name: Create database backup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            BACKUP_DIR="/var/backups/ait-core/$(date +%Y%m%d_%H%M%S)"
+            mkdir -p $BACKUP_DIR
+
+            # Backup PostgreSQL
+            pg_dump -U $DB_USER -h $DB_HOST $DB_NAME | gzip > $BACKUP_DIR/database.sql.gz
+
+            # Backup uploaded files
+            tar -czf $BACKUP_DIR/uploads.tar.gz /var/www/ait-core/uploads
+
+            # Keep only last 30 days of backups
+            find /var/backups/ait-core -mtime +30 -delete
+
+            echo "Backup completed: $BACKUP_DIR"
+
+      - name: Upload backup to S3
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            BACKUP_DIR=$(ls -td /var/backups/ait-core/* | head -1)
+            aws s3 sync $BACKUP_DIR s3://${{ secrets.S3_BACKUP_BUCKET }}/ait-core/$(basename $BACKUP_DIR)
+        continue-on-error: true
+
+  # Job 4: Build Production Artifacts
+  build:
+    name: Build Production Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: pre-deployment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @ait-core/api prisma:generate
+
+      - name: Build backend
+        run: pnpm --filter @ait-core/api build
+        env:
+          NODE_ENV: production
+
+      - name: Build web app
+        run: pnpm --filter @ait-core/web build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.ait-core.soriano.com
+          NEXT_PUBLIC_WS_URL: wss://api.ait-core.soriano.com
+          NODE_ENV: production
+
+      - name: Build admin app
+        run: pnpm --filter @ait-core/admin build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.ait-core.soriano.com
+          NODE_ENV: production
+
+      - name: Build all modules
+        run: pnpm --filter "@ait-core/modules-*" build
+
+      - name: Build AI agents
+        run: pnpm --filter "@ait-core/agent-*" build
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-${{ github.event.inputs.version }}
+          path: |
+            apps/api/dist
+            apps/web/.next
+            apps/admin/.next
+            modules/*/dist
+            agents/*/dist
+          retention-days: 30
+
+  # Job 5: Security Scan
+  security-scan:
+    name: Final Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=critical --all-projects
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'ait-core-production'
+          path: '.'
+          format: 'ALL'
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-reports
+          path: reports/
+
+  # Job 6: Deploy Backend (Blue-Green)
+  deploy-backend:
+    name: Deploy Backend (Blue-Green)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [database-backup, build, security-scan]
+    environment:
+      name: production-backend
+      url: https://api.ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build-${{ github.event.inputs.version }}
+
+      - name: Deploy to production (Blue-Green)
+        uses: appleboy/ssh-action@v1.0.3
+        id: deploy
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+
+            # Determine current and new environments
+            CURRENT_ENV=$(readlink /var/www/ait-core/current)
+            if [[ "$CURRENT_ENV" == *"blue"* ]]; then
+              NEW_ENV="green"
+              OLD_ENV="blue"
+            else
+              NEW_ENV="blue"
+              OLD_ENV="green"
+            fi
+
+            echo "Current: $OLD_ENV, Deploying to: $NEW_ENV"
+
+            # Deploy to new environment
+            cd /var/www/ait-core/$NEW_ENV
+            git fetch --all --tags
+            git checkout ${{ github.event.inputs.version }}
+
+            # Install dependencies
+            pnpm install --frozen-lockfile --prod
+
+            # Generate Prisma client
+            pnpm --filter @ait-core/api prisma:generate
+
+            # Build if artifacts not synced
+            pnpm --filter @ait-core/api build
+
+            # Run database migrations
+            pnpm --filter @ait-core/api prisma migrate deploy
+
+            # Start new environment
+            pm2 start ecosystem.config.js --env production --name ait-core-api-$NEW_ENV
+            sleep 10
+
+            # Health check
+            if curl --fail http://localhost:3001/health; then
+              echo "New environment is healthy"
+
+              # Switch traffic
+              ln -sfn /var/www/ait-core/$NEW_ENV /var/www/ait-core/current
+
+              # Reload nginx
+              sudo nginx -s reload
+
+              # Stop old environment
+              pm2 delete ait-core-api-$OLD_ENV || true
+
+              echo "Deployment successful"
+            else
+              echo "Health check failed, rolling back"
+              pm2 delete ait-core-api-$NEW_ENV
+              exit 1
+            fi
+
+      - name: Verify deployment
+        run: |
+          max_attempts=15
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            if curl --fail https://api.ait-core.soriano.com/health; then
+              echo "Production backend is healthy"
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt failed, retrying..."
+            sleep 10
+          done
+          echo "Production backend health check failed"
+          exit 1
+
+  # Job 7: Deploy Frontend (Vercel)
+  deploy-frontend:
+    name: Deploy Frontend to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: deploy-backend
+    environment:
+      name: production-frontend
+      url: https://ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Deploy Web to Vercel
+        uses: amondnet/vercel-action@v25
+        id: deploy-web
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          vercel-args: '--prod'
+          working-directory: apps/web
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          alias-domains: |
+            ait-core.soriano.com
+            www.ait-core.soriano.com
+
+      - name: Deploy Admin to Vercel
+        uses: amondnet/vercel-action@v25
+        id: deploy-admin
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          vercel-args: '--prod'
+          working-directory: apps/admin
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          alias-domains: |
+            admin.ait-core.soriano.com
+
+      - name: Verify frontend deployments
+        run: |
+          curl --fail https://ait-core.soriano.com || exit 1
+          curl --fail https://admin.ait-core.soriano.com || exit 1
+
+  # Job 8: Deploy AI Agents
+  deploy-agents:
+    name: Deploy AI Agents
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deploy-backend
+
+    steps:
+      - name: Deploy agents to production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core/agents
+            git fetch --all --tags
+            git checkout ${{ github.event.inputs.version }}
+            pnpm install --frozen-lockfile --prod
+            pnpm --filter "@ait-core/agent-*" build
+            pm2 reload ait-core-agents --update-env
+
+  # Job 9: Deploy Python Engines
+  deploy-engines:
+    name: Deploy Python Engines
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deploy-backend
+
+    steps:
+      - name: Deploy engines to production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core/engines
+            git fetch --all --tags
+            git checkout ${{ github.event.inputs.version }}
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt --no-cache-dir
+            supervisorctl restart ait-engines:*
+
+  # Job 10: Smoke Tests
+  smoke-tests:
+    name: Production Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [deploy-backend, deploy-frontend, deploy-agents, deploy-engines]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install test tools
+        run: |
+          npm install -g newman artillery @playwright/test
+
+      - name: API smoke tests
+        run: |
+          curl --fail https://api.ait-core.soriano.com/health || exit 1
+          curl --fail https://api.ait-core.soriano.com/api || exit 1
+
+      - name: Frontend smoke tests
+        run: |
+          curl --fail https://ait-core.soriano.com || exit 1
+          curl --fail https://admin.ait-core.soriano.com || exit 1
+
+      - name: Run critical E2E tests
+        run: |
+          npx playwright test --grep @critical
+        env:
+          BASE_URL: https://ait-core.soriano.com
+        continue-on-error: false
+
+      - name: Run Postman production tests
+        run: |
+          newman run tests/postman/production-smoke-tests.json \
+            --environment tests/postman/production-env.json \
+            --reporters cli,json,junit
+        continue-on-error: false
+
+  # Job 11: Performance Verification
+  performance-check:
+    name: Production Performance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: smoke-tests
+
+    steps:
+      - name: Run load test
+        run: |
+          npm install -g artillery
+          artillery quick --count 20 --num 100 https://api.ait-core.soriano.com/health
+
+      - name: Lighthouse performance audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://ait-core.soriano.com
+            https://admin.ait-core.soriano.com
+          uploadArtifacts: true
+
+  # Job 12: Enable Monitoring
+  enable-monitoring:
+    name: Enable Production Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: smoke-tests
+
+    steps:
+      - name: Configure monitoring alerts
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            # Enable Prometheus monitoring
+            sudo systemctl restart prometheus
+
+            # Configure Grafana alerts
+            curl -X POST https://grafana.ait-core.soriano.com/api/alerts \
+              -H "Authorization: Bearer ${{ secrets.GRAFANA_API_KEY }}" \
+              -d '{"enabled": true}'
+
+      - name: Send Sentry deployment marker
+        run: |
+          curl -X POST https://sentry.io/api/0/organizations/${{ secrets.SENTRY_ORG }}/releases/ \
+            -H "Authorization: Bearer ${{ secrets.SENTRY_AUTH_TOKEN }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "version": "${{ github.event.inputs.version }}",
+              "projects": ["ait-core"],
+              "environment": "production"
+            }'
+
+  # Job 13: Notify Success
+  notify-success:
+    name: Notify Deployment Success
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [deploy-backend, deploy-frontend, deploy-agents, deploy-engines, smoke-tests, performance-check]
+    if: success()
+
+    steps:
+      - name: Send success notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '✅ PRODUCTION DEPLOYMENT SUCCESSFUL',
+              attachments: [{
+                color: 'good',
+                fields: [
+                  {
+                    title: 'Version',
+                    value: '${{ github.event.inputs.version }}',
+                    short: true
+                  },
+                  {
+                    title: 'Deployed by',
+                    value: '${{ github.actor }}',
+                    short: true
+                  },
+                  {
+                    title: 'Time',
+                    value: '$(date)',
+                    short: false
+                  },
+                  {
+                    title: 'URLs',
+                    value: 'Web: https://ait-core.soriano.com\nAPI: https://api.ait-core.soriano.com\nAdmin: https://admin.ait-core.soriano.com',
+                    short: false
+                  }
+                ]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          release_name: Production Release ${{ github.event.inputs.version }}
+          body: |
+            Production deployment of version ${{ github.event.inputs.version }}
+
+            Deployed by: ${{ github.actor }}
+            Date: $(date)
+
+            ## URLs
+            - Web: https://ait-core.soriano.com
+            - Admin: https://admin.ait-core.soriano.com
+            - API: https://api.ait-core.soriano.com
+          draft: false
+          prerelease: false
+
+  # Job 14: Rollback (on failure)
+  rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [deploy-backend, deploy-frontend, smoke-tests]
+    if: failure() && github.event.inputs.rollback_on_failure == 'true'
+
+    steps:
+      - name: Rollback backend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core
+            # Switch back to previous environment
+            CURRENT_ENV=$(readlink current)
+            if [[ "$CURRENT_ENV" == *"blue"* ]]; then
+              ln -sfn /var/www/ait-core/green /var/www/ait-core/current
+              pm2 restart ait-core-api-green
+            else
+              ln -sfn /var/www/ait-core/blue /var/www/ait-core/current
+              pm2 restart ait-core-api-blue
+            fi
+            sudo nginx -s reload
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '⚠️ PRODUCTION DEPLOYMENT FAILED - ROLLED BACK',
+              attachments: [{
+                color: 'danger',
+                fields: [
+                  {
+                    title: 'Version',
+                    value: '${{ github.event.inputs.version }}',
+                    short: true
+                  },
+                  {
+                    title: 'Action',
+                    value: 'Automatic rollback performed',
+                    short: true
+                  }
+                ]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

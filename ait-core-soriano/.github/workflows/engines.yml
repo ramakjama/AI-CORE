@@ -1,0 +1,481 @@
+name: Python Engines CI/CD
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths:
+      - 'engines/**'
+      - 'libs/python/**'
+      - '**/requirements*.txt'
+      - '**/pyproject.toml'
+      - '.github/workflows/engines.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'engines/**'
+      - 'libs/python/**'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Job 1: Code Quality & Security
+  quality:
+    name: Python Quality & Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || echo "No root requirements.txt"
+          pip install flake8 black isort mypy pylint bandit safety pytest pytest-cov
+
+      - name: Run Black formatter check
+        run: |
+          black --check --diff engines/ libs/python/ || exit 1
+
+      - name: Run isort import sorting check
+        run: |
+          isort --check-only --diff engines/ libs/python/ || exit 1
+
+      - name: Run Flake8 linting
+        run: |
+          flake8 engines/ libs/python/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 engines/ libs/python/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Pylint
+        run: |
+          pylint engines/ libs/python/ --exit-zero --max-line-length=127
+        continue-on-error: true
+
+      - name: Run MyPy type checking
+        run: |
+          mypy engines/ libs/python/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+      - name: Bandit security scan
+        run: |
+          bandit -r engines/ libs/python/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          safety check --json --output safety-report.json || true
+        continue-on-error: true
+
+      - name: Upload Safety report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-report
+          path: safety-report.json
+
+      - name: Snyk Python security scan
+        uses: snyk/actions/python@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # Job 2: Unit Tests
+  test:
+    name: Test - Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    needs: quality
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || echo "No requirements.txt"
+          pip install pytest pytest-cov pytest-asyncio pytest-mock pytest-xdist
+
+      - name: Install engine-specific dependencies
+        run: |
+          if [ -d "engines" ]; then
+            for engine in engines/*/requirements.txt; do
+              if [ -f "$engine" ]; then
+                echo "Installing $engine"
+                pip install -r "$engine"
+              fi
+            done
+          fi
+        shell: bash
+
+      - name: Run pytest with coverage
+        run: |
+          pytest engines/ libs/python/ \
+            --cov=engines \
+            --cov=libs/python \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term \
+            --junitxml=pytest-report.xml \
+            -v \
+            --tb=short
+        env:
+          PYTEST_TIMEOUT: 300
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: python-engines
+          name: python-${{ matrix.python-version }}-${{ matrix.os }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-${{ matrix.python-version }}-${{ matrix.os }}
+          path: |
+            pytest-report.xml
+            htmlcov/
+
+  # Job 3: Statistical Engine Tests
+  statistical-tests:
+    name: Statistical Engine Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ait_stats_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy pandas scikit-learn statsmodels
+          pip install pytest pytest-cov sqlalchemy psycopg2-binary
+
+      - name: Run statistical engine tests
+        run: |
+          pytest engines/statistical/ -v --cov=engines/statistical
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ait_stats_test
+
+      - name: Validate statistical models
+        run: |
+          python engines/statistical/validate_models.py
+        continue-on-error: true
+
+  # Job 4: Economic Engine Tests
+  economic-tests:
+    name: Economic Engine Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas requests pytest pytest-cov
+
+      - name: Run economic engine tests
+        run: |
+          pytest engines/economic/ -v --cov=engines/economic
+        env:
+          ECONOMIC_API_KEY: ${{ secrets.ECONOMIC_API_KEY_TEST }}
+
+      - name: Test API integrations
+        run: |
+          python engines/economic/test_api_sources.py
+        env:
+          ECONOMIC_API_KEY: ${{ secrets.ECONOMIC_API_KEY_TEST }}
+        continue-on-error: true
+
+  # Job 5: Financial Engine Tests
+  financial-tests:
+    name: Financial Engine Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas openpyxl pytest pytest-cov
+
+      - name: Run financial engine tests
+        run: |
+          pytest engines/financial/ -v --cov=engines/financial
+
+      - name: Validate financial calculations
+        run: |
+          python engines/financial/validate_calculations.py
+        continue-on-error: true
+
+  # Job 6: Integration Tests
+  integration:
+    name: Engine Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [statistical-tests, economic-tests, financial-tests]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ait_engines_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install all dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov redis celery
+
+      - name: Run integration tests
+        run: |
+          pytest tests/engines/integration/ -v --cov=engines
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ait_engines_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Test engine orchestration
+        run: |
+          python tests/engines/orchestration_test.py
+        continue-on-error: true
+
+  # Job 7: Performance & Benchmarks
+  performance:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: integration
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-benchmark memory-profiler
+
+      - name: Run performance benchmarks
+        run: |
+          pytest tests/engines/benchmarks/ -v --benchmark-only --benchmark-json=benchmark-results.json
+
+      - name: Memory profiling
+        run: |
+          python -m memory_profiler tests/engines/memory_test.py > memory-profile.txt
+        continue-on-error: true
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-benchmarks
+          path: |
+            benchmark-results.json
+            memory-profile.txt
+
+  # Job 8: Build & Package
+  build:
+    name: Build Python Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel setuptools
+
+      - name: Build packages
+        run: |
+          if [ -f "setup.py" ]; then
+            python -m build
+          fi
+          for engine in engines/*/setup.py; do
+            if [ -f "$engine" ]; then
+              engine_dir=$(dirname "$engine")
+              echo "Building $engine_dir"
+              cd "$engine_dir"
+              python -m build
+              cd -
+            fi
+          done
+
+      - name: Archive packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-packages
+          path: |
+            dist/
+            engines/*/dist/
+          retention-days: 7
+
+  # Job 9: Deploy to Production
+  deploy:
+    name: Deploy Engines
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, performance]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://engines.ait-core.soriano.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-packages
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /var/www/ait-core-engines
+            git pull origin main
+            python -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            supervisorctl restart ait-engines:*
+
+      - name: Health check
+        run: |
+          sleep 15
+          curl --fail https://engines.ait-core.soriano.com/health || exit 1
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'Python Engines deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

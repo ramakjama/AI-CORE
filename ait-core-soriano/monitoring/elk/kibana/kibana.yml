@@ -1,0 +1,90 @@
+# Kibana Configuration for AIT-CORE
+
+# Server settings
+server.name: kibana-ait-core
+server.host: "0.0.0.0"
+server.port: 5601
+server.publicBaseUrl: "http://localhost:5601"
+
+# Elasticsearch connection
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "${KIBANA_PASSWORD}"
+
+# SSL/TLS settings (for production)
+# server.ssl.enabled: true
+# server.ssl.certificate: /etc/kibana/certs/kibana.crt
+# server.ssl.key: /etc/kibana/certs/kibana.key
+
+# elasticsearch.ssl.certificateAuthorities: ["/etc/kibana/certs/ca.crt"]
+# elasticsearch.ssl.verificationMode: full
+
+# Monitoring
+monitoring.ui.enabled: true
+monitoring.kibana.collection.enabled: true
+
+# Logging
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders: [default, file]
+    level: info
+
+# Index patterns
+kibana.index: ".kibana"
+kibana.defaultAppId: "discover"
+
+# Saved objects
+savedObjects.maxImportPayloadBytes: 26214400
+
+# Security
+xpack.security.enabled: true
+xpack.security.encryptionKey: "${KIBANA_ENCRYPTION_KEY}"
+xpack.security.session.idleTimeout: "1h"
+xpack.security.session.lifespan: "30d"
+
+# Reporting
+xpack.reporting.enabled: true
+xpack.reporting.encryptionKey: "${KIBANA_REPORTING_ENCRYPTION_KEY}"
+xpack.reporting.kibanaServer.hostname: "kibana"
+
+# Alerting
+xpack.alerting.enabled: true
+xpack.actions.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: "${KIBANA_SAVED_OBJECTS_ENCRYPTION_KEY}"
+
+# Maps
+xpack.maps.enabled: true
+
+# APM integration
+apm.enabled: true
+
+# Canvas
+xpack.canvas.enabled: true
+
+# Machine learning
+xpack.ml.enabled: true
+
+# Telemetry
+telemetry.enabled: false
+telemetry.optIn: false
+
+# UI settings
+i18n.locale: "en"
+
+# Data paths
+path.data: /usr/share/kibana/data
+
+# Performance
+elasticsearch.requestTimeout: 30000
+elasticsearch.shardTimeout: 30000
+
+# Search settings
+elasticsearch.maxSockets: 50
+elasticsearch.keepAlive: true
+elasticsearch.pingTimeout: 30000

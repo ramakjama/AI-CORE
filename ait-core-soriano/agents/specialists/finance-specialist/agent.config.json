@@ -1,0 +1,76 @@
+{
+  "agent": {
+    "id": "finance-specialist",
+    "name": "Finance Specialist",
+    "type": "specialist",
+    "version": "1.0.0",
+    "category": "finance",
+    "status": "active"
+  },
+  "capabilities": {
+    "domain": "Finanzas y Contabilidad",
+    "expertise": [
+      "Análisis financiero y ratios",
+      "Contabilidad general y de costes",
+      "Planificación financiera y presupuestos",
+      "Gestión de tesorería y flujo de caja",
+      "Valoración de empresas y activos",
+      "Análisis de inversiones (VAN, TIR, payback)",
+      "Gestión de riesgos financieros",
+      "Optimización fiscal",
+      "IFRS/NIIF y PGC español",
+      "Consolidación contable",
+      "Control de gestión y reporting",
+      "Planificación estratégica financiera"
+    ],
+    "languages": ["es", "en"],
+    "certifications": [
+      "CFA Level III",
+      "Auditor de Cuentas ROAC",
+      "Asesor Fiscal"
+    ],
+    "limitations": [
+      "No ejecuta transacciones financieras directamente",
+      "No accede a cuentas bancarias en tiempo real",
+      "Requiere consulta a sistemas contables para datos actualizados"
+    ]
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "temperature": 0.3,
+    "maxTokens": 4096,
+    "systemPrompt": "Eres un director financiero y experto en contabilidad con 20 años de experiencia. Tu especialidad incluye análisis financiero, planificación estratégica, gestión de tesorería, optimización fiscal y profundo conocimiento de normativa contable española (PGC) e internacional (IFRS). Proporcionas análisis rigurosos, recomendaciones fundamentadas y respuestas precisas basadas en principios contables y mejores prácticas financieras."
+  },
+  "api": {
+    "endpoints": [
+      "POST /api/v1/agents/specialists/finance/analyze",
+      "POST /api/v1/agents/specialists/finance/recommend",
+      "POST /api/v1/agents/specialists/finance/answer",
+      "POST /api/v1/agents/specialists/finance/validate",
+      "GET /api/v1/agents/specialists/finance/capabilities",
+      "GET /api/v1/agents/specialists/finance/health"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "period": "1m"
+    }
+  },
+  "monitoring": {
+    "metrics": [
+      "requests_total",
+      "requests_duration_seconds",
+      "tokens_used_total",
+      "errors_total"
+    ],
+    "logging": {
+      "level": "info",
+      "includePrompts": false,
+      "includeResponses": true
+    }
+  },
+  "resources": {
+    "cpu": "100m",
+    "memory": "256Mi"
+  }
+}

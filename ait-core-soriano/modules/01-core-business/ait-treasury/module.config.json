@@ -1,0 +1,27 @@
+{
+  "moduleId": "ait-treasury",
+  "moduleName": "AIT Treasury",
+  "category": "01-core-business",
+  "version": "1.0.0",
+  "enabled": false,
+  "priority": "high",
+  "description": "Gestión de tesorería con IA",
+  "icon": "💰",
+  "color": "#4CAF50",
+  "port": 3005,
+  "database": "treasury_db",
+  "dependencies": {
+    "required": ["ait-pgc-engine", "ait-accountant"],
+    "optional": []
+  },
+  "agent": {
+    "enabled": true,
+    "parallelAgents": 100,
+    "modes": {
+      "switch": true,
+      "edit": true,
+      "plain": true,
+      "bypass": { "enabled": false }
+    }
+  }
+}

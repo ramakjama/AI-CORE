@@ -1,0 +1,96 @@
+# Sentry Configuration for AIT-CORE
+
+# System settings
+system.url-prefix: 'http://sentry.ait-core.soriano.com'
+system.admin-email: 'admin@ait-core.soriano.com'
+
+# Database (PostgreSQL)
+database:
+  engine: 'postgres'
+  host: 'postgres'
+  port: 5432
+  name: 'sentry'
+  user: 'sentry'
+  password: '${SENTRY_DB_PASSWORD}'
+
+# Redis
+redis:
+  clusters:
+    default:
+      hosts:
+        0:
+          host: 'redis'
+          port: 6379
+          password: '${REDIS_PASSWORD}'
+          db: 0
+
+# Email settings
+mail.backend: 'smtp'
+mail.host: 'smtp.gmail.com'
+mail.port: 587
+mail.username: '${SMTP_USERNAME}'
+mail.password: '${SMTP_PASSWORD}'
+mail.use-tls: true
+mail.from: 'sentry@ait-core.soriano.com'
+
+# Filestore
+filestore.backend: 'filesystem'
+filestore.options:
+  location: '/var/lib/sentry/files'
+
+# Secret key
+system.secret-key: '${SENTRY_SECRET_KEY}'
+
+# SSL
+# system.ssl-redirect: true
+
+# Web server
+web:
+  workers: 3
+  options:
+    worker-class: 'gevent'
+    bind: '0.0.0.0:9000'
+
+# Workers
+workers:
+  workers: 3
+
+# Beacon
+beacon.anonymous: false
+
+# Slack integration
+# slack.client-id: '${SLACK_CLIENT_ID}'
+# slack.client-secret: '${SLACK_CLIENT_SECRET}'
+# slack.verification-token: '${SLACK_VERIFICATION_TOKEN}'
+
+# GitHub integration
+# github-app.id: '${GITHUB_APP_ID}'
+# github-app.name: 'ait-core-sentry'
+# github-app.client-id: '${GITHUB_CLIENT_ID}'
+# github-app.client-secret: '${GITHUB_CLIENT_SECRET}'
+# github-app.webhook-secret: '${GITHUB_WEBHOOK_SECRET}'
+# github-app.private-key: '${GITHUB_PRIVATE_KEY}'
+
+# Performance monitoring
+options:
+  'performance.issues.all.problem-detection': 1.0
+  'performance.issues.n_plus_one_db.problem-creation': 1.0
+  'performance.issues.consecutive_db.problem-creation': 1.0
+
+# Event retention
+retention-days: 90
+
+# Rate limiting
+ratelimiter.backend: 'redis'
+
+# Buffer
+buffer.backend: 'redis'
+
+# Cache
+cache.backend: 'redis'
+
+# Queue
+queue.backend: 'redis'
+
+# Session management
+session.backend: 'redis'

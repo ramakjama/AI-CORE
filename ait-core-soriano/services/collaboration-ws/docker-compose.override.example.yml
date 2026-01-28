@@ -1,0 +1,48 @@
+# Example docker-compose override for production deployment
+# Copy this file to docker-compose.override.yml and customize as needed
+
+version: '3.8'
+
+services:
+  collaboration-ws:
+    environment:
+      # Production settings
+      NODE_ENV: production
+      DEBUG: "false"
+
+      # Custom port if needed
+      # WS_PORT: 1234
+
+      # Add authentication
+      # JWT_SECRET: your-secret-key-here
+      # JWT_ISSUER: ait-core
+
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+      # Replicas for load balancing (requires orchestration)
+      # replicas: 3
+
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Restart policy
+    restart: always
+
+    # Health check customization
+    healthcheck:
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

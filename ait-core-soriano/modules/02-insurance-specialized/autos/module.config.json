@@ -1,0 +1,27 @@
+{
+  "moduleName": "seguro-autos",
+  "displayName": "Seguros de Autos",
+  "version": "1.0.0",
+  "category": "insurance-specialized",
+  "market": "spain",
+  "enabled": true,
+  "features": {
+    "terceros": true,
+    "terceros_ampliado": true,
+    "todo_riesgo": true,
+    "franquicia": true,
+    "conductor_novel": true,
+    "asistencia_viaje": true,
+    "vehiculo_sustitucion": true,
+    "valor_nuevo": true
+  },
+  "integrations": {
+    "dgt_api": true,
+    "valoracion_vehiculos": true,
+    "talleres": true,
+    "peritacion": true
+  },
+  "tarificacion": {
+    "factores": ["edad_conductor", "antiguedad_carnet", "codigo_postal", "uso_vehiculo", "parking", "km_anuales", "bonificacion_malus"]
+  }
+}

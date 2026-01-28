@@ -1,0 +1,22 @@
+{
+  "moduleName": "seguro-hogar",
+  "displayName": "Seguros de Hogar",
+  "version": "1.0.0",
+  "category": "insurance-specialized",
+  "market": "spain",
+  "enabled": true,
+  "features": {
+    "continente": true,
+    "contenido": true,
+    "rc_familiar": true,
+    "robo": true,
+    "agua": true,
+    "incendio": true,
+    "cristales": true,
+    "electrodomesticos": true,
+    "asistencia_hogar": true
+  },
+  "tarificacion": {
+    "factores": ["superficie", "valor_continente", "valor_contenido", "ubicacion", "año_construccion", "tipo_vivienda", "medidas_seguridad"]
+  }
+}

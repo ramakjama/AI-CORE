@@ -1,0 +1,217 @@
+// Prisma schema for AIT Communications module
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Communication Logs
+model CommunicationLog {
+  id            String    @id @default(uuid())
+  channel       String    // EMAIL, SMS, WHATSAPP
+  recipient     String
+  subject       String?
+  content       String    @db.Text
+  status        String    // PENDING, SENT, DELIVERED, FAILED, BOUNCED, OPENED, CLICKED
+  providerId    String?
+  templateId    String?
+  priority      String    @default("NORMAL")
+  metadata      Json?
+
+  // Timestamps
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  bouncedAt     DateTime?
+  failedAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Analytics
+  openCount     Int       @default(0)
+  clickCount    Int       @default(0)
+
+  error         String?
+
+  // Relations
+  events        CommunicationEvent[]
+
+  @@index([channel, status])
+  @@index([recipient])
+  @@index([templateId])
+  @@index([sentAt])
+  @@map("communication_logs")
+}
+
+// Communication Events
+model CommunicationEvent {
+  id                   String   @id @default(uuid())
+  communicationLogId   String
+  event                String   // SENT, DELIVERED, OPENED, CLICKED, BOUNCED, FAILED
+  timestamp            DateTime @default(now())
+  metadata             Json?
+
+  // Relations
+  communicationLog     CommunicationLog @relation(fields: [communicationLogId], references: [id], onDelete: Cascade)
+
+  @@index([communicationLogId])
+  @@index([event])
+  @@map("communication_events")
+}
+
+// Email Templates
+model CommunicationTemplate {
+  id          String   @id @default(uuid())
+  channel     String   // EMAIL, SMS, WHATSAPP
+  type        String   // TRANSACTIONAL, MARKETING, NOTIFICATION
+  name        String   @unique
+  subject     String?
+  content     String   @db.Text
+  metadata    Json?
+  version     Int      @default(1)
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([channel, type])
+  @@index([name])
+  @@map("communication_templates")
+}
+
+// Communication Campaigns
+model CommunicationCampaign {
+  id              String    @id @default(uuid())
+  name            String
+  channel         String    // EMAIL, SMS, WHATSAPP
+  status          String    @default("DRAFT") // DRAFT, SCHEDULED, RUNNING, COMPLETED, CANCELLED
+  templateId      String?
+  subject         String?
+  content         String    @db.Text
+
+  // Scheduling
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Audience
+  audienceSize    Int?
+  excludeUnsubscribed Boolean @default(true)
+  filters         Json?
+
+  // Throttling
+  throttleLimit   Int?      // Messages per hour
+
+  // Analytics
+  sentCount       Int       @default(0)
+  deliveredCount  Int       @default(0)
+  failedCount     Int       @default(0)
+  openedCount     Int       @default(0)
+  clickedCount    Int       @default(0)
+
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  recipients      CampaignRecipient[]
+
+  @@index([status])
+  @@index([channel])
+  @@map("communication_campaigns")
+}
+
+// Campaign Recipients
+model CampaignRecipient {
+  id          String   @id @default(uuid())
+  campaignId  String
+  contact     String   // Email or phone number
+  data        Json?    // Template data
+  status      String   @default("PENDING")
+  sentAt      DateTime?
+
+  // Relations
+  campaign    CommunicationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([contact])
+  @@map("campaign_recipients")
+}
+
+// Email Bounces
+model EmailBounce {
+  id        String   @id @default(uuid())
+  email     String
+  reason    String?
+  type      String?  // hard, soft
+  timestamp DateTime @default(now())
+
+  @@index([email])
+  @@map("email_bounces")
+}
+
+// Unsubscribes
+model Unsubscribe {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  reason    String?
+  source    String?  // EMAIL, SMS, WHATSAPP
+  timestamp DateTime @default(now())
+
+  @@index([email])
+  @@map("unsubscribes")
+}
+
+// Shortened URLs
+model ShortenedUrl {
+  id            String    @id @default(uuid())
+  shortCode     String    @unique
+  originalUrl   String    @unique
+  clicks        Int       @default(0)
+  createdAt     DateTime  @default(now())
+  lastClickedAt DateTime?
+
+  @@index([shortCode])
+  @@map("shortened_urls")
+}
+
+// Consent Records (GDPR compliance)
+model ConsentRecord {
+  id          String   @id @default(uuid())
+  email       String
+  phone       String?
+  consentType String   // MARKETING, TRANSACTIONAL, PROMOTIONAL
+  granted     Boolean  @default(false)
+  source      String?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  revokedAt   DateTime?
+
+  @@index([email])
+  @@index([phone])
+  @@index([consentType])
+  @@map("consent_records")
+}
+
+// A/B Test Variants
+model ABTestVariant {
+  id          String   @id @default(uuid())
+  campaignId  String
+  variant     String   // A, B, C...
+  name        String
+  content     String   @db.Text
+  sentCount   Int      @default(0)
+  openedCount Int      @default(0)
+  clickedCount Int     @default(0)
+
+  createdAt   DateTime @default(now())
+
+  @@index([campaignId])
+  @@map("ab_test_variants")
+}

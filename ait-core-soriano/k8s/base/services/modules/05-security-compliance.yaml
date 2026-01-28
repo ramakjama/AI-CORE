@@ -1,0 +1,112 @@
+# SECURITY COMPLIANCE SERVICES
+# Category: 05-security-compliance
+# Total services: 4
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-audit-trail
+  namespace: ait-core
+  labels:
+    app: ai-audit-trail
+    category: security-compliance
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-audit-trail
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-compliance
+  namespace: ait-core
+  labels:
+    app: ai-compliance
+    category: security-compliance
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-compliance
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-defender
+  namespace: ait-core
+  labels:
+    app: ai-defender
+    category: security-compliance
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-defender
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-fraud-detection
+  namespace: ait-core
+  labels:
+    app: ai-fraud-detection
+    category: security-compliance
+    tier: module
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-fraud-detection
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

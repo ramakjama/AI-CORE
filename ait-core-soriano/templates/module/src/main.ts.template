@@ -1,0 +1,61 @@
+import { NestFactory } from '@nestjs/core';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { {{MODULE_NAME_PASCAL}}Module } from './{{MODULE_NAME_KEBAB}}.module';
+
+async function bootstrap() {
+  const logger = new Logger('{{MODULE_NAME_UPPER}}');
+
+  const app = await NestFactory.create({{MODULE_NAME_PASCAL}}Module, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
+
+  // Global prefix
+  app.setGlobalPrefix('api/v1');
+
+  // CORS
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true,
+  });
+
+  // Validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  // Swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('{{MODULE_NAME_UPPER}} API')
+    .setDescription('{{MODULE_DESCRIPTION}}')
+    .setVersion('1.0')
+    .addTag('{{MODULE_TAG}}')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
+
+  const port = process.env.PORT || {{PORT}};
+  await app.listen(port);
+
+  logger.log(`
+    ╔═══════════════════════════════════════════════════════════╗
+    ║                                                           ║
+    ║   🚀 {{MODULE_NAME_UPPER}} is running!                       ║
+    ║                                                           ║
+    ║   📍 URL: http://localhost:${port}                        ║
+    ║   📊 Swagger: http://localhost:${port}/api-docs          ║
+    ║   🏥 Health: http://localhost:${port}/health             ║
+    ║                                                           ║
+    ╚═══════════════════════════════════════════════════════════╝
+  `);
+}
+
+bootstrap();

@@ -1,0 +1,14 @@
+# Ignore generated files and logs
+*.log
+*.tmp
+*.pid
+
+# Performance results
+performance-results/
+
+# Backup metadata
+*.meta
+
+# Environment-specific configs
+.env.local
+.env.*.local

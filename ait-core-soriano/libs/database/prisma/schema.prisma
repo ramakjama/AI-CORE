@@ -1,0 +1,2254 @@
+// =============================================================================
+// AINTECH ECOSYSTEM - MASTER SCHEMA V1.0
+// =============================================================================
+// Consolidation of 3 schemas:
+// - ain-tech-web (Proactive AI B2B/B2C)
+// - ait-core-soriano (Insurance Core)
+// - soriano-ecliente (e-Cliente + Gamification V2)
+//
+// Total Models: 88 (deduplicated from 109)
+// Date: 2026-01-28
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// AUTHENTICATION & USERS
+// =============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  AGENT
+  ACCOUNTANT
+  CUSTOMER
+  AUDITOR
+  CLIENTE      // Alias for CUSTOMER (Spanish)
+  EMPLEADO     // Alias for AGENT (Spanish)
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum UserLevel {
+  BRONCE
+  PLATA
+  ORO
+  PLATINO
+}
+
+/// Core user model - Merged from all 3 schemas
+/// Supports: Authentication (NextAuth), B2B Organizations, Gamification, Security
+model User {
+  id                String    @id @default(cuid())
+
+  // Basic Information
+  email             String    @unique
+  name              String?
+  phone             String?
+  dni               String?   @unique
+
+  // Authentication (NextAuth)
+  emailVerified     DateTime?
+  password          String?   // Password hash
+  image             String?
+  avatar            String?
+
+  // Roles & Permissions (from ait-core-soriano)
+  role              UserRole   @default(CUSTOMER)
+  status            UserStatus @default(ACTIVE)
+
+  // Personal Details (from soriano-ecliente)
+  address           String?
+  city              String?
+  postalCode        String?
+  birthDate         DateTime?
+
+  // Security (from soriano-ecliente)
+  twoFactorEnabled      Boolean   @default(false)
+  twoFactorSecret       String?   // TOTP secret
+  backupCodes           Json?     // Array of backup codes
+  lastPasswordChange    DateTime?
+  passwordExpiresAt     DateTime?
+
+  // Organization (B2B from ain-tech-web)
+  organizationId    String?
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+
+  // Context & Preferences (from ain-tech-web)
+  timezone          String    @default("UTC")
+  language          String    @default("es")
+  country           String    @default("ES")
+  preferences       Json      @default("{}")
+
+  // Gamification (from soriano-ecliente)
+  level             UserLevel @default(BRONCE)
+  points            Int       @default(0)
+  referralCode      String?   @unique
+  isActive          Boolean   @default(true)
+
+  // Audit Fields
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  lastLoginAt       DateTime?
+
+  // Relations - Authentication
+  accounts          Account[]
+  sessions          Session[]
+  passwordHistory   PasswordHistory[]
+
+  // Relations - Security & Audit
+  auditLogs         AuditLog[]
+  permissions       UserPermission[]
+
+  // Relations - Profile
+  profile           UserProfile?
+
+  // Relations - Insurance Core
+  policies          Policy[]
+  claims            Claim[]
+  documents         Document[]
+
+  // Relations - CRM & Communication
+  messages          Message[]         @relation("UserMessages")
+  receivedMessages  Message[]         @relation("ReceivedMessages")
+  notifications     Notification[]
+
+  // Relations - AI & Proactivity
+  conversationMemories ConversationMemory[]
+  conversations     Conversation[]
+  realTimeData      RealTimeData?
+  alerts            Alert[]
+
+  // Relations - Gamification V1
+  badges            UserBadge[]
+  pointsHistory     PointsHistory[]
+  referralsMade     Referral[]        @relation("Referrer")
+  referredBy        Referral?         @relation("Referred")
+
+  // Relations - Gamification V2
+  wallets               Wallet[]
+  walletTransactions    WalletTransaction[]
+  quizAttempts          QuizAttempt[]
+  referralsMadeV2       ReferralV2[]      @relation("ReferrerV2")
+  referredByV2          ReferralV2?       @relation("ReferredV2")
+  spinWheelSpins        SpinWheelSpin[]
+  leaderboardEntries    LeaderboardEntry[]
+  ledgerEntries         Ledger[]
+  streak                UserStreak?
+  missions              UserMission[]
+  achievements          UserAchievement[]
+  renewalCheckpoints    RenewalCheckpoint[]
+  redemptions           RedemptionHistory[]
+
+  // Relations - Analytics
+  analyticsEvents   AnalyticsEvent[]
+  usageLogs         UsageLog[]
+  feedback          Feedback[]
+
+  // Relations - Personal Data (B2C)
+  goals             Goal[]
+  habits            Habit[]
+  relationships     Relationship[]
+
+  // Relations - Segmentation
+  segment           UserSegment?
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([referralCode])
+  @@index([level])
+  @@index([organizationId])
+  @@index([dni])
+  @@map("users")
+}
+
+/// NextAuth.js Account model
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// NextAuth.js Session model with security enhancements
+model Session {
+  id                String   @id @default(cuid())
+  sessionToken      String   @unique
+  userId            String
+  expires           DateTime
+
+  // Security Fields (from soriano-ecliente)
+  deviceFingerprint String?
+  ipAddress         String?
+  userAgent         String?  @db.Text
+  location          String?  // City, Country
+  lastActivity      DateTime? @default(now())
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceFingerprint])
+  @@index([expires])
+  @@map("sessions")
+}
+
+/// NextAuth.js VerificationToken model
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+/// Extended user profile information
+model UserProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  birthDate     DateTime?
+  gender        String?
+  maritalStatus String?
+  occupation    String?
+  interests     Json?    // Array of interests
+  healthInfo    Json?    // Medical conditions, medications, etc.
+  preferences   Json?    // Notification preferences, communication preferences
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// =============================================================================
+// SECURITY & AUDIT
+// =============================================================================
+
+/// Comprehensive audit log for security and compliance
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  email       String?
+
+  // Event Information
+  eventType   String   // LOGIN_SUCCESS, PASSWORD_CHANGE, CREATE, READ, UPDATE, DELETE
+  action      String   // Detailed action
+  resource    String   // What was accessed
+  resourceId  String?  // ID of the resource
+
+  // Changes Tracking
+  changes     Json?    // Before/after comparison
+
+  // Context
+  ipAddress   String
+  userAgent   String   @db.Text
+  location    String?
+  metadata    Json?    // Additional event data
+
+  timestamp   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([resource])
+  @@index([resourceId])
+  @@index([timestamp])
+  @@index([ipAddress])
+  @@map("audit_logs")
+}
+
+/// Password history for security compliance
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  passwordHash String   @db.Text
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("password_history")
+}
+
+/// Permissions system (RBAC)
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String   // READ, CREATE, UPDATE, DELETE
+  createdAt   DateTime @default(now())
+
+  userPermissions UserPermission[]
+
+  @@index([resource])
+  @@index([action])
+  @@map("permissions")
+}
+
+/// User-Permission mapping
+model UserPermission {
+  id           String   @id @default(cuid())
+  userId       String
+  permissionId String
+  grantedAt    DateTime @default(now())
+  grantedBy    String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
+  @@map("user_permissions")
+}
+
+// =============================================================================
+// ORGANIZATIONS (B2B)
+// =============================================================================
+
+/// Multi-tenant organization support for B2B
+model Organization {
+  id                  String    @id @default(cuid())
+  name                String
+  slug                String    @unique
+  industry            String?
+  teamSize            Int       @default(0)
+
+  // Settings
+  settings            Json      @default("{}")
+
+  // Subscription (for B2B pricing)
+  subscriptionTier    String    @default("free") // 'free' | 'starter' | 'business' | 'enterprise'
+  subscriptionStatus  String    @default("active") // 'active' | 'canceled' | 'past_due'
+  subscriptionEndsAt  DateTime?
+
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([slug])
+  @@index([subscriptionStatus])
+  @@map("organizations")
+}
+
+// =============================================================================
+// INSURANCE POLICIES
+// =============================================================================
+
+enum PolicyType {
+  AUTO
+  HOGAR           // HOME
+  VIDA            // LIFE
+  SALUD           // HEALTH
+  DECESOS         // FUNERAL
+  MASCOTAS        // PET
+  COMERCIO        // BUSINESS
+  COMUNIDADES     // HOA
+  VIAJE           // TRAVEL
+  MOTO            // MOTORCYCLE
+  ACCIDENTES      // ACCIDENTS
+  RC_PROFESIONAL  // PROFESSIONAL_LIABILITY
+}
+
+enum PolicyStatus {
+  DRAFT
+  ACTIVE
+  PENDING
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+/// Insurance policy model - Merged from ait-core and soriano-ecliente
+model Policy {
+  id              String        @id @default(cuid())
+  policyNumber    String        @unique
+
+  // Type and Status
+  type            PolicyType
+  status          PolicyStatus  @default(ACTIVE)
+
+  // Ownership
+  userId          String        // Changed from customerId to userId
+  agentId         String?
+
+  // Policy Details
+  name            String
+  company         String?
+  description     String?       @db.Text
+
+  // Financial
+  premium         Decimal       @db.Decimal(10, 2)
+  sumInsured      Decimal       @db.Decimal(12, 2)
+  deductible      Decimal?      @db.Decimal(10, 2)
+  paymentFrequency String       @default("ANNUAL") // MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL
+
+  // Dates
+  startDate       DateTime
+  endDate         DateTime
+  renewalDate     DateTime?
+  nextPayment     DateTime?
+
+  // Additional Data
+  coverages       Json?         // Can also use Coverage model
+  metadata        Json?
+
+  // Audit
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coverageItems   Coverage[]
+  endorsements    Endorsement[]
+  claims          Claim[]
+  documents       Document[]
+  payments        Payment[]
+  renewalCheckpoints RenewalCheckpoint[]
+
+  @@index([userId])
+  @@index([agentId])
+  @@index([status])
+  @@index([type])
+  @@index([policyNumber])
+  @@index([renewalDate])
+  @@map("policies")
+}
+
+/// Policy coverage items (detailed)
+model Coverage {
+  id          String   @id @default(cuid())
+  policyId    String
+  name        String
+  description String?  @db.Text
+  limit       Decimal  @db.Decimal(12, 2)
+  premium     Decimal  @db.Decimal(10, 2)
+  isOptional  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policy      Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("coverages")
+}
+
+/// Policy endorsements (amendments)
+model Endorsement {
+  id            String   @id @default(cuid())
+  policyId      String
+  type          String   // ADD_COVERAGE, REMOVE_COVERAGE, CHANGE_PREMIUM, etc.
+  description   String   @db.Text
+  effectiveDate DateTime
+  premiumChange Decimal  @db.Decimal(10, 2)
+  status        String   // PENDING, APPROVED, REJECTED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@index([status])
+  @@map("endorsements")
+}
+
+// =============================================================================
+// CLAIMS (SINIESTROS)
+// =============================================================================
+
+enum ClaimStatus {
+  PENDING
+  SUBMITTED
+  IN_PROGRESS
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  RESOLVED
+  PAID
+}
+
+enum ClaimPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+/// Insurance claim model - Merged from ait-core and soriano-ecliente
+model Claim {
+  id              String        @id @default(cuid())
+  claimNumber     String        @unique
+
+  // Ownership
+  userId          String
+  policyId        String
+
+  // Claim Details
+  type            String        // ACCIDENT, THEFT, DAMAGE, MEDICAL, etc.
+  description     String        @db.Text
+
+  // Status
+  status          ClaimStatus   @default(PENDING)
+  priority        ClaimPriority @default(MEDIUM)
+  assignedAgent   String?
+
+  // Financial
+  amount          Decimal       @db.Decimal(12, 2)
+  approvedAmount  Decimal?      @db.Decimal(12, 2)
+
+  // Dates
+  incidentDate    DateTime
+  submittedAt     DateTime      @default(now())
+  reviewedAt      DateTime?
+  settledAt       DateTime?
+  resolvedAt      DateTime?
+
+  // Additional Data
+  documents       Json?         // Array of document references
+  timeline        Json?         // Array of timeline events (can also use ClaimTimeline model)
+  metadata        Json?
+
+  // Audit
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy          Policy        @relation(fields: [policyId], references: [id])
+  claimDocuments  Document[]
+  claimTimeline   ClaimTimeline[]
+  adjustments     ClaimAdjustment[]
+
+  @@index([userId])
+  @@index([policyId])
+  @@index([status])
+  @@index([type])
+  @@index([claimNumber])
+  @@index([incidentDate])
+  @@map("claims")
+}
+
+/// Claim timeline events (better than JSON)
+model ClaimTimeline {
+  id          String      @id @default(cuid())
+  claimId     String
+  status      ClaimStatus
+  title       String
+  description String?     @db.Text
+  createdAt   DateTime    @default(now())
+
+  claim       Claim       @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([createdAt])
+  @@map("claim_timeline")
+}
+
+/// Claim adjustments (for amounts)
+model ClaimAdjustment {
+  id          String   @id @default(cuid())
+  claimId     String
+  adjustedBy  String
+  amount      Decimal  @db.Decimal(12, 2)
+  reason      String   @db.Text
+  notes       String?  @db.Text
+  adjustedAt  DateTime @default(now())
+
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("claim_adjustments")
+}
+
+// =============================================================================
+// CUSTOMERS (CRM & BILLING)
+// =============================================================================
+
+/// Customer model for CRM and billing (separate from User)
+/// A Customer can optionally have a User account
+model Customer {
+  id              String    @id @default(cuid())
+  customerNumber  String    @unique
+
+  // Type
+  type            String    // INDIVIDUAL, BUSINESS
+
+  // Personal Details
+  firstName       String?
+  lastName        String?
+  companyName     String?
+  email           String    @unique
+  phone           String
+  mobile          String?
+  birthDate       DateTime?
+  nationality     String?
+
+  // Identity
+  identityType    String    // NIF, NIE, CIF, PASSPORT
+  identityNumber  String    @unique
+
+  // Status
+  status          String    // ACTIVE, INACTIVE, SUSPENDED
+  rating          Int?      @default(0)
+
+  // Business Info
+  isCompany       Boolean   @default(false)
+  taxId           String?   // NIF/CIF for invoicing
+
+  // Billing Address (from ain-tech-web)
+  address         String?
+  city            String?
+  postalCode      String?
+  country         String    @default("ES")
+
+  // Optional link to User account
+  userId          String?   @unique
+
+  // Additional Data
+  metadata        Json?
+
+  // Audit
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  addresses       Address[]
+  contacts        Contact[]
+  notes           CustomerNote[]
+  invoices        Invoice[]
+
+  @@index([email])
+  @@index([identityNumber])
+  @@index([status])
+  @@index([customerNumber])
+  @@index([userId])
+  @@map("customers")
+}
+
+/// Customer addresses (detailed)
+model Address {
+  id          String   @id @default(cuid())
+  customerId  String
+  type        String   // HOME, WORK, BILLING, SHIPPING
+  street      String
+  number      String
+  floor       String?
+  door        String?
+  postalCode  String
+  city        String
+  province    String
+  country     String   @default("ES")
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([type])
+  @@map("addresses")
+}
+
+/// Customer contact methods
+model Contact {
+  id          String   @id @default(cuid())
+  customerId  String
+  type        String   // PHONE, EMAIL, WHATSAPP, etc.
+  value       String
+  isPrimary   Boolean  @default(false)
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([type])
+  @@map("contacts")
+}
+
+/// Customer notes (CRM)
+model CustomerNote {
+  id          String   @id @default(cuid())
+  customerId  String
+  note        String   @db.Text
+  category    String?  // CALL, MEETING, EMAIL, etc.
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("customer_notes")
+}
+
+// =============================================================================
+// FINANCE (INVOICING & PAYMENTS)
+// =============================================================================
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+/// Invoice model - Merged from ain-tech-web and ait-core-soriano
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+
+  // Customer
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  // Policy reference (optional)
+  policyId        String?
+
+  // Status
+  status          InvoiceStatus @default(DRAFT)
+
+  // Dates
+  date            DateTime      @default(now())
+  issueDate       DateTime      @default(now())
+  dueDate         DateTime
+  sentAt          DateTime?
+  paidAt          DateTime?
+
+  // Amounts
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal       @db.Decimal(10, 2)
+  taxRate         Decimal       @db.Decimal(5, 2) @default(21.0) // IVA 21% (España)
+  taxAmount       Decimal       @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  currency        String        @default("EUR")
+
+  // Notes
+  notes           String?       @db.Text
+
+  // Metadata
+  metadata        Json?
+
+  // Audit
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
+
+  // Relations
+  items           InvoiceItem[]
+  payments        Payment[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([date])
+  @@index([issueDate])
+  @@index([dueDate])
+  @@index([invoiceNumber])
+  @@map("invoices")
+}
+
+/// Invoice line items
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal  @db.Decimal(10, 2) @default(1)
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PAID
+  FAILED
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+/// Payment model - Merged from all 3 schemas
+model Payment {
+  id              String        @id @default(cuid())
+  paymentNumber   String        @unique
+
+  // References
+  invoiceId       String?
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  policyId        String?
+  policy          Policy?       @relation(fields: [policyId], references: [id])
+  customerId      String?
+
+  // Payment Details
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("EUR")
+
+  // Method
+  method          String        // CARD, BANK_TRANSFER, DIRECT_DEBIT, CASH, BIZUM, STRIPE, REDSYS
+
+  // Status
+  status          PaymentStatus @default(PENDING)
+
+  // External Reference
+  reference       String?
+  transactionId   String?
+
+  // Dates
+  date            DateTime      @default(now())
+  dueDate         DateTime?
+  paidAt          DateTime?
+
+  // Notes
+  notes           String?       @db.Text
+
+  // Metadata
+  metadata        Json?
+
+  // Audit
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  @@index([invoiceId])
+  @@index([policyId])
+  @@index([customerId])
+  @@index([status])
+  @@index([date])
+  @@index([dueDate])
+  @@index([transactionId])
+  @@index([paymentNumber])
+  @@map("payments")
+}
+
+/// Commission tracking for agents
+model Commission {
+  id          String   @id @default(cuid())
+  agentId     String
+  policyId    String
+  amount      Decimal  @db.Decimal(10, 2)
+  percentage  Decimal  @db.Decimal(5, 2)
+  type        String   // NEW_POLICY, RENEWAL, ENDORSEMENT
+  status      String   // PENDING, APPROVED, PAID
+  periodStart DateTime
+  periodEnd   DateTime
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([policyId])
+  @@index([status])
+  @@index([type])
+  @@map("commissions")
+}
+
+// =============================================================================
+// DOCUMENTS
+// =============================================================================
+
+/// Universal document storage - Merged from soriano-ecliente and ait-core
+model Document {
+  id          String    @id @default(cuid())
+
+  // Ownership
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // References (optional)
+  policyId    String?
+  policy      Policy?   @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  claimId     String?
+  claim       Claim?    @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  // Document Details
+  name        String
+  fileName    String
+  type        String    // PDF, IMAGE, CONTRACT, CLAIM_EVIDENCE, etc.
+  fileType    String    // mime type
+  url         String
+  size        String
+  fileSize    Int
+
+  // Upload Info
+  uploadedBy  String
+  uploadedAt  DateTime  @default(now())
+
+  // Metadata
+  metadata    Json?
+
+  @@index([userId])
+  @@index([policyId])
+  @@index([claimId])
+  @@index([type])
+  @@index([uploadedAt])
+  @@map("documents")
+}
+
+// =============================================================================
+// MESSAGING & NOTIFICATIONS
+// =============================================================================
+
+/// Internal messaging system
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  subject     String
+  body        String   @db.Text
+  read        Boolean  @default(false)
+  sentAt      DateTime @default(now())
+
+  sender      User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([read])
+  @@index([sentAt])
+  @@map("messages")
+}
+
+enum NotificationType {
+  POINTS
+  SUCCESS
+  INFO
+  WARNING
+  ERROR
+  ALERT
+  REMINDER
+  INSIGHT
+  ACHIEVEMENT
+}
+
+/// Notification system
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType @default(INFO)
+  title       String?
+  message     String           @db.Text
+  read        Boolean          @default(false)
+  link        String?
+  agentSlug   String?
+
+  // Delivery channels
+  sentVia     String[]         @default([]) // ['push', 'email', 'whatsapp']
+
+  createdAt   DateTime         @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// =============================================================================
+// AI PROACTIVITY (from ain-tech-web)
+// =============================================================================
+
+/// Conversation memory for AI agents
+model ConversationMemory {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentSlug         String
+
+  // Profile data (answers to agent questions)
+  profileAnswers    Json      @default("{}")
+
+  // Message history
+  messages          MessageHistory[]
+
+  // Recent topics (for context)
+  recentTopics      String[]
+
+  // Agent-specific context (KPIs tracked, goals, etc.)
+  context           Json      @default("{}")
+
+  lastConversation  DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([userId, agentSlug])
+  @@index([userId])
+  @@index([agentSlug])
+  @@index([lastConversation])
+  @@map("conversation_memories")
+}
+
+/// Message history for AI conversations
+model MessageHistory {
+  id                   String             @id @default(cuid())
+  conversationMemoryId String
+  conversationMemory   ConversationMemory @relation(fields: [conversationMemoryId], references: [id], onDelete: Cascade)
+
+  role    String // 'user' | 'assistant' | 'system'
+  content String @db.Text
+
+  // Metadata for analytics and costs
+  tokens    Int?
+  model     String? // Which LLM model was used
+  latencyMs Int?    // Response time in ms
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationMemoryId])
+  @@index([createdAt])
+  @@map("message_history")
+}
+
+/// Real-time data for proactive AI
+model RealTimeData {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Current activity
+  currentActivity String?
+
+  // Location
+  city    String?
+  country String?
+
+  // Weather
+  weatherTemp      Float?
+  weatherCondition String?
+
+  // Calendar (next event)
+  nextEventTitle String?
+  nextEventTime  DateTime?
+
+  // Finances (daily snapshot)
+  balance           Float?
+  todaySpending     Float?
+  monthlyBudgetUsed Float? // Percentage
+
+  // Health
+  steps       Int?
+  sleep       Float? // Hours
+  lastWorkout DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("real_time_data")
+}
+
+/// Proactive alerts
+model Alert {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            String   // 'critical' | 'high' | 'medium' | 'low'
+  title           String
+  description     String   @db.Text
+  agentSlug       String   // Which agent generated the alert
+
+  actionRequired  Boolean  @default(false)
+  dismissed       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([agentSlug])
+  @@index([dismissed])
+  @@index([type])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+// =============================================================================
+// PRODUCTS & AGENTS (from ain-tech-web)
+// =============================================================================
+
+/// Product catalog (B2B & B2C)
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  tagline     String
+  description String   @db.Text
+  category    String   // 'b2b' | 'b2c' | 'infrastructure' | 'platform'
+
+  // Metadata
+  icon        String
+  features    String[] // Array of features
+  useCases    String[] // Use cases
+
+  // Integrations
+  integratedWith String[] // Which services it integrates
+
+  // Pricing
+  pricing     Json?    // Flexible pricing structure
+
+  // Status
+  status      String   @default("active") // 'active' | 'coming_soon' | 'beta' | 'deprecated'
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+  @@map("products")
+}
+
+/// AI Agent configuration
+model Agent {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  role        String
+  description String   @db.Text
+  category    String   // 'b2b' | 'b2c'
+
+  // Metadata
+  icon         String
+  capabilities String[]
+  useCases     String[]
+
+  // Integrations
+  integratedWith String[]
+
+  // Behavior
+  autonomyLevel String  @default("supervised") // 'supervised' | 'semi-autonomous' | 'autonomous'
+
+  // LLM config
+  llmProvider String  @default("claude") // 'claude' | 'gpt' | 'deepseek'
+  llmModel    String? // Specific model
+  temperature Float   @default(0.5)
+  maxTokens   Int     @default(4096)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@map("agents")
+}
+
+// =============================================================================
+// USAGE TRACKING & ANALYTICS
+// =============================================================================
+
+/// Usage log for analytics and billing
+model UsageLog {
+  id       String   @id @default(cuid())
+  userId   String?
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // What was used
+  resource String   // 'llm_call' | 'api_request' | 'storage'
+  action   String   // 'chat_message' | 'context_fetch' | etc.
+
+  // Metadata
+  agentSlug String?
+  tokens    Int?     // Tokens consumed (for LLM)
+  cost      Float?   // Cost in USD
+
+  metadata  Json?    // Any other relevant data
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource])
+  @@index([action])
+  @@index([createdAt])
+  @@map("usage_logs")
+}
+
+/// Feedback for AI improvement
+model Feedback {
+  id                   String   @id @default(cuid())
+  userId               String?
+  user                 User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversationMemoryId String?
+  messageId            String?
+
+  rating  Int?     // 1-5 stars
+  comment String?  @db.Text
+
+  // Feedback categories
+  isHelpful       Boolean?
+  isAccurate      Boolean?
+  isFriendly      Boolean?
+  suggestedAction String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("feedback")
+}
+
+/// Analytics event tracking
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?  // Nullable for anonymous events
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  eventType String
+  category  String
+  action    String
+  label     String?
+  value     Int?
+  metadata  Json?
+  sessionId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([category])
+  @@index([action])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@map("analytics_events")
+}
+
+// =============================================================================
+// PERSONAL DATA (B2C from ain-tech-web)
+// =============================================================================
+
+/// Personal goals
+model Goal {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?  @db.Text
+  category     String   // 'financial' | 'health' | 'learning' | 'career' | 'personal'
+
+  targetValue  Float?
+  currentValue Float?
+  unit         String?  // 'EUR' | 'kg' | 'hours' | etc.
+
+  deadline     DateTime?
+
+  status       String   @default("in_progress") // 'in_progress' | 'completed' | 'abandoned'
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@map("goals")
+}
+
+/// Habit tracking
+model Habit {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name          String
+  description   String?   @db.Text
+
+  frequency     String    // 'daily' | 'weekly' | 'custom'
+  streak        Int       @default(0)
+
+  lastCompleted DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("habits")
+}
+
+/// Personal relationships
+model Relationship {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  relation  String    // 'partner' | 'friend' | 'family' | etc.
+  birthday  DateTime?
+
+  notes     String?   @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("relationships")
+}
+
+// =============================================================================
+// CHAT AI (from soriano-ecliente)
+// =============================================================================
+
+/// AI Chat conversations
+model Conversation {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String?
+  isActive    Boolean       @default(true)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  messages    ChatMessage[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("conversations")
+}
+
+enum ChatMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+/// Chat messages
+model ChatMessage {
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role           ChatMessageRole
+  content        String          @db.Text
+
+  createdAt      DateTime        @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+// =============================================================================
+// GAMIFICATION V1 (from soriano-ecliente)
+// =============================================================================
+
+enum PointsAction {
+  PERFIL_COMPLETO
+  NUEVA_POLIZA
+  RENOVACION
+  REFERIDO_REGISTRO
+  REFERIDO_CONVERSION
+  CHAT_SORI
+  REVIEW
+  LOGIN_DIARIO
+}
+
+/// Points history
+model PointsHistory {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  action      PointsAction
+  points      Int
+  description String?
+
+  createdAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("points_history")
+}
+
+/// Badge definitions
+model Badge {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  name        String
+  description String
+  icon        String
+  color       String
+  isSecret    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  users       UserBadge[]
+
+  @@index([code])
+  @@map("badges")
+}
+
+/// User earned badges
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([earnedAt])
+  @@map("user_badges")
+}
+
+enum ReferralStatus {
+  PENDIENTE
+  REGISTRADO
+  CONVERTIDO
+}
+
+/// Referral program V1
+model Referral {
+  id            String         @id @default(cuid())
+  referrerId    String
+  referrer      User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  referredId    String?        @unique
+  referred      User?          @relation("Referred", fields: [referredId], references: [id], onDelete: SetNull)
+
+  referredEmail String
+  code          String         @unique
+  status        ReferralStatus @default(PENDIENTE)
+
+  createdAt     DateTime       @default(now())
+  convertedAt   DateTime?
+
+  @@index([referrerId])
+  @@index([code])
+  @@index([status])
+  @@map("referrals")
+}
+
+// =============================================================================
+// GAMIFICATION V2 - ADVANCED SYSTEM (from soriano-ecliente)
+// =============================================================================
+
+enum WalletType {
+  XP
+  COINS
+  SHIELDS
+}
+
+/// Multi-currency wallet system
+model Wallet {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        WalletType
+  balance     Int        @default(0)
+
+  lastUpdated DateTime   @updatedAt
+  createdAt   DateTime   @default(now())
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@index([type])
+  @@map("wallets")
+}
+
+enum TransactionType {
+  EARN
+  SPEND
+  TRANSFER
+}
+
+/// Wallet transaction history
+model WalletTransaction {
+  id          String          @id @default(cuid())
+  walletId    String
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount      Int
+  type        TransactionType
+  description String?
+  metadata    Json?
+
+  createdAt   DateTime        @default(now())
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+/// Quiz questions database
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  category      String   // SEGUROS, PREVENCION, SORIANO, FINANZAS, etc.
+  difficulty    Int      @default(1) // 1 (easy), 2 (medium), 3 (hard)
+  question      String   @db.Text
+  options       Json     // Array of 4 options
+  correctIndex  Int      // 0-3
+  explanation   String?  @db.Text
+  xpReward      Int      @default(10)
+  coinsReward   Int      @default(5)
+  active        Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([active])
+  @@map("quiz_questions")
+}
+
+/// Daily quiz configuration
+model DailyQuiz {
+  id          String        @id @default(cuid())
+  date        DateTime      @unique @db.Date
+  questionIds Json          // Array of 5-10 question IDs
+  createdAt   DateTime      @default(now())
+
+  attempts    QuizAttempt[]
+
+  @@index([date])
+  @@map("daily_quizzes")
+}
+
+/// Quiz attempt tracking
+model QuizAttempt {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dailyQuizId     String
+  dailyQuiz       DailyQuiz @relation(fields: [dailyQuizId], references: [id], onDelete: Cascade)
+
+  answers         Json      // Array of { questionId, selectedIndex, correct, timeSpent }
+  score           Int       @default(0)
+  totalQuestions  Int
+  totalXP         Int       @default(0)
+  totalCoins      Int       @default(0)
+
+  completedAt     DateTime  @default(now())
+
+  @@unique([userId, dailyQuizId])
+  @@index([userId])
+  @@index([dailyQuizId])
+  @@index([completedAt])
+  @@map("quiz_attempts")
+}
+
+enum ReferralStage {
+  INVITED
+  INSTALL_OPEN
+  PROFILE_QUIZ
+  REQUESTED_REVIEW
+  POLICY_PAID
+}
+
+/// Referral program V2 with stages
+model ReferralV2 {
+  id             String        @id @default(cuid())
+  referrerId     String
+  referrer       User          @relation("ReferrerV2", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  referredEmail  String
+  referredUserId String?       @unique
+  referredUser   User?         @relation("ReferredV2", fields: [referredUserId], references: [id], onDelete: SetNull)
+
+  stage          ReferralStage @default(INVITED)
+  metadata       Json?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([referrerId])
+  @@index([stage])
+  @@index([referredEmail])
+  @@map("referrals_v2")
+}
+
+/// Spin wheel prize definitions
+model SpinWheelPrize {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  type        String          // XP, COINS, SHIELDS, PHYSICAL, DISCOUNT
+  value       Int             // Amount for XP/COINS/SHIELDS
+  probability Float           // 0-1 probability weight
+  color       String?
+  icon        String?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+
+  spins       SpinWheelSpin[]
+
+  @@index([isActive])
+  @@index([type])
+  @@map("spin_wheel_prizes")
+}
+
+/// Spin wheel spin history
+model SpinWheelSpin {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  prizeId   String
+  prize     SpinWheelPrize  @relation(fields: [prizeId], references: [id])
+
+  claimed   Boolean         @default(false)
+  claimedAt DateTime?
+  createdAt DateTime        @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("spin_wheel_spins")
+}
+
+enum LeaderboardPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+/// Leaderboard entries
+model LeaderboardEntry {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  period      LeaderboardPeriod
+  periodStart DateTime
+  periodEnd   DateTime
+  xpEarned    Int               @default(0)
+  rank        Int?
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([userId, period, periodStart])
+  @@index([period, periodStart])
+  @@index([xpEarned])
+  @@index([userId])
+  @@map("leaderboard_entries")
+}
+
+// =============================================================================
+// LEDGER - AUDITABLE APPEND-ONLY SYSTEM
+// =============================================================================
+
+enum LedgerTransactionType {
+  CREDIT
+  DEBIT
+}
+
+/// Immutable financial ledger for gamification
+model Ledger {
+  id              String                @id @default(cuid())
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  walletType      WalletType
+  transactionType LedgerTransactionType
+  delta           Int                   // Always positive, type determines direction
+  balanceBefore   Int
+  balanceAfter    Int
+  reason          String                // QUIZ_COMPLETED, STORE_PURCHASE, REFERRAL_BONUS, etc.
+  reference       String?               // External reference ID
+  idempotencyKey  String?               @unique
+  metadata        Json?
+
+  createdAt       DateTime              @default(now())
+
+  @@index([userId])
+  @@index([userId, walletType])
+  @@index([createdAt])
+  @@index([reason])
+  @@index([reference])
+  @@map("ledger")
+}
+
+// =============================================================================
+// STREAKS - Daily Activity Tracking
+// =============================================================================
+
+/// User activity streaks
+model UserStreak {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  currentStreak        Int       @default(0)
+  longestStreak        Int       @default(0)
+  lastQuizDate         DateTime?
+  shieldProtectedUntil DateTime?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([lastQuizDate])
+  @@index([currentStreak])
+  @@map("user_streaks")
+}
+
+// =============================================================================
+// MISSIONS & ACHIEVEMENTS
+// =============================================================================
+
+enum MissionType {
+  DAILY
+  WEEKLY
+  PROFILE
+  PERMANENT
+  SPECIAL
+}
+
+/// Mission definitions
+model Mission {
+  id          String      @id @default(cuid())
+  type        MissionType
+  category    String
+  title       String
+  description String      @db.Text
+  icon        String?
+  points      Int         @default(0)
+  xpReward    Int         @default(0)
+  coinsReward Int         @default(0)
+  requirement Json        // Condition object { type, target, current }
+  active      Boolean     @default(true)
+
+  createdAt   DateTime    @default(now())
+
+  userMissions UserMission[]
+
+  @@index([type])
+  @@index([active])
+  @@index([category])
+  @@map("missions")
+}
+
+/// User mission progress
+model UserMission {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  missionId   String
+  mission     Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  claimed     Boolean   @default(false)
+  claimedAt   DateTime?
+
+  @@unique([userId, missionId])
+  @@index([userId])
+  @@index([completed])
+  @@index([claimed])
+  @@map("user_missions")
+}
+
+enum AchievementRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+/// Achievement definitions
+model Achievement {
+  id          String            @id @default(cuid())
+  key         String            @unique
+  name        String
+  description String            @db.Text
+  icon        String?
+  rarity      AchievementRarity @default(COMMON)
+  category    String
+  requirement Json              // Condition object
+  xpReward    Int               @default(0)
+  coinsReward Int               @default(0)
+  badgeUrl    String?
+  active      Boolean           @default(true)
+
+  createdAt   DateTime          @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@index([key])
+  @@index([category])
+  @@index([active])
+  @@index([rarity])
+  @@map("achievements")
+}
+
+/// User unlocked achievements
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([unlockedAt])
+  @@map("user_achievements")
+}
+
+// =============================================================================
+// RENEWAL CHECKPOINTS - Policy Renewal Rewards
+// =============================================================================
+
+enum RenewalCheckpointType {
+  T30
+  T15
+  T7
+}
+
+/// Renewal checkpoint rewards
+model RenewalCheckpoint {
+  id          String                 @id @default(cuid())
+  policyId    String
+  policy      Policy                 @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  checkpoint  RenewalCheckpointType
+  coinsReward Int
+  spinsReward Int                    @default(0)
+  claimed     Boolean                @default(false)
+  claimedAt   DateTime?
+
+  createdAt   DateTime               @default(now())
+
+  @@unique([userId, policyId, checkpoint])
+  @@index([userId])
+  @@index([policyId])
+  @@index([claimed])
+  @@map("renewal_checkpoints")
+}
+
+// =============================================================================
+// MARKETPLACE - Rewards & Redemptions
+// =============================================================================
+
+/// Marketplace reward catalog
+model MarketplaceReward {
+  id            String   @id @default(cuid())
+  type          String   // DISCOUNT, PHYSICAL, DIGITAL, CHARITY
+  name          String
+  description   String   @db.Text
+  category      String
+  coinsRequired Int
+  stock         Int?     // null = unlimited
+  image         String?
+  active        Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+
+  redemptions   RedemptionHistory[]
+
+  @@index([active])
+  @@index([category])
+  @@index([type])
+  @@map("marketplace_rewards")
+}
+
+enum RedemptionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+/// Redemption history
+model RedemptionHistory {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rewardId    String
+  reward      MarketplaceReward @relation(fields: [rewardId], references: [id])
+
+  coinsCost   Int
+  status      RedemptionStatus  @default(PENDING)
+  redeemedAt  DateTime          @default(now())
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([redeemedAt])
+  @@map("redemption_history")
+}
+
+// =============================================================================
+// LEADS - Landing Page Capture
+// =============================================================================
+
+enum LeadStatus {
+  NUEVO
+  CONTACTADO
+  CUALIFICADO
+  OPORTUNIDAD
+  GANADO
+  PERDIDO
+}
+
+enum InsuranceType {
+  AUTO
+  HOGAR
+  SALUD
+  VIDA
+  DECESOS
+  MASCOTAS
+  COMERCIO
+  COMUNIDADES
+  VIAJE
+  MOTO
+  ACCIDENTES
+  RC_PROFESIONAL
+  GENERAL
+}
+
+/// Lead capture from landing pages
+model Lead {
+  id            String        @id @default(cuid())
+  name          String
+  email         String
+  phone         String
+  message       String?       @db.Text
+  status        LeadStatus    @default(NUEVO)
+  insuranceType InsuranceType @default(GENERAL)
+
+  // Tracking
+  source        String        // landing-seguro-auto, promo-black-friday
+  campaign      String?
+  landingPage   String
+
+  // UTM Parameters
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmContent    String?
+  utmTerm       String?
+
+  // Referral
+  referralCode  String?
+
+  // Technical metadata
+  userAgent     String?
+  ipAddress     String?
+
+  // Management
+  notes         String?       @db.Text
+  assignedTo    String?
+
+  // Gamification
+  pointsAwarded Int           @default(0)
+
+  // Conversion
+  convertedAt        DateTime?
+  convertedToUserId  String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([insuranceType])
+  @@index([source])
+  @@index([campaign])
+  @@index([createdAt])
+  @@index([email])
+  @@map("leads")
+}
+
+// =============================================================================
+// SEGMENTATION & RECOMMENDATION ENGINE
+// =============================================================================
+
+enum MaritalStatus {
+  SOLTERO
+  CASADO
+  PAREJA_DE_HECHO
+  DIVORCIADO
+  VIUDO
+}
+
+enum EmploymentStatus {
+  EMPLEADO_CUENTA_AJENA
+  AUTONOMO
+  FUNCIONARIO
+  DIRECTIVO
+  DESEMPLEADO
+  JUBILADO
+  ESTUDIANTE
+  AMA_DE_CASA
+}
+
+enum HousingStatus {
+  VIVIENDA_PROPIA_SIN_HIPOTECA
+  VIVIENDA_PROPIA_CON_HIPOTECA
+  ALQUILER
+  FAMILIAR
+  OTROS
+}
+
+enum VehicleOwnership {
+  PROPIO
+  RENTING
+  LEASING
+  EMPRESA
+  NINGUNO
+}
+
+enum IncomeLevel {
+  MENOS_1000
+  ENTRE_1000_2000
+  ENTRE_2000_3000
+  ENTRE_3000_5000
+  ENTRE_5000_7000
+  MAS_7000
+}
+
+enum RiskTolerance {
+  MUY_BAJO
+  BAJO
+  MEDIO
+  ALTO
+  MUY_ALTO
+}
+
+enum PolicyPriority {
+  NO_NECESARIA
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+/// User segmentation profile (complete demographic & financial)
+model UserSegment {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ===== DEMOGRAPHICS =====
+  age                Int?
+  gender             String?           // HOMBRE, MUJER, OTRO, PREFIERO_NO_DECIR
+  maritalStatus      MaritalStatus?
+  hasChildren        Boolean           @default(false)
+  numberOfChildren   Int               @default(0)
+  childrenAges       String?           // JSON array: [2, 5, 8]
+  hasDependents      Boolean           @default(false)  // Elderly parents, relatives
+
+  // ===== EMPLOYMENT =====
+  employmentStatus   EmploymentStatus?
+  occupation         String?           // Teacher, Engineer, Doctor, etc.
+  companySector      String?           // Technology, Construction, Education, etc.
+  yearsInCurrentJob  Int?
+  monthlyIncome      IncomeLevel?
+  hasSecondIncome    Boolean           @default(false)
+  secondIncomeAmount Int?              // In euros
+
+  // ===== ASSETS =====
+  housingStatus      HousingStatus?
+  homeValue          Int?              // Home value in euros
+  hasMortgage        Boolean           @default(false)
+  mortgageAmount     Int?              // Outstanding mortgage
+  mortgageMonthly    Int?              // Monthly mortgage payment
+
+  vehicleOwnership   VehicleOwnership  @default(NINGUNO)
+  hasVehicle         Boolean           @default(false)
+  vehicleValue       Int?              // Vehicle value
+  vehicleType        String?           // Car, Motorcycle, Van
+  vehicleYear        Int?
+  vehicleUse         String?           // WORK, PERSONAL, MIXED
+
+  // ===== FINANCIAL =====
+  hasSavings         Boolean           @default(false)
+  savingsAmount      Int?              // Emergency fund in euros
+  hasDebts           Boolean           @default(false)
+  totalDebts         Int?              // Total debts (cards, loans)
+  monthlyExpenses    Int?              // Estimated monthly expenses
+  riskTolerance      RiskTolerance?
+
+  // ===== LIFESTYLE =====
+  travelFrequency    Int               @default(0)  // International trips per year
+  practicesSports    Boolean           @default(false)
+  sportsType         String?           // LOW_RISK, MEDIUM_RISK, HIGH_RISK
+  hasPets            Boolean           @default(false)
+  numberOfPets       Int               @default(0)
+  petTypes           String?           // JSON array: ["dog", "cat"]
+
+  // ===== HEALTH =====
+  hasHealthConditions      Boolean     @default(false)
+  healthConditionTypes     String?     // JSON array: ["diabetes", "hypertension"]
+  takesRegularMedication   Boolean     @default(false)
+  visitsHospitalFrequently Boolean     @default(false)
+  hasPublicHealthcare      Boolean     @default(true)
+  hasPrivateHealthcare     Boolean     @default(false)
+
+  // ===== COVERAGE PREFERENCES =====
+  priorityHome        Boolean          @default(false)  // User marks as priority
+  priorityAuto        Boolean          @default(false)
+  priorityHealth      Boolean          @default(false)
+  priorityLife        Boolean          @default(false)
+  priorityDecesos     Boolean          @default(false)
+
+  // ===== BEHAVIOR =====
+  lastPolicyReview    DateTime?        // Last policy review
+  openToNewPolicies   Boolean          @default(true)
+  preferredContact    String?          // EMAIL, PHONE, WHATSAPP
+  bestContactTime     String?          // MORNING, AFTERNOON, EVENING
+
+  // ===== TRACKING =====
+  profileCompleteness Int              @default(0)  // % of profile completed (0-100)
+  lastUpdated         DateTime         @default(now()) @updatedAt
+  createdAt           DateTime         @default(now())
+
+  // Relations
+  recommendations     PolicyRecommendation[]
+
+  @@index([userId])
+  @@index([employmentStatus])
+  @@index([housingStatus])
+  @@index([monthlyIncome])
+  @@index([profileCompleteness])
+  @@map("user_segments")
+}
+
+/// Personalized policy recommendations
+model PolicyRecommendation {
+  id              String         @id @default(cuid())
+  userId          String
+  userSegmentId   String
+  userSegment     UserSegment    @relation(fields: [userSegmentId], references: [id], onDelete: Cascade)
+
+  // Policy identification
+  policyType      InsuranceType
+
+  // Need analysis
+  priority        PolicyPriority @default(MEDIA)
+  priorityScore   Int            @default(50)  // 0-100
+  isCurrentlyCovered Boolean     @default(false)
+
+  // Personalized reasons and messages
+  mainReason      String         @db.Text  // "You have a mortgage of 150,000€"
+  riskDescription String         @db.Text  // "Without insurance, your family must assume the mortgage"
+  financialImpact String?        @db.Text  // "Up to 150,000€ financial risk"
+  legalImpact     String?        @db.Text  // "Fines from 3,000€ for driving without insurance"
+
+  // Specific recommendation
+  recommendedCoverage String?    @db.Text  // "Minimum coverage of 200,000€"
+  estimatedPremium    Int?                 // Estimated monthly premium in euros
+
+  // Engine calculation
+  calculationFactors  String     @db.Text  // JSON with influencing factors
+  confidenceScore     Int        @default(70)  // Recommendation confidence (0-100)
+
+  // Tracking
+  userViewed      Boolean        @default(false)
+  userDismissed   Boolean        @default(false)
+  dismissReason   String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  expiresAt       DateTime?      // Recommendation valid until
+
+  @@index([userId])
+  @@index([policyType])
+  @@index([priority])
+  @@index([isCurrentlyCovered])
+  @@index([createdAt])
+  @@map("policy_recommendations")
+}
+
+/// Business rules for recommendation engine
+model CoverageRule {
+  id          String         @id @default(cuid())
+  name        String         // "Mortgage -> Critical Life Insurance"
+  description String         @db.Text
+
+  // Conditions (JSON with logic)
+  conditions  String         @db.Text  // {"hasMortgage": true, "hasChildren": true}
+
+  // Result
+  policyType  InsuranceType
+  priority    PolicyPriority
+  priorityBoost Int          @default(0)  // Additional priority points
+
+  // Personalized message
+  messageTemplate String     @db.Text  // "With a mortgage of {mortgageAmount}€..."
+
+  // Management
+  isActive    Boolean        @default(true)
+  weight      Int            @default(100)  // Rule weight (0-100)
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([policyType])
+  @@index([isActive])
+  @@map("coverage_rules")
+}
+
+// =============================================================================
+// END OF SCHEMA
+// =============================================================================
